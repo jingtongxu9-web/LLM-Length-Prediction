@@ -1,0 +1,28 @@
+defaults: ../base.yaml
+stage: end_to_end_benchmark
+
+methods:
+  - input_length
+  - alps_only
+  - plp_only
+  - alps_plp_hybrid
+
+prediction_metrics:
+  - mae
+  - rmse
+  - relative_error
+  - time_to_target_accuracy
+  - long_tail_underestimation
+
+serving_metrics:
+  - mean_latency
+  - p95_latency
+  - p99_latency
+  - throughput
+  - padding_waste
+  - kv_cache_peak
+  - oom_count
+
+scheduler:
+  strategy: predicted_remaining_length_buckets
+  fairness_aging: true

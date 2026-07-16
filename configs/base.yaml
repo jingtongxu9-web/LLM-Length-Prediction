@@ -1,0 +1,26 @@
+project: llm-length-prediction
+seed: 42
+
+model:
+  name: Qwen/Qwen2.5-7B-Instruct
+  revision: main
+  dtype: bfloat16
+  candidate_layers: [8, 14, 20, 26]
+
+data:
+  tasks: [qa, summarization, code]
+  split_by: prompt_id
+  temperatures: [0.2, 0.7, 1.0]
+  samples_per_prompt: 3
+  max_new_tokens: 2048
+
+trace:
+  capture_entropy: true
+  capture_eos_probability: true
+  dynamic_stride: 5
+  entropy_window: 20
+
+evaluation:
+  severe_error_tokens: 100
+  long_output_quantile: 0.90
+  target_relative_errors: [0.05, 0.10, 0.20]

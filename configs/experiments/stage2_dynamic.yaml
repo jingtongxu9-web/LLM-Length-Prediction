@@ -1,0 +1,26 @@
+defaults: ../base.yaml
+stage: dynamic_correction
+
+label: remaining_length
+stride: 5
+
+features:
+  static_prior: true
+  step: true
+  entropy: true
+  entropy_mean: true
+  entropy_slope: true
+  eos_probability: true
+  hidden_state: optional
+
+model:
+  type: mlp
+  hidden_sizes: [128, 64]
+  dropout: 0.1
+
+ablations:
+  - plp_without_prior
+  - without_entropy_trend
+  - without_hidden_state
+  - stride_10
+  - stride_20

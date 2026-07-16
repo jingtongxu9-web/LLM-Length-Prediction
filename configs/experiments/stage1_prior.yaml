@@ -1,0 +1,21 @@
+defaults: ../base.yaml
+stage: offline_prior
+
+targets:
+  - output_length
+  - log_output_length
+
+baselines:
+  - global_mean
+  - prompt_token_count
+  - ridge_probe
+
+distribution:
+  families: [normal, lognormal]
+  fit: maximum_likelihood
+
+reports:
+  - length_histogram
+  - log_length_qq
+  - layer_sweep
+  - tail_underestimation

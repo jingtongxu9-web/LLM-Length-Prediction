@@ -1,0 +1,31 @@
+.DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Local data and generated artifacts
+data/raw/
+data/interim/
+data/processed/
+artifacts/checkpoints/
+artifacts/traces/
+artifacts/figures/
+*.safetensors
+*.pt
+*.pth
+*.npy
+*.npz
+
+# Secrets and machine-local settings
+.env
+.env.*
+!.env.example
+wandb/
+mlruns/
