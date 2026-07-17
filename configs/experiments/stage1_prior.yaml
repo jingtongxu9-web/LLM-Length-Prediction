@@ -1,9 +1,11 @@
 defaults: ../base.yaml
 stage: offline_prior
 
-targets:
-  - output_length
-  - log_output_length
+target: output_length
+
+ridge:
+  standardize: true
+  alpha: 1.0
 
 baselines:
   - global_mean

@@ -15,6 +15,20 @@ def _rolling_summary(values: Sequence[float], window: int) -> tuple[float, float
     return mean, slope
 
 
+def _top_p_probabilities(probabilities: Any, top_p: float) -> Any:
+    if top_p >= 1.0:
+        return probabilities
+    sorted_probabilities, sorted_indices = probabilities.sort(dim=-1, descending=True)
+    cumulative = sorted_probabilities.cumsum(dim=-1)
+    remove = cumulative > top_p
+    remove[..., 1:] = remove[..., :-1].clone()
+    remove[..., 0] = False
+    sorted_probabilities = sorted_probabilities.masked_fill(remove, 0.0)
+    filtered = probabilities.new_zeros(probabilities.shape)
+    filtered.scatter_(-1, sorted_indices, sorted_probabilities)
+    return filtered / filtered.sum(dim=-1, keepdim=True)
+
+
 class HuggingFaceSignalCollector:
     """Collect prefill and decode signals from an AutoModelForCausalLM model."""
 
@@ -28,6 +42,7 @@ class HuggingFaceSignalCollector:
         candidate_layers: Sequence[int] | None = None,
         max_new_tokens: int = 64,
         temperature: float = 0.7,
+        top_p: float = 0.95,
         seed: int = 42,
         trace_stride: int = 5,
         entropy_window: int = 20,
@@ -36,6 +51,8 @@ class HuggingFaceSignalCollector:
             raise ValueError("max_new_tokens must be positive")
         if temperature < 0:
             raise ValueError("temperature must be non-negative")
+        if not 0.0 < top_p <= 1.0:
+            raise ValueError("top_p must be in (0, 1]")
         if trace_stride <= 0 or entropy_window <= 0:
             raise ValueError("trace_stride and entropy_window must be positive")
 
@@ -54,6 +71,7 @@ class HuggingFaceSignalCollector:
         self.device = self._resolve_device(device)
         self.max_new_tokens = max_new_tokens
         self.temperature = temperature
+        self.top_p = top_p
         self.seed = seed
         self.trace_stride = trace_stride
         self.entropy_window = entropy_window
@@ -69,17 +87,18 @@ class HuggingFaceSignalCollector:
         self.model = AutoModelForCausalLM.from_pretrained(model_name, **load_kwargs)
         self.model.to(self.device)
         self.model.eval()
+        self.model.requires_grad_(False)
         self.resolved_revision = getattr(self.model.config, "_commit_hash", None) or revision
         if self.tokenizer.pad_token_id is None and self.tokenizer.eos_token_id is not None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
         layer_count = self._layer_count()
-        default_layers = (max(1, layer_count // 2), layer_count)
+        default_layers = (layer_count // 2, layer_count - 1)
         self.candidate_layers = tuple(candidate_layers or default_layers)
-        invalid = [layer for layer in self.candidate_layers if not 0 <= layer <= layer_count]
+        invalid = [layer for layer in self.candidate_layers if not 0 <= layer < layer_count]
         if invalid:
             raise ValueError(
-                f"candidate layers {invalid} are outside the available range 0..{layer_count}"
+                f"candidate layers {invalid} are outside the available range 0..{layer_count - 1}"
             )
 
     def _resolve_device(self, device: str) -> str:
@@ -131,6 +150,10 @@ class HuggingFaceSignalCollector:
             "trace_stride": self.trace_stride,
             "entropy_window": self.entropy_window,
             "max_new_tokens": self.max_new_tokens,
+            "top_p": self.top_p,
+            "chat_template": "tokenizer_default" if self.tokenizer.chat_template else "raw_text",
+            "layer_indexing": "zero_based_transformer_block",
+            "output_length_includes_eos": True,
         }
 
     def collect_trace(self, prompt: str, *, prompt_id: str, task: str) -> GenerationTrace:
@@ -143,7 +166,19 @@ class HuggingFaceSignalCollector:
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(self.seed)
 
-        encoded = self.tokenizer(prompt, return_tensors="pt")
+        if self.tokenizer.chat_template:
+            formatted_prompt = self.tokenizer.apply_chat_template(
+                [{"role": "user", "content": prompt}],
+                tokenize=False,
+                add_generation_prompt=True,
+            )
+            encoded = self.tokenizer(
+                formatted_prompt,
+                return_tensors="pt",
+                add_special_tokens=False,
+            )
+        else:
+            encoded = self.tokenizer(prompt, return_tensors="pt")
         encoded = {name: tensor.to(self.device) for name, tensor in encoded.items()}
         input_ids = encoded["input_ids"]
         attention_mask = encoded.get("attention_mask", torch.ones_like(input_ids))
@@ -161,7 +196,7 @@ class HuggingFaceSignalCollector:
             if hidden_states is None:
                 raise RuntimeError("model did not return hidden states")
             prefill_hidden_states = {
-                layer: hidden_states[layer][0, -1].float().cpu().tolist()
+                layer: hidden_states[layer + 1][0, -1].float().cpu().tolist()
                 for layer in self.candidate_layers
             }
 
@@ -182,7 +217,8 @@ class HuggingFaceSignalCollector:
                 if self.temperature == 0:
                     next_token = probabilities.argmax(dim=-1, keepdim=True)
                 else:
-                    next_token = torch.multinomial(probabilities, num_samples=1)
+                    sampling_probabilities = _top_p_probabilities(probabilities, self.top_p)
+                    next_token = torch.multinomial(sampling_probabilities, num_samples=1)
 
                 token_id = int(next_token.item())
                 generated_token_ids.append(token_id)

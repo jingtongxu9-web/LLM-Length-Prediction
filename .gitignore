@@ -23,6 +23,13 @@ artifacts/figures/
 *.npy
 *.npz
 
+# Local model downloads
+models/*
+!models/README.md
+
+# Local presentation materials
+*.pptx
+
 # Secrets and machine-local settings
 .env
 .env.*
