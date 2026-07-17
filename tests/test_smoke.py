@@ -1,5 +1,6 @@
 import math
 
+from llm_length_prediction.data.io import read_trace_jsonl, write_trace_jsonl
 from llm_length_prediction.data.schema import GenerationTrace, TracePoint
 from llm_length_prediction.evaluation.metrics import mae, rmse, severe_underestimation_rate
 from llm_length_prediction.models.dynamic import hybrid_total_length, scheduled_gamma
@@ -17,7 +18,7 @@ def test_prior_and_hybrid_prediction() -> None:
     assert hybrid_total_length(predicted, 64, 40, gamma) > 0
 
 
-def test_trace_and_metrics_contracts() -> None:
+def test_trace_and_metrics_contracts(tmp_path) -> None:
     trace = GenerationTrace(
         prompt_id="p1",
         task="qa",
@@ -27,8 +28,15 @@ def test_trace_and_metrics_contracts() -> None:
         seed=42,
         stop_reason="eos",
         points=[TracePoint(20, 2.1, 0.05, 100)],
+        model_name="test/model",
+        prefill_hidden_states={1: [0.1, -0.2]},
+        duration_ms=1.5,
     )
     trace.validate()
+
+    output = write_trace_jsonl(tmp_path / "trace.jsonl", trace)
+    restored = read_trace_jsonl(output)[0]
+    assert restored == trace
 
     actual = [100.0, 200.0]
     predicted = [90.0, 50.0]

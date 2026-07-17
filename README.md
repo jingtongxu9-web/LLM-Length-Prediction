@@ -53,6 +53,22 @@ pytest
 
 The scripts are intentionally lightweight scaffolds. Connect model-specific Hugging Face or vLLM instrumentation behind the interfaces in `src/llm_length_prediction/instrumentation/`.
 
+## Collect the first Hugging Face trace
+
+Install the lightweight collector dependencies and run a real-model smoke trace:
+
+```bash
+pip install -e '.[dev,hf]'
+python scripts/collect_traces.py \
+  --prompt "Explain why output length prediction helps LLM serving in one sentence." \
+  --output artifacts/examples/first_trace.jsonl
+```
+
+The command captures candidate-layer prefill hidden states, decode entropy, EOS probability,
+token counts, stop reason, timing, and runtime versions. It then reads the JSONL record back
+through the schema validator before reporting success. The default `sshleifer/tiny-gpt2` model
+is for pipeline validation only; research runs should use the frozen model in `configs/base.yaml`.
+
 ## Reproducibility rules
 
 - Split by `prompt_id` before sampling; all trajectories from one prompt stay in the same split.

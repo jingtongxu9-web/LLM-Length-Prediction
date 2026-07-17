@@ -1,10 +1,51 @@
-"""Collect generation traces through a runtime-specific SignalCollector."""
+"""Collect one validated generation trace with Hugging Face Transformers."""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+from llm_length_prediction.data.io import read_trace_jsonl, write_trace_jsonl
+from llm_length_prediction.instrumentation.huggingface import HuggingFaceSignalCollector
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--model", default="sshleifer/tiny-gpt2")
+    parser.add_argument("--revision", default="main")
+    parser.add_argument("--prompt", required=True)
+    parser.add_argument("--prompt-id", default="first-trace")
+    parser.add_argument("--task", default="smoke")
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--device", default="auto")
+    parser.add_argument("--dtype", default="auto")
+    parser.add_argument("--layers", type=int, nargs="*")
+    parser.add_argument("--max-new-tokens", type=int, default=16)
+    parser.add_argument("--temperature", type=float, default=0.7)
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--trace-stride", type=int, default=5)
+    return parser
 
 
 def main() -> None:
-    raise SystemExit(
-        "Implement a SignalCollector adapter, then write traces using the schema in "
-        "llm_length_prediction.data.schema."
+    args = build_parser().parse_args()
+    collector = HuggingFaceSignalCollector(
+        args.model,
+        revision=args.revision,
+        device=args.device,
+        dtype=args.dtype,
+        candidate_layers=args.layers,
+        max_new_tokens=args.max_new_tokens,
+        temperature=args.temperature,
+        seed=args.seed,
+        trace_stride=args.trace_stride,
+    )
+    trace = collector.collect_trace(args.prompt, prompt_id=args.prompt_id, task=args.task)
+    output = write_trace_jsonl(args.output, trace)
+    verified = read_trace_jsonl(output)[0]
+    print(
+        f"validated trace: {output} "
+        f"({verified.prompt_tokens} prompt tokens, {verified.output_tokens} output tokens)"
     )
 
 
