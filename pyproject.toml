@@ -18,8 +18,12 @@ dev = [
   "pytest>=8.0",
   "ruff>=0.9",
 ]
+hf = [
+  "torch>=2.6",
+  "transformers>=4.48",
+]
 model = [
-  "torch>=2.5",
+  "torch>=2.6",
   "transformers>=4.48",
   "datasets>=3.2",
   "scikit-learn>=1.6",
