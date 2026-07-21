@@ -16,6 +16,7 @@ data/interim/
 data/processed/
 artifacts/checkpoints/
 artifacts/traces/
+artifacts/runs/
 artifacts/figures/
 *.safetensors
 *.pt

@@ -7,7 +7,7 @@ from pathlib import Path
 
 from llm_length_prediction.data.io import read_trace_jsonl, write_trace_jsonl
 from llm_length_prediction.instrumentation.huggingface import HuggingFaceSignalCollector
-from llm_length_prediction.runtime.model_paths import resolve_model_source
+from llm_length_prediction.runtime.model_paths import DEFAULT_REVISION, resolve_model_source
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -17,7 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Hub ID or local model path; otherwise resolve MODEL_PATH/local cache/frozen Hub ID",
     )
-    parser.add_argument("--revision", default="main")
+    parser.add_argument("--revision", default=DEFAULT_REVISION)
     parser.add_argument("--prompt", required=True)
     parser.add_argument("--prompt-id", default="first-trace")
     parser.add_argument("--task", default="smoke")

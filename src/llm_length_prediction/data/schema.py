@@ -46,6 +46,7 @@ class GenerationTrace:
     points: list[TracePoint] = field(default_factory=list)
     model_name: str | None = None
     model_revision: str | None = None
+    tokenizer_revision: str | None = None
     generated_text: str = ""
     prefill_hidden_states: dict[int, list[float]] = field(default_factory=dict)
     duration_ms: float | None = None

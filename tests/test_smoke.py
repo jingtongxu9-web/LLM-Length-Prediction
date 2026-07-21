@@ -11,7 +11,7 @@ from llm_length_prediction.serving.simulator import length_bucket
 def test_prior_and_hybrid_prediction() -> None:
     prior = LinearLogNormalPrior(weights=(0.5, -0.25), bias=2.0, log_variance=0.2)
     predicted = prior.predict_mean_length((1.0, 2.0))
-    assert math.isclose(predicted, math.exp(2.1))
+    assert math.isclose(predicted, math.expm1(2.1))
 
     gamma = scheduled_gamma(step=64)
     assert math.isclose(gamma, 0.5)

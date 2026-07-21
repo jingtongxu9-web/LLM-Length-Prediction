@@ -89,6 +89,11 @@ class HuggingFaceSignalCollector:
         self.model.eval()
         self.model.requires_grad_(False)
         self.resolved_revision = getattr(self.model.config, "_commit_hash", None) or revision
+        self.resolved_tokenizer_revision = (
+            getattr(self.tokenizer, "_commit_hash", None)
+            or self.tokenizer.init_kwargs.get("_commit_hash")
+            or revision
+        )
         if self.tokenizer.pad_token_id is None and self.tokenizer.eos_token_id is not None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
@@ -145,6 +150,8 @@ class HuggingFaceSignalCollector:
             "device": self.device,
             "dtype": str(next(self.model.parameters()).dtype),
             "requested_revision": self.revision,
+            "resolved_model_revision": self.resolved_revision,
+            "resolved_tokenizer_revision": self.resolved_tokenizer_revision,
             "torch_version": importlib.metadata.version("torch"),
             "transformers_version": importlib.metadata.version("transformers"),
             "trace_stride": self.trace_stride,
@@ -282,6 +289,7 @@ class HuggingFaceSignalCollector:
             points=points,
             model_name=self.model_name,
             model_revision=self.resolved_revision,
+            tokenizer_revision=self.resolved_tokenizer_revision,
             generated_text=generated_text,
             prefill_hidden_states=prefill_hidden_states,
             duration_ms=duration_ms,

@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 DEFAULT_MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
+DEFAULT_REVISION = "a09a35458c702b33eeacc393d103063234e8bc28"
 DEFAULT_LOCAL_MODEL_PATH = Path("models/Qwen2.5-7B-Instruct")
 MODEL_PATH_ENV = "MODEL_PATH"
 

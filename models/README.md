@@ -19,8 +19,14 @@ Download the frozen model when storage and network access are ready:
 
 ```bash
 hf download Qwen/Qwen2.5-7B-Instruct \
-  --revision main \
+  --revision a09a35458c702b33eeacc393d103063234e8bc28 \
   --local-dir models/Qwen2.5-7B-Instruct
+```
+
+After download, record the verified revision for the server preflight:
+
+```bash
+echo a09a35458c702b33eeacc393d103063234e8bc28 > models/Qwen2.5-7B-Instruct/.frozen_revision
 ```
 
 Do not pass access tokens on the command line. If authentication is required, use `hf auth login`

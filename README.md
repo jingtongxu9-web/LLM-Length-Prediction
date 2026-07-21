@@ -28,14 +28,17 @@ belong to later ablations and must not be mixed into the first reported result.
 | Chat template | Official Qwen tokenizer chat template |
 | Output-length definition | Number of newly generated tokens, including EOS |
 | Sampling seeds | Exactly `[42, 43, 44]`; three rollouts per prompt |
+| Ridge target | `log1p(output_tokens)` |
 | Ridge preprocessing | `StandardScaler` fitted on the training split only |
 | Ridge regularization | `alpha = 1.0` |
+| Prior | Shifted log-normal; residual variance is the train-residual MLE |
 | Data split | `80%` train / `20%` test, grouped by prompt family |
 | LLM weights | Completely frozen |
 
 The ALPS feature is the last prompt token's hidden state after transformer block 14, captured in a
 standalone prefill pass before any response token is sampled. The primary Ridge model predicts
-output length from that feature. Prompt-token count is retained only as a baseline.
+`log1p(output_tokens)`. Its training-residual MLE variance defines a shifted log-normal prior, with
+mean length `exp(mu + variance / 2) - 1`. Prompt-token count is retained only as a baseline.
 
 ALPS v1 deliberately has no validation split because its layer, preprocessing, Ridge alpha,
 decoding policy, and sampling seeds are fixed before data collection. The test split is final: it
@@ -71,6 +74,11 @@ The frozen prompt manifest is stored at `data/prompts/alps_v1_prompts.jsonl`. It
 the curated family definitions in `scripts/build_prompt_manifest.py` and validated by the test
 suite. Rebuild it with `python scripts/build_prompt_manifest.py`; the command must reproduce the
 same 180 prompt records and 80/20 family split.
+
+The machine-readable experiment contract is
+`configs/experiments/alps_v1_manifest.json`. It freezes the model and tokenizer to commit
+`a09a35458c702b33eeacc393d103063234e8bc28`, pins the prompt-manifest hash, describes all 540
+rollouts, and declares the trace, index, model, metric, and prediction output paths.
 
 Only BF16 runs count toward the primary result. A 4-bit run may verify the pipeline on smaller
 hardware, but it must be labeled as a debug run and must not be compared directly with BF16 metrics.
@@ -122,7 +130,7 @@ moving from the local layout to the server layout.
 
 | Stage | Goal | Core outputs |
 |---|---|---|
-| 1. Offline prior | Validate heavy tails and `h0 -> log(L)` signal | distribution fit, layer sweep, ALPS-style probe |
+| 1. Offline prior | Validate heavy tails and `h0 -> log1p(L)` signal | distribution fit, layer sweep, ALPS-style probe |
 | 2. Dynamic correction | Predict `R_t = L - t` from decode evidence | convergence curves, uncertainty cone, overhead |
 | 3. End-to-end benchmark | Compare input-length, ALPS-only, PLP-only, hybrid | MAE/RMSE, time-to-accuracy, long-tail underestimation |
 | 4. Error feedback | Explain outliers and refine the model | failure taxonomy, hazard/fusion/loss ablations |
@@ -148,6 +156,7 @@ Install the lightweight collector dependencies and run a real-model smoke trace:
 pip install -e '.[dev,hf]'
 python scripts/collect_traces.py \
   --model sshleifer/tiny-gpt2 \
+  --revision main \
   --dtype auto \
   --layers 1 \
   --max-new-tokens 16 \
@@ -159,6 +168,28 @@ The command captures candidate-layer prefill hidden states, decode entropy, EOS 
 token counts, stop reason, timing, and runtime versions. It then reads the JSONL record back
 through the schema validator before reporting success. The default `sshleifer/tiny-gpt2` model
 is for pipeline validation only; research runs should use the frozen model in `configs/base.yaml`.
+
+## Run the frozen ALPS v1 experiment
+
+Run the server preflight before loading the model, then collect a small train-only pilot:
+
+```bash
+python scripts/preflight_server.py
+python scripts/collect_dataset.py --splits train --limit 6
+```
+
+After inspecting the pilot, resume the complete training collection and fit the prior:
+
+```bash
+python scripts/collect_dataset.py --splits train
+python scripts/train_prior.py
+python scripts/evaluate_prior.py --split train
+```
+
+The collector writes one atomic file per `(prompt_id, seed)`, skips valid completed records, and
+rebuilds a checksum index after every run. Test collection and evaluation are deliberately blocked
+unless `--confirm-final-test` is present. See `docs/server_runbook.md` for the isolated-server
+checklist and final-test procedure.
 
 ## Reproducibility rules
 

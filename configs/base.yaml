@@ -5,7 +5,8 @@ model:
   name: Qwen/Qwen2.5-7B-Instruct
   local_path: models/Qwen2.5-7B-Instruct
   path_env: MODEL_PATH
-  revision: main
+  revision: a09a35458c702b33eeacc393d103063234e8bc28
+  tokenizer_revision: a09a35458c702b33eeacc393d103063234e8bc28
   dtype: bfloat16
   candidate_layers: [14]
   layer_indexing: zero_based_transformer_block
@@ -32,6 +33,9 @@ trace:
   entropy_window: 20
 
 evaluation:
+  target_transform: log1p_output_tokens
+  prior_distribution: shifted_lognormal
+  residual_variance_estimator: maximum_likelihood
   severe_error_tokens: 100
   long_output_quantile: 0.90
   target_relative_errors: [0.05, 0.10, 0.20]
