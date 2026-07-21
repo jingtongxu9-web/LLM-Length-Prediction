@@ -11,7 +11,9 @@
 
 - Verify the heavy tail using length and log-length diagnostics.
 - Compare a constant baseline, prompt-length baseline, and layer-wise ridge probes.
-- Fit a log-normal prior and report MAE, RMSE, R-squared, NLL, interval coverage, and long-tail underestimation.
+- Fit Ridge on `log1p(output_tokens)`, estimate the train-residual MLE variance, and use the
+  resulting shifted log-normal prior. Report MAE, RMSE, R-squared, NLL, interval coverage, and
+  long-tail underestimation.
 - Gate: proceed only after the hidden-state probe beats the prompt-length baseline.
 
 ## Stage 2: progressive correction

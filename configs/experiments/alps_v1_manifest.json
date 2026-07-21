@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "experiment_id": "alps-v1-qwen2.5-7b-instruct",
+  "model": {
+    "id": "Qwen/Qwen2.5-7B-Instruct",
+    "revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "tokenizer_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "dtype": "bfloat16",
+    "feature_layer": 14,
+    "layer_indexing": "zero_based_transformer_block"
+  },
+  "inputs": {
+    "prompt_manifest": "data/prompts/alps_v1_prompts.jsonl",
+    "prompt_manifest_sha256": "0441d564a3f911cfd16e408bc355e9efc682b045ef91825b2246357b373393f9",
+    "prompt_count": 180,
+    "rollout_count": 540,
+    "splits": {"train": 432, "test": 108}
+  },
+  "generation": {
+    "temperature": 0.7,
+    "top_p": 0.95,
+    "max_new_tokens": 4096,
+    "seeds": [42, 43, 44],
+    "chat_template": "tokenizer_default",
+    "output_length_includes_eos": true,
+    "trace_stride": 5,
+    "entropy_window": 20
+  },
+  "target": {
+    "name": "log1p_output_tokens",
+    "inverse_mean": "exp(mu + residual_variance / 2) - 1",
+    "prior": "shifted_lognormal",
+    "residual_variance_estimator": "maximum_likelihood"
+  },
+  "outputs": {
+    "trace_root": "data/interim/alps_v1",
+    "run_root": "artifacts/runs/alps_v1",
+    "trace_pattern": "{split}/{prompt_id}/seed_{seed}.jsonl",
+    "collection_index": "collection_index.jsonl",
+    "collection_summary": "collection_summary.json",
+    "prior_model": "stage1/prior.json",
+    "prior_metrics": "stage1/metrics.json",
+    "prior_predictions": "stage1/predictions.csv"
+  }
+}

@@ -1,9 +1,17 @@
 defaults: ../base.yaml
 stage: offline_prior
 
-targets:
-  - output_length
-  - log_output_length
+target: log1p_output_tokens
+
+ridge:
+  standardize: true
+  alpha: 1.0
+  residual_variance: maximum_likelihood
+
+prior:
+  distribution: shifted_lognormal
+  location: predicted_log1p_output_tokens
+  mean_output_tokens: exp(location + residual_variance / 2) - 1
 
 baselines:
   - global_mean

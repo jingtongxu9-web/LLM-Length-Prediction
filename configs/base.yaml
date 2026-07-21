@@ -1,18 +1,30 @@
 project: llm-length-prediction
-seed: 42
+split_seed: 42
 
 model:
   name: Qwen/Qwen2.5-7B-Instruct
-  revision: main
+  local_path: models/Qwen2.5-7B-Instruct
+  path_env: MODEL_PATH
+  revision: a09a35458c702b33eeacc393d103063234e8bc28
+  tokenizer_revision: a09a35458c702b33eeacc393d103063234e8bc28
   dtype: bfloat16
-  candidate_layers: [8, 14, 20, 26]
+  candidate_layers: [14]
+  layer_indexing: zero_based_transformer_block
+  frozen: true
 
 data:
   tasks: [qa, summarization, code]
-  split_by: prompt_id
-  temperatures: [0.2, 0.7, 1.0]
+  split_by: prompt_family_id
+  split_ratios:
+    train: 0.8
+    test: 0.2
+  temperature: 0.7
+  top_p: 0.95
   samples_per_prompt: 3
-  max_new_tokens: 2048
+  generation_seeds: [42, 43, 44]
+  max_new_tokens: 4096
+  chat_template: tokenizer_default
+  output_length_includes_eos: true
 
 trace:
   capture_entropy: true
@@ -21,6 +33,9 @@ trace:
   entropy_window: 20
 
 evaluation:
+  target_transform: log1p_output_tokens
+  prior_distribution: shifted_lognormal
+  residual_variance_estimator: maximum_likelihood
   severe_error_tokens: 100
   long_output_quantile: 0.90
   target_relative_errors: [0.05, 0.10, 0.20]
