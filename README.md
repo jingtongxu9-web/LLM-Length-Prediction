@@ -189,7 +189,9 @@ python scripts/evaluate_prior.py --split train
 The collector writes one atomic file per `(prompt_id, seed)`, skips valid completed records, and
 rebuilds a checksum index after every run. Test collection and evaluation are deliberately blocked
 unless `--confirm-final-test` is present. See `docs/server_runbook.md` for the isolated-server
-checklist and final-test procedure.
+checklist and final-test procedure. For the RTX 4090 Docker deployment layout, see
+`docs/docker_4090_runbook.md`. The image contains code and pinned runtime dependencies only;
+Qwen weights, caches, traces, and result artifacts remain in persistent host-mounted directories.
 
 ## Reproducibility rules
 
