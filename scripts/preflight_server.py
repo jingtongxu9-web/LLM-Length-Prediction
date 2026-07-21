@@ -54,7 +54,9 @@ def main() -> None:
         elif marker.read_text(encoding="utf-8").strip() != experiment["model"]["revision"]:
             failures.append(".frozen_revision does not match the experiment SHA")
 
-    free_bytes = shutil.disk_usage(Path.cwd()).free
+    trace_root = Path(experiment["outputs"]["trace_root"])
+    trace_root.mkdir(parents=True, exist_ok=True)
+    free_bytes = shutil.disk_usage(trace_root).free
     report["free_disk_gib"] = round(free_bytes / 1024**3, 2)
     if free_bytes < 40 * 1024**3:
         warnings.append("less than 40 GiB free disk remains")
@@ -82,7 +84,7 @@ def main() -> None:
                 warnings.append("GPU has less than 24 GiB memory; the frozen BF16 run may OOM")
 
     for directory in (
-        Path(experiment["outputs"]["trace_root"]),
+        trace_root,
         Path(experiment["outputs"]["run_root"]),
     ):
         directory.mkdir(parents=True, exist_ok=True)

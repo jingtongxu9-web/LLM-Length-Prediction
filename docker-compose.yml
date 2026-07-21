@@ -1,0 +1,29 @@
+services:
+  alps:
+    build:
+      context: .
+      args:
+        HOST_UID: ${HOST_UID:-1000}
+        HOST_GID: ${HOST_GID:-1000}
+    image: llm-length-prediction:alps-v1
+    init: true
+    working_dir: /workspace/repo
+    environment:
+      HF_HOME: /cache/huggingface
+      MODEL_PATH: /models/Qwen2.5-7B-Instruct
+      TOKENIZERS_PARALLELISM: "false"
+    volumes:
+      - ${MODEL_ROOT:-./models}:/models
+      - ${TRACE_ROOT:-./data/interim}:/workspace/repo/data/interim
+      - ${RUN_ROOT:-./artifacts/runs}:/workspace/repo/artifacts/runs
+      - ${HF_CACHE_ROOT:-./cache/huggingface}:/cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${GPU_ID:-4}"]
+              capabilities: [gpu]
+    shm_size: "16gb"
+    stdin_open: true
+    tty: true
