@@ -36,13 +36,16 @@ try to solve a missing container runtime by installing CUDA inside the project i
 ## 2. Clone into the empty directory
 
 ```bash
-cd /data
-mkdir -p Summer_Camp
-git clone https://github.com/jingtongxu9-web/LLM-Length-Prediction.git Summer_Camp
-cd /data/Summer_Camp
+mkdir -p /data/home/mulei/Summer_Camp
+cd /data/home/mulei/Summer_Camp
+git clone https://github.com/jingtongxu9-web/LLM-Length-Prediction.git .
 git status
 git rev-parse HEAD
 ```
+
+The final `.` is intentional: it clones the repository directly into the existing empty
+`/data/home/mulei/Summer_Camp` directory. If the directory is no longer empty, stop and inspect it
+instead of deleting or overwriting files.
 
 Save the exact Git commit and never pull new code in the middle of the run:
 
@@ -68,7 +71,7 @@ nano .env
 Expected layout:
 
 ```text
-/data/Summer_Camp/
+/data/home/mulei/Summer_Camp/
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements-docker.lock
@@ -196,7 +199,7 @@ Use a persistent terminal session such as `tmux`:
 
 ```bash
 tmux new -s alps-v1
-cd /data/Summer_Camp
+cd /data/home/mulei/Summer_Camp
 ```
 
 Run the pilot:
