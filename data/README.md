@@ -8,13 +8,21 @@ Current layout:
 
 ```text
 data/
-├── prompts/
-│   └── alps_v1_prompts.jsonl  # 180 versioned prompts with frozen 80/20 split
-├── raw/                       # optional external source material; local only
-├── interim/                   # generated Qwen rollouts before quality checks; local only
-├── processed/                 # accepted trace datasets derived from the frozen split; local only
-└── README.md                  # data contract and reproducibility rules
+|-- prompts/
+|   `-- alps_v1_prompts.jsonl  # 180 versioned prompts with frozen 80/20 split
+|-- raw/                       # optional external source material; local only
+|-- interim/                   # generated Qwen rollouts; local only and ignored by Git
+|   `-- alps_v1/
+|       |-- train/             # 432 rollout files after complete Train collection
+|       `-- test/              # 108 protected final-test rollout files
+|-- processed/                 # optional accepted/derived datasets; local only
+`-- README.md
 ```
+
+The committed prompt manifest is an **input**. `scripts/collect_dataset.py` reads it, loads the
+frozen Qwen model, and writes the resulting generated text, output lengths, Layer-14 features, and
+decode signals under `interim/alps_v1/`. Ridge models and metrics do not belong here; they are
+written under `artifacts/runs/`.
 
 All matched prompts and trajectories derived from one `prompt_family_id` must remain in the same
 split.
@@ -51,3 +59,9 @@ python scripts/build_prompt_manifest.py
 
 The real target remains the EOS-terminated output-token count observed during each rollout. Never
 move a prompt between splits after observing generated output length.
+
+The official output paths and expected counts are frozen in
+`configs/experiments/alps_v1_manifest.json`. Do not treat `raw/`, `interim/`, or `processed/` as
+Git-backed storage; archive important traces separately before deleting or releasing a machine.
+The repository's `.gitattributes` forces JSONL files to LF line endings so the frozen prompt
+SHA-256 is identical on Windows and Linux checkouts.

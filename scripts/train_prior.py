@@ -6,34 +6,48 @@ import argparse
 import csv
 import hashlib
 import json
-import math
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-
 from llm_length_prediction.data.io import read_trace_jsonl
-from llm_length_prediction.evaluation.metrics import mae, rmse
+from llm_length_prediction.evaluation.metrics import log1p_prior_metrics
+from llm_length_prediction.experiment import (
+    load_experiment,
+    load_frozen_prompts,
+    rollout_jobs,
+    trace_path,
+    validate_frozen_trace,
+)
 from llm_length_prediction.models.prior import fit_log1p_ridge_prior
 
 DEFAULT_EXPERIMENT = Path("configs/experiments/alps_v1_manifest.json")
 
 
 def _load_training_rows(
-    trace_root: Path, *, layer: int, frozen_revision: str
+    trace_root: Path,
+    *,
+    layer: int,
+    experiment: dict[str, Any],
+    records: list[dict[str, Any]],
 ) -> tuple[list[dict[str, Any]], list[list[float]], list[int]]:
     rows: list[dict[str, Any]] = []
     features: list[list[float]] = []
     lengths: list[int] = []
-    paths = sorted((trace_root / "train").glob("*/seed_*.jsonl"))
-    if not paths:
-        raise ValueError(f"no training traces found under {trace_root / 'train'}")
-    for path in paths:
+    jobs = list(rollout_jobs(records, split="train"))
+    missing = [
+        trace_path(trace_root, record, seed)
+        for record, seed in jobs
+        if not trace_path(trace_root, record, seed).is_file()
+    ]
+    if missing:
+        raise ValueError(
+            f"training collection is incomplete: missing {len(missing)} of {len(jobs)} traces; "
+            f"first missing path: {missing[0]}"
+        )
+    for record, seed in jobs:
+        path = trace_path(trace_root, record, seed)
         trace = read_trace_jsonl(path)[0]
-        if trace.metadata.get("split") != "train":
-            raise ValueError(f"non-training record found in training directory: {path}")
-        if trace.model_revision != frozen_revision or trace.tokenizer_revision != frozen_revision:
-            raise ValueError(f"trace does not use frozen model/tokenizer revision: {path}")
+        validate_frozen_trace(trace, record=record, seed=seed, experiment=experiment)
         try:
             hidden_state = trace.prefill_hidden_states[layer]
         except KeyError as error:
@@ -59,55 +73,25 @@ def _dataset_digest(rows: list[dict[str, Any]]) -> str:
     return hashlib.sha256(canonical.encode()).hexdigest()
 
 
-def _metrics(
-    actual: list[int], predicted: list[float], mus: list[float], variance: float
-) -> dict[str, float]:
-    target = np.log1p(np.asarray(actual, dtype=np.float64))
-    mu = np.asarray(mus, dtype=np.float64)
-    denominator = float(np.square(target - target.mean()).sum())
-    r_squared = (
-        0.0
-        if denominator == 0.0
-        else 1.0 - float(np.square(target - mu).sum()) / denominator
-    )
-    safe_variance = max(variance, 1e-12)
-    nll = float(
-        np.mean(
-            0.5 * math.log(2.0 * math.pi * safe_variance)
-            + np.square(target - mu) / (2.0 * safe_variance)
-            + target
-        )
-    )
-    lower = np.expm1(mu - 1.959963984540054 * math.sqrt(safe_variance))
-    upper = np.expm1(mu + 1.959963984540054 * math.sqrt(safe_variance))
-    coverage = float(np.mean((np.asarray(actual) >= lower) & (np.asarray(actual) <= upper)))
-    return {
-        "count": float(len(actual)),
-        "mae_tokens": mae(actual, predicted),
-        "rmse_tokens": rmse(actual, predicted),
-        "r_squared_log1p": r_squared,
-        "negative_log_likelihood": nll,
-        "interval_95_coverage": coverage,
-    }
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--experiment", type=Path, default=DEFAULT_EXPERIMENT)
     parser.add_argument("--trace-root", type=Path)
     parser.add_argument("--output-dir", type=Path)
-    parser.add_argument("--alpha", type=float, default=1.0)
     args = parser.parse_args()
 
-    experiment = json.loads(args.experiment.read_text(encoding="utf-8"))
+    experiment = load_experiment(args.experiment)
+    records = load_frozen_prompts(experiment)
     trace_root = args.trace_root or Path(experiment["outputs"]["trace_root"])
     output_dir = args.output_dir or Path(experiment["outputs"]["run_root"]) / "stage1"
     layer = int(experiment["model"]["feature_layer"])
-    revision = experiment["model"]["revision"]
     rows, features, actual = _load_training_rows(
-        trace_root, layer=layer, frozen_revision=revision
+        trace_root, layer=layer, experiment=experiment, records=records
     )
-    prior = fit_log1p_ridge_prior(features, actual, alpha=args.alpha)
+    ridge = experiment["ridge"]
+    if ridge.get("standardize") is not True:
+        raise ValueError("ALPS v1 requires train-only feature standardization")
+    prior = fit_log1p_ridge_prior(features, actual, alpha=float(ridge["alpha"]))
     mus = [prior.predict_mu(feature) for feature in features]
     predicted = [prior.predict_mean_length(feature) for feature in features]
 
@@ -117,7 +101,7 @@ def main() -> None:
         {
             "experiment_id": experiment["experiment_id"],
             "feature_layer": layer,
-            "model_revision": revision,
+            "model_revision": experiment["model"]["revision"],
             "tokenizer_revision": experiment["model"]["tokenizer_revision"],
             "fit_split": "train",
             "training_dataset_sha256": _dataset_digest(rows),
@@ -127,8 +111,7 @@ def main() -> None:
     (output_dir / "prior.json").write_text(
         json.dumps(model_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
-    metrics = _metrics(actual, predicted, mus, prior.residual_variance)
-    metrics["residual_variance_mle"] = prior.residual_variance
+    metrics = log1p_prior_metrics(actual, predicted, mus, prior.residual_variance)
     (output_dir / "metrics.json").write_text(
         json.dumps(metrics, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )

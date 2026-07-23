@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.metadata
+import platform
 import time
 from collections.abc import Sequence
 from typing import Any
@@ -146,9 +147,11 @@ class HuggingFaceSignalCollector:
         return tuple(int(token_id) for token_id in value)
 
     def _metadata(self) -> dict[str, MetadataValue]:
-        return {
+        metadata: dict[str, MetadataValue] = {
             "device": self.device,
             "dtype": str(next(self.model.parameters()).dtype),
+            "python_version": platform.python_version(),
+            "platform": platform.platform(),
             "requested_revision": self.revision,
             "resolved_model_revision": self.resolved_revision,
             "resolved_tokenizer_revision": self.resolved_tokenizer_revision,
@@ -162,6 +165,20 @@ class HuggingFaceSignalCollector:
             "layer_indexing": "zero_based_transformer_block",
             "output_length_includes_eos": True,
         }
+        metadata["cuda_runtime"] = self._torch.version.cuda
+        if self._torch.cuda.is_available():
+            device_index = self._torch.cuda.current_device()
+            capability = self._torch.cuda.get_device_capability(device_index)
+            metadata.update(
+                {
+                    "gpu_name": self._torch.cuda.get_device_name(device_index),
+                    "gpu_compute_capability": f"{capability[0]}.{capability[1]}",
+                    "gpu_memory_bytes": self._torch.cuda.get_device_properties(
+                        device_index
+                    ).total_memory,
+                }
+            )
+        return metadata
 
     def collect_trace(self, prompt: str, *, prompt_id: str, task: str) -> GenerationTrace:
         """Generate text and return a validated trace for one prompt."""
@@ -209,6 +226,7 @@ class HuggingFaceSignalCollector:
 
             logits = output.logits[:, -1, :].float()
             past_key_values = output.past_key_values
+            del hidden_states
             eos_token_ids = self._eos_token_ids()
             generated_token_ids: list[int] = []
             sampled: list[tuple[int, float, float, int]] = []

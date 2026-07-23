@@ -193,8 +193,7 @@ def _summary_prompts(title: str, source: str) -> dict[str, str]:
 def _code_prompts(requirement: str) -> dict[str, str]:
     return {
         "short": (
-            "请使用 Python 完成下面的任务。只输出核心实现，不要解释、示例或测试。\n"
-            f"{requirement}"
+            f"请使用 Python 完成下面的任务。只输出核心实现，不要解释、示例或测试。\n{requirement}"
         ),
         "medium": (
             "请使用 Python 完成下面的任务，包含类型标注、docstring、输入校验和主要边界处理，"
@@ -212,8 +211,7 @@ def _family_definitions() -> dict[str, list[tuple[str, dict[str, str]]]]:
     return {
         "qa": [(slug, _qa_prompts(question)) for slug, question in QA_FAMILIES],
         "summarization": [
-            (slug, _summary_prompts(title, source))
-            for slug, title, source in SUMMARY_FAMILIES
+            (slug, _summary_prompts(title, source)) for slug, title, source in SUMMARY_FAMILIES
         ],
         "code": [(slug, _code_prompts(requirement)) for slug, requirement in CODE_FAMILIES],
     }
@@ -278,7 +276,8 @@ def validate_records(records: list[dict[str, object]]) -> None:
 def write_manifest(path: Path, records: list[dict[str, object]]) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     content = "\n".join(json.dumps(record, ensure_ascii=False) for record in records) + "\n"
-    path.write_text(content, encoding="utf-8")
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(content)
     return path
 
 

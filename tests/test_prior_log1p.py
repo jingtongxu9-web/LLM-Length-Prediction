@@ -2,6 +2,7 @@ import math
 
 import numpy as np
 
+from llm_length_prediction.evaluation.metrics import log1p_prior_metrics
 from llm_length_prediction.models.prior import (
     StandardizedRidgeLogNormalPrior,
     fit_log1p_ridge_prior,
@@ -24,3 +25,9 @@ def test_fit_uses_log1p_target_and_mle_residual_variance() -> None:
 
     restored = StandardizedRidgeLogNormalPrior.from_dict(prior.to_dict())
     assert restored == prior
+
+    predicted = [prior.predict_mean_length(row) for row in features]
+    metrics = log1p_prior_metrics(lengths, predicted, mus, prior.residual_variance)
+    assert metrics["count"] == 4
+    assert metrics["mae_tokens"] >= 0
+    assert 0.0 <= metrics["interval_95_coverage"] <= 1.0

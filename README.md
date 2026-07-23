@@ -1,184 +1,120 @@
 # LLM Length Prediction
 
-Research codebase for **serving-aware LLM output-length prediction**. The project combines an ALPS-style prefill prior with PLP-style progressive correction and evaluates whether better length estimates improve batching, latency, and KV-cache planning.
+面向大模型推理服务的输出长度预测研究。项目首先使用 ALPS 方法，在回答生成前从 Qwen
+的中间隐藏状态预测最终输出长度；后续再加入 PLP，在生成过程中利用 entropy、EOS
+probability 等信号持续修正剩余长度。
 
-## Research questions
+预测结果最终用于评估 batching、延迟、KV-cache 规划和长输出低估风险，而不仅仅是比较
+MAE。
 
-1. Does output length follow a heavy-tailed distribution?
-2. How much length information is linearly recoverable from prefill hidden states?
-3. Do entropy and hidden-state trajectories reduce remaining-length uncertainty during decoding?
-4. Does `ALPS + PLP` converge earlier and reduce severe underestimation on long outputs?
-5. Do the predictions improve serving metrics rather than only MAE?
+## 当前状态
 
-## Frozen ALPS experiment (v1)
+| 模块 | 状态 | 说明 |
+|---|---|---|
+| Prompt 数据集 | 已完成 | 60 个 family、180 个 Prompt、固定 80/20 Train/Test |
+| Hugging Face trace 采集 | 代码完成，待 GPU pilot | 支持 Layer 14、entropy、EOS probability、严格断点续跑 |
+| ALPS Ridge prior | 代码与合成流程已验证 | `StandardScaler + Ridge(alpha=1.0)`；待真实 Qwen trace |
+| PLP 动态修正 | 尚未实现 | `train_dynamic.py` 目前是占位入口 |
+| Serving benchmark | 尚未实现 | `run_benchmark.py` 目前是占位入口 |
 
-The first implementation milestone is a corrected, reproducible ALPS baseline. The following
-conditions are frozen for the primary experiment; layer, temperature, and decoding-policy sweeps
-belong to later ablations and must not be mixed into the first reported result.
+当前应先完成 **ALPS v1**。不要把尚未实现的 PLP 或 serving benchmark 当作已经可运行的
+功能。非 GPU 数据合同、Train/Test 完整性、Ridge 训练和评估已经通过自动化测试；真实
+Qwen + RTX 5090 仍必须以 `preflight_server.py` 和 6 条 pilot 作为最终部署验收。
 
-| Condition | Frozen value |
-|---|---|
-| Model | `Qwen/Qwen2.5-7B-Instruct` |
-| Model precision | BF16; 4-bit is permitted only for pipeline debugging |
-| Temperature | `0.7` |
-| Top-p | `0.95` |
-| Max new tokens | `4096` |
-| ALPS layer | Transformer block index `14` (zero-based) |
-| PLP update frequency | Every `5` generated tokens |
-| Chat template | Official Qwen tokenizer chat template |
-| Output-length definition | Number of newly generated tokens, including EOS |
-| Sampling seeds | Exactly `[42, 43, 44]`; three rollouts per prompt |
-| Ridge target | `log1p(output_tokens)` |
-| Ridge preprocessing | `StandardScaler` fitted on the training split only |
-| Ridge regularization | `alpha = 1.0` |
-| Prior | Shifted log-normal; residual variance is the train-residual MLE |
-| Data split | `80%` train / `20%` test, grouped by prompt family |
-| LLM weights | Completely frozen |
+## 系统架构
 
-The ALPS feature is the last prompt token's hidden state after transformer block 14, captured in a
-standalone prefill pass before any response token is sampled. The primary Ridge model predicts
-`log1p(output_tokens)`. Its training-residual MLE variance defines a shifted log-normal prior, with
-mean length `exp(mu + variance / 2) - 1`. Prompt-token count is retained only as a baseline.
+正常使用时，从项目根目录运行 `scripts/` 中的命令。脚本读取冻结实验配置、Prompt 和
+Qwen 模型，调用 `src/` 中的实现，最后生成 trace、Ridge 模型和评估结果。
 
-ALPS v1 deliberately has no validation split because its layer, preprocessing, Ridge alpha,
-decoding policy, and sampling seeds are fixed before data collection. The test split is final: it
-must not be used to change those choices. If any frozen choice is changed after inspecting test
-results, the run becomes exploratory and requires a new untouched test split for a confirmatory
-result.
+```mermaid
+flowchart TD
+    CONFIG["实验合同<br/>configs/"] --> SCRIPTS["可执行入口<br/>scripts/"]
+    PROMPTS["Prompt 数据<br/>data/prompts/"] --> SCRIPTS
+    MODEL["Qwen 模型<br/>models/ 或 MODEL_PATH"] --> SCRIPTS
 
-### Frozen prompt pilot
+    GPU["实际 GPU<br/>本地、服务器或 AutoDL"] --> ENV["Python / CUDA 环境<br/>pyproject.toml 或 Dockerfile"]
+    DOCKER["Docker 启动参数<br/>docker-compose.yml 与 .env"] --> ENV
+    ENV --> SCRIPTS
 
-The pilot uses only two prompt dimensions: task and intended response length.
-
-| Task | Short | Medium | Long |
-|---|---|---|---|
-| QA / explanation | One or two sentences | Explanation with an example | Structured tutorial-style answer |
-| Summarization | One-sentence summary | Five to eight key points | Detailed sectioned summary |
-| Code | Core function only | Function with documentation and edge cases | Implementation, tests, usage, and analysis |
-
-Create 20 independent prompt families for each task. Every family has matched short, medium, and
-long variants, giving 60 families and 180 unique prompts. Assign complete families to splits:
-
-| Split | Families | Unique prompts | Rollouts with seeds 42/43/44 |
-|---|---:|---:|---:|
-| Train | 48 | 144 | 432 |
-| Test | 12 | 36 | 108 |
-| Total | 60 | 180 | 540 |
-
-Use 16 train families and 4 test families from each task so QA, summarization, and code remain
-balanced. All three length variants and all three seeded rollouts from one family must stay in the
-same split. The split is created before generation and is never changed based on observed output
-length.
-
-The frozen prompt manifest is stored at `data/prompts/alps_v1_prompts.jsonl`. It is generated from
-the curated family definitions in `scripts/build_prompt_manifest.py` and validated by the test
-suite. Rebuild it with `python scripts/build_prompt_manifest.py`; the command must reproduce the
-same 180 prompt records and 80/20 family split.
-
-The machine-readable experiment contract is
-`configs/experiments/alps_v1_manifest.json`. It freezes the model and tokenizer to commit
-`a09a35458c702b33eeacc393d103063234e8bc28`, pins the prompt-manifest hash, describes all 540
-rollouts, and declares the trace, index, model, metric, and prediction output paths.
-
-Only BF16 runs count toward the primary result. A 4-bit run may verify the pipeline on smaller
-hardware, but it must be labeled as a debug run and must not be compared directly with BF16 metrics.
-
-## Repository layout
-
-```text
-.
-├── artifacts/                  # Generated metrics, tables, and checkpoints (not raw data)
-├── configs/
-│   ├── base.yaml               # Shared model/data/runtime settings
-│   └── experiments/            # One config per experimental stage
-├── data/                       # Local-only datasets and trace manifests
-├── docs/research_plan.md       # Four-stage research plan and milestones
-├── models/                     # Local Qwen snapshot mount point; model files stay out of Git
-├── notebooks/                  # Exploration only; production logic stays in src/
-├── scripts/                    # Reproducible command-line entry points
-├── src/llm_length_prediction/
-│   ├── data/                   # Trace schemas and dataset contracts
-│   ├── evaluation/             # Prediction and tail-risk metrics
-│   ├── instrumentation/        # Prefill/decode signal capture interfaces
-│   ├── models/                 # Static prior and dynamic correction logic
-│   └── serving/                # Prediction-aware scheduling simulation
-└── tests/                      # Fast unit and smoke tests
+    SCRIPTS --> SRC["底层 Python 包<br/>src/llm_length_prediction/"]
+    SRC --> TRACES["生成过程数据<br/>data/interim/"]
+    SRC --> RESULTS["Ridge 与评估结果<br/>artifacts/runs/"]
 ```
 
-## Local model layout
+这里有三个容易混淆的边界：
 
-The frozen model is `Qwen/Qwen2.5-7B-Instruct`. Its project-local snapshot belongs at:
+- `configs/` 决定实验条件，不决定实际显卡型号。
+- GPU 由本地机器、服务器或 AutoDL 提供；PyTorch/CUDA 决定代码能否使用它。
+- `models/`、`data/interim/` 和 `artifacts/runs/` 包含机器本地的大文件，不提交 Git。
+
+## ALPS v1 运行流程
+
+以下命令都应在项目根目录执行。
+
+### 1. 安装项目
+
+已有兼容的 PyTorch/CUDA 环境时，正式实验使用锁定的非 PyTorch 依赖，同时保留机器镜像
+提供的 CUDA-enabled PyTorch：
+
+```bash
+python -m pip install --requirement requirements-autodl.lock
+python -m pip install --no-deps --editable .
+```
+
+`pyproject.toml` 定义最低依赖范围；`requirements-autodl.lock` 只固定 AutoDL
+直接 Python 方案使用的非 PyTorch 依赖。
+
+两种部署方式是并列的：
+
+- 学校 RTX 4090 服务器：保留原有 `Dockerfile`、`docker-compose.yml`、`.env`
+  和 `requirements-docker.lock`，按
+  [`docs/docker_4090_runbook.md`](docs/docker_4090_runbook.md) 运行。
+- AutoDL RTX 5090：不使用上述 Docker 镜像，选择 CUDA 12.8 兼容的 PyTorch
+  镜像后直接运行 Python，按
+  [`docs/autodl_5090_runbook.md`](docs/autodl_5090_runbook.md) 操作。
+
+### 2. 准备冻结模型
+
+模型固定为：
+
+```text
+Qwen/Qwen2.5-7B-Instruct
+revision: a09a35458c702b33eeacc393d103063234e8bc28
+```
+
+模型可以放在：
 
 ```text
 models/Qwen2.5-7B-Instruct/
 ```
 
-Model weights, tokenizer files, and downloaded snapshot metadata are machine-local and ignored by
-Git. The repository tracks only `models/README.md`, which documents the expected contents and
-download command. The runtime resolves the model source in this order:
-
-1. an explicit `--model` argument;
-2. the `MODEL_PATH` environment variable;
-3. the project-local directory when it contains `config.json`;
-4. the frozen Hugging Face Hub ID.
-
-For a future server or container, mount the server model directory at the same project-relative
-location or set `MODEL_PATH=/models/Qwen2.5-7B-Instruct`. No source-code changes are required when
-moving from the local layout to the server layout.
-
-## Four experimental stages
-
-| Stage | Goal | Core outputs |
-|---|---|---|
-| 1. Offline prior | Validate heavy tails and `h0 -> log1p(L)` signal | distribution fit, layer sweep, ALPS-style probe |
-| 2. Dynamic correction | Predict `R_t = L - t` from decode evidence | convergence curves, uncertainty cone, overhead |
-| 3. End-to-end benchmark | Compare input-length, ALPS-only, PLP-only, hybrid | MAE/RMSE, time-to-accuracy, long-tail underestimation |
-| 4. Error feedback | Explain outliers and refine the model | failure taxonomy, hazard/fusion/loss ablations |
-
-The prediction study is followed by a serving evaluation covering average and tail latency, throughput, padding waste, GPU utilization, and KV-cache peak usage.
-
-## Quick start
+也可以放在机器的其他磁盘，并设置：
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e '.[dev]'
-pytest
+export MODEL_PATH=/absolute/path/to/Qwen2.5-7B-Instruct
 ```
 
-The scripts are intentionally lightweight scaffolds. Connect model-specific Hugging Face or vLLM instrumentation behind the interfaces in `src/llm_length_prediction/instrumentation/`.
+使用 `python scripts/download_model.py` 下载指定 revision。下载方法、`.frozen_revision`
+文件和模型解析顺序见
+[`models/README.md`](models/README.md)。
 
-## Collect the first Hugging Face trace
-
-Install the lightweight collector dependencies and run a real-model smoke trace:
-
-```bash
-pip install -e '.[dev,hf]'
-python scripts/collect_traces.py \
-  --model sshleifer/tiny-gpt2 \
-  --revision main \
-  --dtype auto \
-  --layers 1 \
-  --max-new-tokens 16 \
-  --prompt "Explain why output length prediction helps LLM serving in one sentence." \
-  --output artifacts/examples/first_trace.jsonl
-```
-
-The command captures candidate-layer prefill hidden states, decode entropy, EOS probability,
-token counts, stop reason, timing, and runtime versions. It then reads the JSONL record back
-through the schema validator before reporting success. The default `sshleifer/tiny-gpt2` model
-is for pipeline validation only; research runs should use the frozen model in `configs/base.yaml`.
-
-## Run the frozen ALPS v1 experiment
-
-Run the server preflight before loading the model, then collect a small train-only pilot:
+### 3. 检查环境
 
 ```bash
 python scripts/preflight_server.py
+```
+
+它会检查模型版本、Prompt hash、CUDA、BF16、显存、磁盘和输出目录。
+
+### 4. 先跑 6 条 pilot
+
+```bash
 python scripts/collect_dataset.py --splits train --limit 6
 ```
 
-After inspecting the pilot, resume the complete training collection and fit the prior:
+确认显存、运行时间、stop reason、输出长度和 Layer 14 特征均正常后，再继续完整训练集。
+
+### 5. 采集 Train 并训练 Ridge
 
 ```bash
 python scripts/collect_dataset.py --splits train
@@ -186,26 +122,98 @@ python scripts/train_prior.py
 python scripts/evaluate_prior.py --split train
 ```
 
-The collector writes one atomic file per `(prompt_id, seed)`, skips valid completed records, and
-rebuilds a checksum index after every run. Test collection and evaluation are deliberately blocked
-unless `--confirm-final-test` is present. See `docs/server_runbook.md` for the isolated-server
-checklist and final-test procedure. For the RTX 4090 Docker deployment layout, see
-`docs/docker_4090_runbook.md`. The image contains code and pinned runtime dependencies only;
-Qwen weights, caches, traces, and result artifacts remain in persistent host-mounted directories.
+训练采集包含 144 个 Train Prompt，每个 Prompt 使用 seeds `42/43/44`，共 432 个
+rollout。采集可以断点续跑。
 
-## Reproducibility rules
+### 6. 最后才打开 Test
 
-- For ALPS v1, split by prompt family before sampling; all matched prompt variants and all seeded
-  trajectories from one family stay in the same split.
-- Keep the final test set untouched until models and metrics are frozen.
-- Record model/tokenizer revision, prompt template, decoding settings, seed, hardware, and stop reason.
-- Treat raw traces and model checkpoints as external artifacts; do not commit secrets or large generated files.
+只有在模型、alpha、指标和分析方式全部冻结后才执行：
 
-## Primary comparison
+```bash
+python scripts/collect_dataset.py --splits test --confirm-final-test
+python scripts/evaluate_prior.py --split test --confirm-final-test
+```
 
-1. Input-length baseline
-2. ALPS-only static prediction
-3. PLP-only progressive prediction
-4. ALPS + PLP hybrid
+Test 包含 36 个 Prompt、108 个 rollout。`--confirm-final-test` 用于防止开发过程中反复
+查看最终测试结果。
 
-An oracle-length scheduler may be added as an upper bound. Do not claim superiority over EGTP unless it is independently reproduced.
+完整脚本说明见 [`scripts/README.md`](scripts/README.md)。
+
+## 数据流与输出
+
+```text
+data/prompts/alps_v1_prompts.jsonl
+                |
+                v
+      collect_dataset.py + Qwen
+                |
+                v
+data/interim/alps_v1/{train,test}/
+                |
+                v
+          train_prior.py
+                |
+                v
+artifacts/runs/alps_v1/stage1/
+```
+
+主要输出：
+
+| 路径 | 内容 |
+|---|---|
+| `data/interim/alps_v1/` | 每个 `(prompt_id, seed)` 的生成 trace |
+| `artifacts/runs/alps_v1/collection_index.jsonl` | trace 路径、checksum 和运行元数据 |
+| `artifacts/runs/alps_v1/stage1/prior.json` | Scaler、Ridge 权重、偏置和残差方差 |
+| `artifacts/runs/alps_v1/stage1/metrics.json` | 训练阶段指标 |
+| `artifacts/runs/alps_v1/stage1/predictions.csv` | 真实长度与预测长度 |
+
+## 冻结实验条件
+
+机器可读的正式合同是
+[`configs/experiments/alps_v1_manifest.json`](configs/experiments/alps_v1_manifest.json)。
+
+| 条件 | ALPS v1 固定值 |
+|---|---|
+| 模型 | `Qwen/Qwen2.5-7B-Instruct`，固定 revision |
+| 精度 | BF16；4-bit 只允许用于调试 |
+| 特征 | zero-based Transformer block 14，最后一个 Prompt token |
+| Temperature / Top-p | `0.7` / `0.95` |
+| Max new tokens | `4096`，输出长度包含 EOS |
+| Seeds | `[42, 43, 44]` |
+| 数据划分 | 按 prompt family 固定 80% Train / 20% Test |
+| Ridge | Train-only StandardScaler，`alpha=1.0` |
+| 目标 | `log1p(output_tokens)`，shifted log-normal prior |
+| Qwen 权重 | 完全冻结 |
+
+`base.yaml` 和各 stage YAML 当前主要用于记录设计；正式 ALPS v1 脚本直接读取 JSON
+manifest。具体区别见 [`configs/README.md`](configs/README.md)。
+
+## 目录导航
+
+| 目录 | 作用 | 详细说明 |
+|---|---|---|
+| `configs/` | 实验合同与阶段配置 | [`configs/README.md`](configs/README.md) |
+| `scripts/` | 用户实际运行的命令 | [`scripts/README.md`](scripts/README.md) |
+| `src/` | 采集、数据、Ridge 和评估底层实现 | [`src/README.md`](src/README.md) |
+| `data/` | 固定 Prompt 与本地生成 trace | [`data/README.md`](data/README.md) |
+| `models/` | 本地 Qwen 模型挂载点 | [`models/README.md`](models/README.md) |
+| `artifacts/` | Ridge、预测和评估结果 | [`artifacts/README.md`](artifacts/README.md) |
+| `docs/` | 研究计划与部署手册 | [`docs/README.md`](docs/README.md) |
+| `tests/` | 数据合同和数学实现测试 | [`tests/README.md`](tests/README.md) |
+| `notebooks/` | 探索性分析，不放正式流程 | [`notebooks/README.md`](notebooks/README.md) |
+
+## 开发检查
+
+```bash
+python -m pytest
+python -m ruff check .
+```
+
+单元测试不会加载 7B 模型，也不能替代 GPU pilot。真实 GPU、BF16、模型文件和磁盘条件
+由 `preflight_server.py` 检查。
+
+## 研究路线
+
+项目计划分为四个阶段：ALPS 静态 prior、PLP 动态修正、端到端 serving benchmark 和
+错误反馈分析。研究问题、对比方法和后续里程碑见
+[`docs/research_plan.md`](docs/research_plan.md)。

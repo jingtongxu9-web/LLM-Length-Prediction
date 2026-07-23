@@ -22,9 +22,7 @@ def test_model_source_resolution(monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     assert resolve_model_source(local_path=tmp_path / "other") == str(local_model)
 
 
-def test_invalid_model_path_environment(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_invalid_model_path_environment(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     missing = tmp_path / "missing-model"
     monkeypatch.setenv("MODEL_PATH", str(missing))
     with pytest.raises(FileNotFoundError, match="MODEL_PATH"):

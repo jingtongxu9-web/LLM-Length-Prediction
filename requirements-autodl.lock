@@ -1,0 +1,25 @@
+# PyTorch is supplied by the selected AutoDL CUDA 12.8+ image.
+# This file pins the remaining Python packages for the direct-Python RTX 5090 path only.
+numpy==2.2.2
+PyYAML==6.0.2
+transformers==4.48.3
+huggingface-hub==0.28.1
+safetensors==0.5.2
+tokenizers==0.21.0
+pytest==8.3.4
+ruff==0.9.7
+
+# Transitive runtime/test dependencies are pinned as well.
+certifi==2026.6.17
+charset-normalizer==3.4.9
+filelock==3.31.2
+fsspec==2026.6.0
+idna==3.18
+iniconfig==2.3.0
+packaging==26.2
+pluggy==1.6.0
+regex==2026.7.19
+requests==2.34.2
+tqdm==4.69.0
+typing-extensions==4.16.0
+urllib3==2.7.0

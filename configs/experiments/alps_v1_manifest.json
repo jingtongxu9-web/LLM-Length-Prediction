@@ -32,6 +32,10 @@
     "prior": "shifted_lognormal",
     "residual_variance_estimator": "maximum_likelihood"
   },
+  "ridge": {
+    "standardize": true,
+    "alpha": 1.0
+  },
   "outputs": {
     "trace_root": "data/interim/alps_v1",
     "run_root": "artifacts/runs/alps_v1",

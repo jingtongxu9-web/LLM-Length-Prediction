@@ -29,6 +29,4 @@ def test_frozen_prompt_manifest() -> None:
             "long",
         }
         assert len({record["split"] for record in family_records}) == 1
-        assert {tuple(record["generation_seeds"]) for record in family_records} == {
-            (42, 43, 44)
-        }
+        assert {tuple(record["generation_seeds"]) for record in family_records} == {(42, 43, 44)}
