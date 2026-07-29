@@ -13,7 +13,7 @@ from llm_length_prediction.experiment import (
     trace_path,
     validate_frozen_trace,
 )
-from scripts.build_prompt_manifest import build_records, write_manifest
+from llm_length_prediction.prompt_manifest import build_records, write_manifest
 from scripts.evaluate_prior import main as evaluate_prior_main
 from scripts.preflight_server import _validate_model_snapshot
 from scripts.train_prior import main as train_prior_main
