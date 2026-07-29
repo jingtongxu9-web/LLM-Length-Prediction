@@ -137,6 +137,31 @@ python scripts/evaluate_prior.py --split test --confirm-final-test
 Test 包含 36 个 Prompt、108 个 rollout。`--confirm-final-test` 用于防止开发过程中反复
 查看最终测试结果。
 
+### 7. 离线生成分组分析
+
+Train/Test 的逐条预测完成后，不需要再次加载 Qwen、生成 rollout 或训练 Ridge。下面的
+命令读取现有 `*_evaluation.csv` 和冻结 Prompt manifest，在 CPU 上生成完整分组报告：
+
+```bash
+python scripts/analyze_prior.py \
+  --splits train test \
+  --confirm-final-test
+```
+
+报告保留总体指标，并增加：
+
+- `short` / `medium` / `long`；
+- `qa` / `summarization` / `code`；
+- 3×3 任务—长度交叉组和三个 seed；
+- Raw R² 与 Log R²；
+- 先对同一 Prompt 的三个 seed 实际长度求均值，再评价ALPS点预测；
+- 同一 `prompt_family_id` 下 Short→Medium→Long 的单调性和长度增量误差；
+- rollout-level NLL/Coverage与prompt-mean点预测分开报告。
+
+`intended_length` 是实验预先设定的 Prompt 条件，不是根据 Test 输出事后切分的长度箱。
+九宫格 Test 单元只有 4 个独立 family（12 个 rollout），所以单元内 R² 应结合 MAE、
+Bias、Coverage 和样本量一起解释。
+
 完整脚本说明见 [`scripts/README.md`](scripts/README.md)。
 
 ## 数据流与输出
@@ -166,6 +191,11 @@ artifacts/runs/alps_v1/stage1/
 | `artifacts/runs/alps_v1/stage1/prior.json` | Scaler、Ridge 权重、偏置和残差方差 |
 | `artifacts/runs/alps_v1/stage1/metrics.json` | 训练阶段指标 |
 | `artifacts/runs/alps_v1/stage1/predictions.csv` | 真实长度与预测长度 |
+| `artifacts/runs/alps_v1/stage1/{train,test}_breakdown.json` | 总体、长度、任务、交叉组、seed和配对长度分析 |
+| `artifacts/runs/alps_v1/stage1/{train,test}_breakdown.csv` | 适合表格和绘图的分组指标 |
+| `artifacts/runs/alps_v1/stage1/{train,test}_breakdown.md` | 可直接阅读的完整分组表格 |
+| `artifacts/runs/alps_v1/stage1/{train,test}_prompt_mean_breakdown.csv` | 三seed均值后的Prompt级点预测 |
+| `artifacts/runs/alps_v1/stage1/{train,test}_length_contrasts.csv` | Short→Medium→Long配对变化 |
 
 ## 冻结实验条件
 

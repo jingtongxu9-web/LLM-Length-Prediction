@@ -22,6 +22,9 @@ python scripts/evaluate_prior.py --split train
 # 5. After all choices are frozen, open the final test split once.
 python scripts/collect_dataset.py --splits test --confirm-final-test
 python scripts/evaluate_prior.py --split test --confirm-final-test
+
+# 6. Analyze existing Train/Test predictions without loading Qwen again.
+python scripts/analyze_prior.py --splits train test --confirm-final-test
 ```
 
 The batch collector stores one atomic trace per `(prompt_id, seed)` and skips valid completed files,
@@ -35,6 +38,7 @@ so the same command safely resumes an interrupted run.
 | `collect_dataset.py` | Implemented, official v1 collector | Expand the frozen prompt manifest into resumable Train/Test rollouts |
 | `train_prior.py` | Implemented | Fit StandardScaler + Ridge on Layer-14 features and `log1p(output_tokens)` |
 | `evaluate_prior.py` | Implemented | Evaluate a saved prior with final-test access protection |
+| `analyze_prior.py` | Implemented | Offline overall, length, task, interaction, seed, and matched-family analysis |
 | `collect_traces.py` | Debug helper | Collect one manually supplied prompt; not the official 540-rollout experiment |
 | `download_model.py` | Setup helper | Download the exact Qwen revision and write `.frozen_revision` |
 | `build_prompt_manifest.py` | Maintenance helper | Deterministically rebuild the frozen 180-prompt manifest; do not run casually |
@@ -63,3 +67,10 @@ models/Qwen2.5-7B-Instruct/ or MODEL_PATH
 
 Large outputs are ignored by Git. Copy or archive experiment artifacts before releasing a rented
 instance.
+
+`analyze_prior.py` consumes the existing `train_evaluation.csv` and `test_evaluation.csv`. It does
+not load Qwen, regenerate answers, or refit Ridge. It writes `{split}_breakdown.json`,
+`{split}_breakdown.csv`, `{split}_breakdown.md`, `{split}_prompt_mean_breakdown.csv`, and
+`{split}_length_contrasts.csv` beside the saved prior. The report separates rollout-level
+distribution metrics from three-seed prompt-mean point accuracy. Test analysis retains the explicit
+`--confirm-final-test` guard.

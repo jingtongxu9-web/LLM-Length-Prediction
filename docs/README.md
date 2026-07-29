@@ -6,6 +6,7 @@ entry points; commands referenced here live under `scripts/`.
 | Document | Purpose |
 |---|---|
 | `research_plan.md` | Research questions, stages, comparisons, and milestones |
+| `alps_v1_results.md` | Frozen ALPS v1 metrics, subgroup tables, statistical definitions, and analysis |
 | `server_runbook.md` | Hardware-neutral isolated-server execution checklist |
 | `docker_4090_runbook.md` | Pinned PyTorch 2.6/CUDA 12.4 Docker procedure for the supplied RTX 4090 server |
 | `autodl_5090_runbook.md` | Direct-Python AutoDL RTX 5090/CUDA 12.8 setup and full ALPS v1 run |

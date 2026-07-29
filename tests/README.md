@@ -12,6 +12,8 @@ Current coverage includes:
 - local/`MODEL_PATH` model-source resolution;
 - JSONL trace serialization and schema validation;
 - `log1p` Ridge fitting, prediction, and saved-model round trips.
+- length/task/interaction/seed metric breakdowns and matched-family length contrasts;
+- end-to-end Train/Test prediction-to-breakdown report generation.
 
 After installing the project, run from the repository root:
 

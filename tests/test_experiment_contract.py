@@ -14,6 +14,7 @@ from llm_length_prediction.experiment import (
     validate_frozen_trace,
 )
 from llm_length_prediction.prompt_manifest import build_records, write_manifest
+from scripts.analyze_prior import main as analyze_prior_main
 from scripts.evaluate_prior import main as evaluate_prior_main
 from scripts.preflight_server import _validate_model_snapshot
 from scripts.train_prior import main as train_prior_main
@@ -165,3 +166,33 @@ def test_synthetic_train_and_test_pipeline(tmp_path: Path, monkeypatch: pytest.M
     evaluate_prior_main()
     test_metrics = json.loads((output_dir / "test_evaluation.json").read_text(encoding="utf-8"))
     assert test_metrics["count"] == 108
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "analyze_prior.py",
+            "--experiment",
+            str(experiment_path),
+            "--prior",
+            str(output_dir / "prior.json"),
+            "--splits",
+            "train",
+            "test",
+            "--evaluation-dir",
+            str(output_dir),
+            "--output-dir",
+            str(output_dir),
+            "--confirm-final-test",
+        ],
+    )
+    analyze_prior_main()
+    train_breakdown = json.loads((output_dir / "train_breakdown.json").read_text(encoding="utf-8"))
+    test_breakdown = json.loads((output_dir / "test_breakdown.json").read_text(encoding="utf-8"))
+    assert train_breakdown["overall"]["count"] == 432
+    assert test_breakdown["overall"]["count"] == 108
+    assert test_breakdown["prompt_mean_point_analysis"]["overall"]["count"] == 36
+    assert len(test_breakdown["by_task_type_and_intended_length"]) == 9
+    assert (
+        test_breakdown["matched_length_analysis"]["family_mean_level"]["overall"]["triplet_count"]
+        == 12
+    )
