@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "method_id": "dynamic-signal-mlp-v1",
+  "display_name": "Dynamic-Signal MLP v1",
+  "method_role": "project_adaptation_dynamic_baseline",
+  "base_experiment": "configs/experiments/alps_v1_manifest.json",
+  "base_experiment_id": "alps-v1-qwen2.5-7b-instruct",
+  "provenance": {
+    "paper_url": "https://arxiv.org/html/2602.11812v2",
+    "relationship": "shares_progressive_remaining_length_objective_only",
+    "exact_replication": false,
+    "paper_replication_version": "future-v2"
+  },
+  "scope": {
+    "uses_existing_rollouts": true,
+    "uses_alps_prior": false,
+    "uses_prefill_hidden_state": false,
+    "uses_decode_hidden_state": false,
+    "paper_exact_plp": false
+  },
+  "features": [
+    "step",
+    "entropy",
+    "entropy_mean",
+    "entropy_slope",
+    "eos_probability"
+  ],
+  "trace": {
+    "stride": 5,
+    "entropy_window": 20,
+    "exclude_terminal_point": true,
+    "sequence_balanced_loss": true
+  },
+  "target": {
+    "name": "log1p_remaining_tokens",
+    "inverse_mean": "exp(mu + residual_variance / 2) - 1",
+    "distribution": "shifted_lognormal"
+  },
+  "model": {
+    "type": "mlp",
+    "hidden_sizes": [128, 64],
+    "dropout": 0.1
+  },
+  "training": {
+    "optimizer": "adamw",
+    "seed": 42,
+    "epochs": 50,
+    "batch_size": 512,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "device": "auto",
+    "hyperparameter_selection": "none"
+  },
+  "outputs": {
+    "run_root": "artifacts/runs/alps_v1/comparisons/plp_only",
+    "model": "model.json",
+    "training_report": "training_report.json"
+  }
+}

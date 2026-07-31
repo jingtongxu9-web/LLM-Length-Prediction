@@ -11,8 +11,10 @@ The current ALPS v1 command-line pipeline reads:
 configs/experiments/alps_v1_manifest.json
 ```
 
-`preflight_server.py`, `collect_dataset.py`, `train_prior.py`, and `evaluate_prior.py` use this JSON
-manifest directly. It is the machine-readable experiment contract for:
+`preflight_server.py`, `collect_dataset.py`, `evaluate_grouped_cv.py`, `train_prior.py`,
+`evaluate_prior.py`, and the input-token baseline use this JSON manifest directly. It is the
+machine-readable experiment
+contract for:
 
 - model and tokenizer revisions;
 - BF16 precision and zero-based feature Layer 14;
@@ -31,9 +33,15 @@ ID. Do not edit the v1 manifest after viewing final-test results.
 |---|---|---:|
 | `base.yaml` | Human-readable shared design settings and future config foundation | No |
 | `experiments/stage1_prior.yaml` | Stage 1 Ridge/prior design notes | No |
-| `experiments/stage2_dynamic.yaml` | Planned PLP dynamic-correction design | No |
+| `experiments/stage2_dynamic.yaml` | Earlier human-readable PLP/hybrid design notes | No |
 | `experiments/stage3_benchmark.yaml` | Planned serving benchmark design | No |
 | `experiments/alps_v1_manifest.json` | Frozen executable ALPS v1 contract | Yes |
+| `experiments/plp_v1_manifest.json` | Frozen Dynamic-Signal MLP v1 contract; project adaptation, not paper PLP reproduction | Yes |
+
+The method definition and paper boundary are documented in
+[`docs/dynamic_signal_mlp_v1.md`](../docs/dynamic_signal_mlp_v1.md). Its internal compatibility
+label may still appear as `project_plp_only`, but user-facing reports should call it
+**Dynamic-Signal MLP v1（项目版 PLP）**.
 
 Some values currently appear in both YAML documentation and Python defaults. When they disagree,
 do not guess: the executable manifest and the command being run determine actual behavior. A future

@@ -254,7 +254,17 @@ find data/interim/alps_v1/train -name 'seed_*.jsonl' -type f | wc -l
 
 Required result: train count 432, test count 0.
 
-## 10. Fit and inspect the train-only prior
+## 10. Validate the frozen probe with family-grouped CV
+
+```bash
+docker compose run --rm alps python scripts/evaluate_grouped_cv.py \
+  2>&1 | tee artifacts/runs/alps_v1/logs/grouped_cv.log
+```
+
+This step uses the frozen Layer 14 and `alpha=1.0`. It compares the fixed ALPS probe with simple
+baselines, but does not select hyperparameters or save a final model.
+
+## 11. Fit and inspect the train-only prior
 
 ```bash
 docker compose run --rm alps python scripts/train_prior.py \
@@ -288,7 +298,7 @@ sha256sum \
 Do not change features, layer, alpha, prompts, generation settings, or evaluation rules after this
 point. If the Stage 1 gate fails, document the failure before designing a new experiment version.
 
-## 11. Collect and evaluate the final test once
+## 12. Collect and evaluate the final test once
 
 Only after the prior and decision rules are frozen:
 
@@ -304,7 +314,7 @@ docker compose run --rm alps \
 
 The final summary must report 432 train and 108 test rollouts, total 540.
 
-## 12. Archive and verify
+## 13. Archive and verify
 
 ```bash
 find data/interim/alps_v1 artifacts/runs/alps_v1 \

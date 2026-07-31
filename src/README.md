@@ -11,8 +11,9 @@
 | `runtime/` | Resolve the Qwen source from an explicit path, `MODEL_PATH`, local `models/`, or Hub ID | preflight and collectors |
 | `instrumentation/` | Load Transformers/Qwen, run prefill and decoding, capture Layer-14 features, entropy, EOS probability, timing, and text | trace and dataset collectors |
 | `data/` | Define `GenerationTrace`/`TracePoint` and validate JSONL serialization | collectors, training, evaluation |
-| `models/` | Fit, save, load, and apply the standardized Ridge shifted-log-normal prior; hold early PLP structures | prior training/evaluation |
-| `evaluation/` | Prediction error and tail-risk metrics | training/evaluation scripts |
+| `comparison.py` | Load and validate shared Train/Test traces for frozen comparator methods | baseline/PLP scripts |
+| `models/` | Ridge prior/baseline plus serializable Dynamic-Signal MLP v1 and sample builder | training/evaluation |
+| `evaluation/` | Prediction, tail-risk, grouped-CV, and decode-progress metrics | training/evaluation scripts |
 | `serving/` | Early scheduling/bucketing simulation structures | future benchmark |
 
 ## Current call flow
@@ -34,8 +35,20 @@ scripts/evaluate_prior.py
   -> data/io.py
   -> models/prior.py
   -> evaluation/metrics.py
+
+scripts/train_input_baseline.py
+  -> comparison.py
+  -> models/prior.py
+  -> artifacts/runs/alps_v1/comparisons/input_token_ridge/
+
+scripts/train_dynamic.py
+  -> comparison.py
+  -> models/dynamic.py
+  -> evaluation/progressive.py
+  -> artifacts/runs/alps_v1/comparisons/plp_only/
 ```
 
-The Qwen weights and tokenizer are never trained here. Only the small Ridge probe is fitted in
-Stage 1. `models/dynamic.py` and `serving/simulator.py` are foundations for later stages, not a
-completed PLP/serving implementation.
+The Qwen weights and tokenizer are never trained here. Stage 1 fits small Ridge models; project
+Dynamic-Signal MLP v1 fits a small project-defined MLP on already saved decode signals; it is not
+the paper PLP architecture. `serving/simulator.py` remains a
+foundation for the later serving benchmark.

@@ -23,6 +23,39 @@ from llm_length_prediction.models.prior import fit_log1p_ridge_prior
 DEFAULT_EXPERIMENT = Path("configs/experiments/alps_v1_manifest.json")
 
 
+def _validate_cv_report(path: Path, experiment: dict[str, Any]) -> dict[str, Any]:
+    if not path.is_file():
+        raise ValueError(
+            "frozen-config CV validation is missing; run "
+            "`python scripts/evaluate_grouped_cv.py` before fitting the final prior: "
+            f"{path}"
+        )
+    try:
+        report = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValueError(f"cannot read CV validation report: {path}") from error
+    expected = {
+        "mode": "frozen_config_generalization_check",
+        "experiment_id": experiment["experiment_id"],
+        "feature_layer": int(experiment["model"]["feature_layer"]),
+        "ridge_alpha": float(experiment["ridge"]["alpha"]),
+        "folds": 5,
+        "group_key": "prompt_family_id",
+        "selects_hyperparameters": False,
+        "fits_final_model": False,
+    }
+    mismatches = [
+        f"{key}: expected {value!r}, got {report.get(key)!r}"
+        for key, value in expected.items()
+        if report.get(key) != value
+    ]
+    if mismatches:
+        raise ValueError(
+            "CV validation does not match the frozen experiment: " + "; ".join(mismatches)
+        )
+    return report
+
+
 def _load_training_rows(
     trace_root: Path,
     *,
@@ -78,12 +111,23 @@ def main() -> None:
     parser.add_argument("--experiment", type=Path, default=DEFAULT_EXPERIMENT)
     parser.add_argument("--trace-root", type=Path)
     parser.add_argument("--output-dir", type=Path)
+    parser.add_argument(
+        "--cv-validation",
+        type=Path,
+        help="validation.json produced by evaluate_grouped_cv.py",
+    )
     args = parser.parse_args()
 
     experiment = load_experiment(args.experiment)
     records = load_frozen_prompts(experiment)
     trace_root = args.trace_root or Path(experiment["outputs"]["trace_root"])
-    output_dir = args.output_dir or Path(experiment["outputs"]["run_root"]) / "stage1"
+    run_root = Path(experiment["outputs"]["run_root"])
+    output_dir = args.output_dir or run_root / "stage1"
+    cv_validation_path = (
+        args.cv_validation
+        or run_root / "diagnostics" / "grouped_cv" / "validation.json"
+    )
+    _validate_cv_report(cv_validation_path, experiment)
     layer = int(experiment["model"]["feature_layer"])
     rows, features, actual = _load_training_rows(
         trace_root, layer=layer, experiment=experiment, records=records
@@ -106,6 +150,8 @@ def main() -> None:
             "fit_split": "train",
             "training_dataset_sha256": _dataset_digest(rows),
             "training_count": len(rows),
+            "cv_validation_path": str(cv_validation_path),
+            "cv_validation_sha256": hashlib.sha256(cv_validation_path.read_bytes()).hexdigest(),
         }
     )
     (output_dir / "prior.json").write_text(

@@ -1,6 +1,9 @@
 defaults: ../base.yaml
 stage: dynamic_correction
 
+# Design note for the future ALPS+dynamic hybrid. The executable Dynamic-Signal
+# MLP v1 comparator is frozen separately in plp_v1_manifest.json and sets static_prior=false.
+
 label: remaining_length
 stride: 5
 

@@ -27,11 +27,14 @@ Do not transfer credentials, `.env` files, Hugging Face tokens, or final-test ou
 3. Delete only invalid pilot files; valid files are resumable inputs to the full run.
 4. Run `python scripts/collect_dataset.py --splits train`.
 5. Confirm `collection_summary.json` reports exactly 432 training rollouts.
-6. Run `python scripts/train_prior.py` and train-only evaluation.
-7. Freeze the prior JSON, its checksum, analysis code, and decision criteria.
-8. Only then collect the 108 test rollouts with
+6. Run `python scripts/evaluate_grouped_cv.py` to validate the frozen Layer-14 / `alpha=1.0`
+   configuration and baselines without selecting hyperparameters.
+7. Discard the temporary fold models, run `python scripts/train_prior.py` on all 432 Train traces,
+   and perform train-only evaluation.
+8. Freeze the prior JSON, its checksum, analysis code, and decision criteria.
+9. Only then collect the 108 test rollouts with
    `python scripts/collect_dataset.py --splits test --confirm-final-test`.
-9. Run final evaluation once with
+10. Run final evaluation once with
    `python scripts/evaluate_prior.py --split test --confirm-final-test`.
 
 ## Artifact return

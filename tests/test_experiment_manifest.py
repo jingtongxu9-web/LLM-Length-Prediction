@@ -1,5 +1,10 @@
 from pathlib import Path
 
+from llm_length_prediction.comparison import (
+    load_base_experiment_for_method,
+    load_method_config,
+    validate_project_plp_contract,
+)
 from llm_length_prediction.experiment import (
     file_sha256,
     load_experiment,
@@ -21,3 +26,16 @@ def test_frozen_experiment_manifest() -> None:
     records = load_frozen_prompts(experiment)
     assert len(list(rollout_jobs(records, split="train"))) == 432
     assert len(list(rollout_jobs(records, split="test"))) == 108
+
+
+def test_frozen_project_plp_manifest() -> None:
+    config = load_method_config(Path("configs/experiments/plp_v1_manifest.json"))
+    _, experiment, _ = load_base_experiment_for_method(config)
+    validate_project_plp_contract(config, experiment)
+    assert config["method_id"] == "dynamic-signal-mlp-v1"
+    assert config["method_role"] == "project_adaptation_dynamic_baseline"
+    assert config["scope"]["uses_alps_prior"] is False
+    assert config["scope"]["paper_exact_plp"] is False
+    assert config["provenance"]["exact_replication"] is False
+    assert config["provenance"]["paper_replication_version"] == "future-v2"
+    assert config["training"]["hyperparameter_selection"] == "none"

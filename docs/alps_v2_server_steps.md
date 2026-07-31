@@ -21,7 +21,7 @@ python -m pytest -q
 ruff check --no-cache .
 ```
 
-## 3. Family-grouped CV 和基线
+## 3. 固定配置的 Family-grouped CV 和基线
 
 ```bash
 set -o pipefail
@@ -45,24 +45,28 @@ artifacts/runs/alps_v1/diagnostics/grouped_cv/summary.csv
 - metadata + Prompt token count；
 - Layer 14 ALPS hidden state。
 
-并在 Train 内扫描 Ridge alpha：
+所有需要 Ridge 的模型均使用 v1 manifest 已冻结的：
 
 ```text
-0.01, 0.1, 1, 10, 100, 1000
+alpha = 1.0
 ```
 
-## 4. 学习曲线
+该五折只验证固定配置，不选择 Layer、alpha 或 PCA，也不保存最终模型。验证结束后仍由
+`train_prior.py` 使用全部 Train trace 一次性训练正式 Ridge。
 
-先根据 grouped-CV 的结果选择一个 Train-OOF alpha，再执行：
+## 4. 可选学习曲线
+
+学习曲线不是 v1 主流程的必要条件。只有需要研究“增加 Prompt family 是否可能改善泛化”
+时才执行：
 
 ```bash
 set -o pipefail
 
-python scripts/plot_learning_curve.py --alpha SELECTED_ALPHA \
+python scripts/plot_learning_curve.py --alpha 1.0 \
   2>&1 | tee artifacts/runs/alps_v1/logs/learning_curve.log
 ```
 
-`SELECTED_ALPHA` 只能根据 Train grouped-CV 确定，禁止根据 v1 Test 修改。
+禁止根据 v1 Test 修改该 alpha。
 
 输出：
 

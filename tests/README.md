@@ -12,8 +12,16 @@ Current coverage includes:
 - local/`MODEL_PATH` model-source resolution;
 - JSONL trace serialization and schema validation;
 - `log1p` Ridge fitting, prediction, and saved-model round trips.
+- five-fold family isolation and frozen-alpha grouped-CV output contracts;
 - length/task/interaction/seed metric breakdowns and matched-family length contrasts;
-- end-to-end Train/Test prediction-to-breakdown report generation.
+- end-to-end grouped-CV, final all-Train fit, Train/Test prediction, and breakdown generation.
+- input-token Ridge final fitting and guarded Test evaluation;
+- Dynamic-Signal MLP v1 non-terminal sample construction, per-sequence weighting, JSON model round trip, and
+  decode-progress metrics.
+
+The local suite does not train the PyTorch Dynamic-Signal MLP. Real MLP training is exercised on the server
+runtime that provides PyTorch; local tests cover its data contract and framework-independent JSON/
+NumPy inference path.
 
 After installing the project, run from the repository root:
 

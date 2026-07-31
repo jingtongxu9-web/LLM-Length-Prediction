@@ -15,8 +15,11 @@ from llm_length_prediction.experiment import (
 )
 from llm_length_prediction.prompt_manifest import build_records, write_manifest
 from scripts.analyze_prior import main as analyze_prior_main
+from scripts.evaluate_grouped_cv import main as evaluate_grouped_cv_main
+from scripts.evaluate_input_baseline import main as evaluate_input_baseline_main
 from scripts.evaluate_prior import main as evaluate_prior_main
 from scripts.preflight_server import _validate_model_snapshot
+from scripts.train_input_baseline import main as train_input_baseline_main
 from scripts.train_prior import main as train_prior_main
 
 EXPERIMENT_PATH = Path("configs/experiments/alps_v1_manifest.json")
@@ -97,6 +100,17 @@ def test_model_snapshot_validation_detects_missing_weight_shard(tmp_path: Path) 
     assert _validate_model_snapshot(tmp_path, experiment) == []
 
 
+def test_v1_grouped_cv_rejects_non_five_fold(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "sys.argv",
+        ["evaluate_grouped_cv.py", "--folds", "4"],
+    )
+    with pytest.raises(SystemExit, match="freezes family-grouped CV at 5 folds"):
+        evaluate_grouped_cv_main()
+
+
 def test_synthetic_train_and_test_pipeline(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     experiment = load_experiment(EXPERIMENT_PATH)
     records = load_frozen_prompts(experiment)
@@ -119,6 +133,34 @@ def test_synthetic_train_and_test_pipeline(tmp_path: Path, monkeypatch: pytest.M
         write_trace_jsonl(trace_path(trace_root, record, seed), trace)
 
     output_dir = run_root / "stage1"
+    cv_output_dir = run_root / "diagnostics" / "grouped_cv"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "evaluate_grouped_cv.py",
+            "--experiment",
+            str(experiment_path),
+            "--output-dir",
+            str(cv_output_dir),
+        ],
+    )
+    evaluate_grouped_cv_main()
+    validation = json.loads(
+        (cv_output_dir / "validation.json").read_text(encoding="utf-8")
+    )
+    cv_results = json.loads((cv_output_dir / "results.json").read_text(encoding="utf-8"))
+    assert validation["mode"] == "frozen_config_generalization_check"
+    assert validation["ridge_alpha"] == 1.0
+    assert validation["feature_layer"] == 14
+    assert validation["train_rollout_count"] == 432
+    assert validation["train_family_count"] == 48
+    assert validation["selects_hyperparameters"] is False
+    assert validation["fits_final_model"] is False
+    assert len(cv_results) == 5
+    assert {
+        result["alpha"] for result in cv_results if result["model"] != "global_mean"
+    } == {1.0}
+
     monkeypatch.setattr(
         "sys.argv",
         [
@@ -133,6 +175,48 @@ def test_synthetic_train_and_test_pipeline(tmp_path: Path, monkeypatch: pytest.M
     prior_payload = json.loads((output_dir / "prior.json").read_text(encoding="utf-8"))
     assert prior_payload["training_count"] == 432
     assert prior_payload["ridge_alpha"] == 1.0
+    assert prior_payload["cv_validation_path"] == str(
+        cv_output_dir / "validation.json"
+    )
+    assert len(prior_payload["cv_validation_sha256"]) == 64
+
+    baseline_dir = run_root / "comparisons" / "input_token_ridge"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "train_input_baseline.py",
+            "--experiment",
+            str(experiment_path),
+            "--output-dir",
+            str(baseline_dir),
+        ],
+    )
+    train_input_baseline_main()
+    baseline_payload = json.loads(
+        (baseline_dir / "model.json").read_text(encoding="utf-8")
+    )
+    assert baseline_payload["method"] == "input_token_ridge"
+    assert baseline_payload["input_feature"] == "prompt_tokens"
+    assert baseline_payload["training_count"] == 432
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "evaluate_input_baseline.py",
+            "--experiment",
+            str(experiment_path),
+            "--model",
+            str(baseline_dir / "model.json"),
+            "--split",
+            "test",
+            "--confirm-final-test",
+        ],
+    )
+    evaluate_input_baseline_main()
+    baseline_test = json.loads(
+        (baseline_dir / "test_evaluation.json").read_text(encoding="utf-8")
+    )
+    assert baseline_test["count"] == 108
 
     monkeypatch.setattr(
         "sys.argv",

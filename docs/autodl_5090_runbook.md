@@ -95,18 +95,23 @@ python scripts/collect_dataset.py --splits train --limit 6 \
 Check GPU memory, runtime per rollout, stop reasons, output lengths, and the generated trace files.
 The six valid files are resumable and will be skipped during full collection.
 
-## 7. Complete Train and fit the prior
+## 7. Complete Train, validate the frozen probe, and fit the prior
 
 ```bash
 python scripts/collect_dataset.py --splits train \
   2>&1 | tee artifacts/runs/alps_v1/train_collection.log
+
+python scripts/evaluate_grouped_cv.py \
+  2>&1 | tee artifacts/runs/alps_v1/grouped_cv.log
 
 python scripts/train_prior.py
 python scripts/evaluate_prior.py --split train
 ```
 
 Training is blocked until all 432 frozen Train rollout files exist and satisfy the experiment
-contract. Confirm `collection_summary.json` reports 432 Train rollouts.
+contract. Confirm `collection_summary.json` reports 432 Train rollouts. The grouped five-fold step
+uses the manifest's fixed Layer 14 and `alpha=1.0`; it does not tune settings or save a final model.
+`train_prior.py` then discards the temporary-fold context and fits one Ridge on all Train traces.
 
 ## 8. Open the final Test once
 
@@ -121,7 +126,40 @@ python scripts/evaluate_prior.py --split test --confirm-final-test
 
 Test evaluation is blocked until all 108 frozen Test rollout files exist and validate.
 
-## 9. Back up before releasing the instance
+## 9. Run the frozen comparator methods from existing traces
+
+These commands do not load Qwen or regenerate answers:
+
+```bash
+# One final prompt-input-token Ridge after the shared grouped-CV report exists.
+python scripts/train_input_baseline.py
+python scripts/evaluate_input_baseline.py \
+  --split test \
+  --confirm-final-test
+
+# Dynamic-Signal MLP v1 using saved per-step entropy/EOS signals.
+python scripts/train_dynamic.py
+python scripts/evaluate_dynamic.py \
+  --split test \
+  --confirm-final-test
+```
+
+Dynamic-Signal MLP v1 is a project adaptation, not the paper PLP architecture. Qwen generated the
+expensive traces earlier. PyTorch from the AutoDL image is still required to fit the MLP, but the
+task can run on CPU or GPU according to the frozen `configs/experiments/plp_v1_manifest.json`.
+See `docs/dynamic_signal_mlp_v1.md` for the exact version boundary.
+
+Inspect:
+
+```bash
+cat artifacts/runs/alps_v1/comparisons/input_token_ridge/test_evaluation.json
+cat artifacts/runs/alps_v1/comparisons/plp_only/test_evaluation.json
+```
+
+The v1 Test was already viewed during ALPS analysis. Treat these new Test comparisons as post-hoc
+diagnostics and do not tune their settings against the same Test.
+
+## 10. Back up before releasing the instance
 
 Copy at least:
 

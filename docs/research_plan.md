@@ -10,22 +10,32 @@
 ## Stage 1: offline prior
 
 - Verify the heavy tail using length and log-length diagnostics.
-- Compare a constant baseline, prompt-length baseline, and layer-wise ridge probes.
+- Compare a constant baseline, prompt-length baseline, and the paper-derived frozen Layer-14 Ridge
+  probe with `alpha=1.0`.
+- Before fitting the final prior on all Train traces, report five-fold family-grouped
+  cross-validation for the frozen configuration. Use it as a generalisation check, not for
+  hyperparameter selection.
 - Fit Ridge on `log1p(output_tokens)`, estimate the train-residual MLE variance, and use the
   resulting shifted log-normal prior. Report MAE, RMSE, R-squared, NLL, interval coverage, and
   long-tail underestimation.
-- Gate: proceed only after the hidden-state probe beats the prompt-length baseline.
+- Gate: proceed after documenting whether the frozen hidden-state probe beats the prompt-length
+  baseline; retain Dynamic-Signal MLP v1 as a required dynamic comparison.
 
 ## Stage 2: progressive correction
 
 - Build samples every five decode tokens with label `R_t = L - t`.
-- Train a small MLP from prior length, step, entropy, entropy trend, EOS probability, and optional hidden state.
+- Treat **Dynamic-Signal MLP v1** as the executable project comparator: step, entropy, entropy
+  trend, and EOS probability, with no ALPS prior or hidden-state input.
+- Train a later ALPS+PLP hybrid from prior length plus the same dynamic signals.
+- Reserve **paper-reproduction PLP v2** for a separate future experiment using decode-time hidden
+  states and the paper's soft-label length-bin head, because v1 traces did not store the required
+  hidden states.
 - Report the uncertainty cone, error versus decode progress, time-to-target-accuracy, and prediction overhead.
 - Gate: error and interval width should generally shrink as decoding progresses.
 
 ## Stage 3: end-to-end and serving benchmark
 
-- Compare input-length, ALPS-only, PLP-only, and ALPS+PLP.
+- Compare input-length, ALPS-only, Dynamic-Signal MLP v1, and the later ALPS+dynamic hybrid.
 - Stratify by task, temperature, and length quantile.
 - Simulate prediction-aware batching or KV-cache reservation.
 - Report average/p95/p99 latency, throughput, padding waste, GPU utilization, KV peak, and OOM count.
