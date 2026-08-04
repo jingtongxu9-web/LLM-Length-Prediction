@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "method_id": "hidden-state-plp-v2",
+  "display_name": "Hidden-State PLP v2 (paper-aligned, non-exact)",
+  "method_role": "paper_aligned_plp_only_nonexact",
+  "base_experiment": "configs/experiments/alps_v1_manifest.json",
+  "base_experiment_id": "alps-v1-qwen2.5-7b-instruct",
+  "provenance": {
+    "paper_url": "https://arxiv.org/html/2602.11812v2",
+    "official_repository": "https://github.com/xiehuanyi/LP_Bench",
+    "official_egtp_head_code_available": true,
+    "prediction_head_source": "https://github.com/xiehuanyi/LP_Bench/blob/main/EGTP/egtp/model.py",
+    "prediction_head_match": "Linear(input_dim,input_dim//2)-LayerNorm-ReLU-Dropout(0.1)-Linear(input_dim//2,20)",
+    "official_plp_code_available": false,
+    "exact_replication": false,
+    "reason_not_exact": "The paper states concatenation with all prior decode states but the public repository currently contains EGTP only. This implementation concatenates the entropy-pooled prompt state with the current final-layer causal state, which already attends to the generated prefix."
+  },
+  "scope": {
+    "uses_existing_rollouts": false,
+    "requires_generation_rerun": true,
+    "uses_alps_prior": false,
+    "uses_prompt_hidden_state": true,
+    "uses_decode_hidden_state": true,
+    "plp_only": true
+  },
+  "representation": {
+    "hidden_layer": "final_transformer_layer",
+    "hidden_size": 3584,
+    "input_dim": 7168,
+    "prompt_pooling": "entropy_softmax_all_formatted_prompt_tokens",
+    "prompt_pooling_temperature": 1.0,
+    "dynamic_aggregation": "concat_prompt_pool_with_current_causal_hidden_state",
+    "storage_dtype": "float32",
+    "training_dtype": "float32"
+  },
+  "trace": {
+    "schema_version": 2,
+    "stride": 5,
+    "include_first_point": true,
+    "include_terminal_point": true,
+    "sequence_balanced_loss": true,
+    "exclude_max_new_tokens_traces": true
+  },
+  "target": {
+    "name": "remaining_tokens",
+    "transform": "none"
+  },
+  "prediction_head": {
+    "type": "soft_label_length_bins",
+    "num_bins": 20,
+    "target_range_percentiles": [1.0, 99.0],
+    "architecture": "Linear(2d,d)-LayerNorm-ReLU-Dropout-Linear(d,20)",
+    "dropout": 0.1,
+    "lambda_ce": 0.95,
+    "lambda_mse": 0.05
+  },
+  "training": {
+    "optimizer": "adamw",
+    "seed": 42,
+    "epochs": 10,
+    "batch_size": 16,
+    "learning_rate": 0.00002,
+    "weight_decay": 0.0,
+    "device": "auto",
+    "hyperparameter_selection": "none"
+  },
+  "comparison_boundary": {
+    "generation_model_sampling_and_prompts": "same_as_alps_v1",
+    "split": "reuse_alps_v1_family_grouped_80_20",
+    "test_status": "development_only_because_v1_test_was_already_opened"
+  },
+  "outputs": {
+    "trace_root": "data/interim/plp_v2",
+    "run_root": "artifacts/runs/plp_v2",
+    "checkpoint": "plp_head.pt",
+    "training_report": "training_report.json"
+  }
+}

@@ -147,7 +147,8 @@ python scripts/evaluate_dynamic.py \
 Dynamic-Signal MLP v1 is a project adaptation, not the paper PLP architecture. Qwen generated the
 expensive traces earlier. PyTorch from the AutoDL image is still required to fit the MLP, but the
 task can run on CPU or GPU according to the frozen `configs/experiments/plp_v1_manifest.json`.
-See `docs/dynamic_signal_mlp_v1.md` for the exact version boundary.
+See [`results/v1/dynamic_signal_mlp.md`](../results/v1/dynamic_signal_mlp.md) for the exact
+version boundary.
 
 Inspect:
 
@@ -159,13 +160,49 @@ cat artifacts/runs/alps_v1/comparisons/plp_only/test_evaluation.json
 The v1 Test was already viewed during ALPS analysis. Treat these new Test comparisons as post-hoc
 diagnostics and do not tune their settings against the same Test.
 
-## 10. Back up before releasing the instance
+## 10. Run Hidden-State PLP v2
+
+PLP v2 is a separate paper-aligned, non-exact route. Existing ALPS JSONL files do not contain its
+Prompt/decode final-layer states, so collection must run Qwen again. No network accelerator is
+needed after the model and repository are already local.
+
+```bash
+# Resource and frozen-contract check.
+python scripts/preflight_server.py \
+  --plp-config configs/experiments/plp_v2_manifest.json
+
+# Six-rollout pilot. The files are resumable and the full run will reuse them.
+python scripts/collect_plp_dataset.py --splits train --limit 6 \
+  2>&1 | tee artifacts/runs/plp_v2/train_pilot.log
+cat artifacts/runs/plp_v2/collection_summary.json
+
+# Complete Train, fit the PLP head, and evaluate Train.
+python scripts/collect_plp_dataset.py --splits train \
+  2>&1 | tee artifacts/runs/plp_v2/train_collection.log
+python scripts/train_plp.py 2>&1 | tee artifacts/runs/plp_v2/training.log
+python scripts/evaluate_plp.py --split train
+
+# Development-only Test comparison: the shared v1 Test has already been opened.
+python scripts/collect_plp_dataset.py --splits test --confirm-final-test \
+  2>&1 | tee artifacts/runs/plp_v2/test_collection.log
+python scripts/evaluate_plp.py --split test --confirm-final-test
+```
+
+During collection, monitor another terminal with `watch -n 2 nvidia-smi`. Collection writes peak
+CUDA allocation/reservation, stop-reason counts, point counts, and trace size into
+`artifacts/runs/plp_v2/collection_summary.json`. Train/Test evaluation additionally reports task,
+intended-length, 3x3 task-length, seed, and decode-progress breakdowns. The task and length fields
+are evaluation labels only and never enter the PLP feature vector.
+
+## 11. Back up before releasing the instance
 
 Copy at least:
 
 ```text
 artifacts/runs/alps_v1/
 data/interim/alps_v1/
+artifacts/runs/plp_v2/
+data/interim/plp_v2/
 ```
 
 The first directory contains the preflight report, collection index, Ridge model, predictions, and

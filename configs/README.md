@@ -3,6 +3,10 @@
 This directory records scientific experiment choices. It does **not** choose the physical GPU or
 install CUDA. Hardware and environment settings are documented separately in the root README.
 
+The name `configs/experiments/` means **experiment definitions and frozen contracts**, not result
+files. Generated machine outputs live under `artifacts/runs/`; committed human-readable reports
+live under [`docs/results/`](../docs/results/README.md).
+
 ## Which file is authoritative today?
 
 The current ALPS v1 command-line pipeline reads:
@@ -37,11 +41,25 @@ ID. Do not edit the v1 manifest after viewing final-test results.
 | `experiments/stage3_benchmark.yaml` | Planned serving benchmark design | No |
 | `experiments/alps_v1_manifest.json` | Frozen executable ALPS v1 contract | Yes |
 | `experiments/plp_v1_manifest.json` | Frozen Dynamic-Signal MLP v1 contract; project adaptation, not paper PLP reproduction | Yes |
+| `experiments/plp_v2_manifest.json` | Hidden-State PLP v2 contract; PLP-only, requires a new hidden-state collection | Yes |
 
 The method definition and paper boundary are documented in
-[`docs/dynamic_signal_mlp_v1.md`](../docs/dynamic_signal_mlp_v1.md). Its internal compatibility
+[`docs/results/v1/dynamic_signal_mlp.md`](../docs/results/v1/dynamic_signal_mlp.md). Its internal compatibility
 label may still appear as `project_plp_only`, but user-facing reports should call it
 **Dynamic-Signal MLP v1（项目版 PLP）**.
+
+`plp_v2_manifest.json` is the executable contract for the paper-aligned, non-exact hidden-state
+route. It keeps the
+base Qwen revision, Prompt split, sampling settings, seeds, and five-token update frequency, while
+using the method-specific final Transformer layer, entropy-guided Prompt pooling, current causal
+decode hidden state, and the paper's 20-bin soft-label head. The public paper repository does not
+currently expose PLP source code, so the fixed-dimension aggregation decision and non-exact
+replication status are recorded directly in that manifest.
+
+The v2 contract also freezes the representation dimensions (`3584 + 3584 = 7168`), Trace schema
+version, 20-bin head architecture, optimizer, learning rate, epoch count, and censoring rule. Task,
+intended-length group, Prompt family, and seed remain provenance/evaluation fields only; they are
+not fed to the PLP head. Any change to these frozen values must use a new method ID or manifest.
 
 Some values currently appear in both YAML documentation and Python defaults. When they disagree,
 do not guess: the executable manifest and the command being run determine actual behavior. A future

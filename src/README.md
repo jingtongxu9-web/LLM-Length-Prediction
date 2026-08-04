@@ -9,11 +9,12 @@
 |---|---|---|
 | `experiment.py` | Load and validate the frozen manifest, prompt hash/counts, rollout jobs, paths, and trace provenance | preflight, collection, training, evaluation |
 | `runtime/` | Resolve the Qwen source from an explicit path, `MODEL_PATH`, local `models/`, or Hub ID | preflight and collectors |
-| `instrumentation/` | Load Transformers/Qwen, run prefill and decoding, capture Layer-14 features, entropy, EOS probability, timing, and text | trace and dataset collectors |
-| `data/` | Define `GenerationTrace`/`TracePoint` and validate JSONL serialization | collectors, training, evaluation |
+| `instrumentation/` | Run Qwen and capture either ALPS Layer-14 signals or PLP Prompt/decode final-layer states | trace and dataset collectors |
+| `data/` | Validate ALPS JSONL traces and compressed, pickle-free PLP NPZ traces | collectors, training, evaluation |
 | `comparison.py` | Load and validate shared Train/Test traces for frozen comparator methods | baseline/PLP scripts |
-| `models/` | Ridge prior/baseline plus serializable Dynamic-Signal MLP v1 and sample builder | training/evaluation |
-| `evaluation/` | Prediction, tail-risk, grouped-CV, and decode-progress metrics | training/evaluation scripts |
+| `plp_experiment.py` | Validate the PLP v2 manifest, trace provenance, completeness, and digests | PLP v2 scripts |
+| `models/` | Ridge models, Dynamic-Signal MLP v1, and the Hidden-State PLP soft-label head | training/evaluation |
+| `evaluation/` | Prediction, tail-risk, grouped-CV, and v1/v2 decode-progress metrics | training/evaluation scripts |
 | `serving/` | Early scheduling/bucketing simulation structures | future benchmark |
 
 ## Current call flow
@@ -46,9 +47,26 @@ scripts/train_dynamic.py
   -> models/dynamic.py
   -> evaluation/progressive.py
   -> artifacts/runs/alps_v1/comparisons/plp_only/
+
+scripts/collect_plp_dataset.py
+  -> instrumentation/plp.py
+  -> data/plp.py
+  -> data/interim/plp_v2/
+
+scripts/train_plp.py + scripts/evaluate_plp.py
+  -> plp_experiment.py
+  -> models/plp.py
+  -> evaluation/plp.py
+  -> artifacts/runs/plp_v2/
 ```
 
 The Qwen weights and tokenizer are never trained here. Stage 1 fits small Ridge models; project
-Dynamic-Signal MLP v1 fits a small project-defined MLP on already saved decode signals; it is not
-the paper PLP architecture. `serving/simulator.py` remains a
-foundation for the later serving benchmark.
+Dynamic-Signal MLP v1 fits a small project-defined MLP on already saved decode signals. Hidden-State
+PLP v2 trains a separate soft-label head while Qwen remains frozen; it does not consume ALPS output.
+`serving/simulator.py` remains a foundation for the later serving benchmark.
+
+PLP v2 Trace schema 2 stores one 3584-dimensional Prompt feature, sampled 3584-dimensional decode
+states, their step/target metadata, and the complete generated token-ID sequence. It does not store
+the Qwen weights or a duplicated 7168-dimensional feature matrix per Trace. Training constructs the
+7168-dimensional concatenation in host memory, then fits only the PLP head. Task and intended-length
+labels are carried solely for subgroup reporting and never enter the model feature vector.

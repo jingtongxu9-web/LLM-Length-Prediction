@@ -18,10 +18,14 @@ Current coverage includes:
 - input-token Ridge final fitting and guarded Test evaluation;
 - Dynamic-Signal MLP v1 non-terminal sample construction, per-sequence weighting, JSON model round trip, and
   decode-progress metrics.
+- Hidden-State PLP NPZ round trips, Prompt/decode concatenation, soft length bins, sequence-balanced
+  metrics, progress/task/length/seed grouping, complete generated-token provenance, strict stride
+  schedules, censored-trace accounting, atomic checkpoint writes, and the frozen v2 manifest
+  contract.
 
-The local suite does not train the PyTorch Dynamic-Signal MLP. Real MLP training is exercised on the server
-runtime that provides PyTorch; local tests cover its data contract and framework-independent JSON/
-NumPy inference path.
+The local suite does not train either PyTorch MLP. Real training and Qwen hidden-state collection are
+exercised on the server runtime that provides PyTorch; local tests cover storage, contracts and
+framework-independent NumPy mathematics.
 
 After installing the project, run from the repository root:
 

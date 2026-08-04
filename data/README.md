@@ -12,9 +12,12 @@ data/
 |   `-- alps_v1_prompts.jsonl  # 180 versioned prompts with frozen 80/20 split
 |-- raw/                       # optional external source material; local only
 |-- interim/                   # generated Qwen rollouts; local only and ignored by Git
-|   `-- alps_v1/
-|       |-- train/             # 432 rollout files after complete Train collection
-|       `-- test/              # 108 protected final-test rollout files
+|   |-- alps_v1/
+|   |   |-- train/             # 432 ALPS JSONL rollout files
+|   |   `-- test/              # 108 ALPS JSONL rollout files
+|   `-- plp_v2/
+|       |-- train/             # Hidden-State PLP compressed NPZ traces
+|       `-- test/              # collected only with explicit Test confirmation
 |-- processed/                 # optional accepted/derived datasets; local only
 `-- README.md
 ```
@@ -23,6 +26,18 @@ The committed prompt manifest is an **input**. `scripts/collect_dataset.py` read
 frozen Qwen model, and writes the resulting generated text, output lengths, Layer-14 features, and
 decode signals under `interim/alps_v1/`. Ridge models and metrics do not belong here; they are
 written under `artifacts/runs/`.
+
+`scripts/collect_plp_dataset.py` reads the same committed Prompt manifest but reruns generation to
+capture data that ALPS v1 did not save: one entropy-guided pooled Prompt final-layer vector and the
+current generated token's final-layer causal vector at each PLP update. These large arrays are
+stored as compressed, pickle-free `.npz` files under `interim/plp_v2/`. They are local evidence,
+not a second Prompt dataset and not Git content.
+
+PLP trace schema v2 stores the complete generated token-id sequence in addition to the saved
+stride points. This makes every rollout reconstructable with the frozen tokenizer and verifies that
+the token id recorded at each PLP point matches the full generation. It still stores only one
+Prompt vector and one 3584-dimensional decode vector per saved point; the 7168-dimensional
+concatenation is created in RAM during training rather than duplicated on disk.
 
 All matched prompts and trajectories derived from one `prompt_family_id` must remain in the same
 split.

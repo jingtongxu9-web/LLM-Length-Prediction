@@ -15,6 +15,12 @@ from llm_length_prediction.experiment import (
     load_experiment,
     load_frozen_prompts,
 )
+from llm_length_prediction.models.plp import plp_head_parameter_count
+from llm_length_prediction.plp_experiment import (
+    load_plp_base_experiment,
+    load_plp_config,
+    validate_plp_config,
+)
 from llm_length_prediction.runtime.model_paths import resolve_model_source
 
 DEFAULT_EXPERIMENT = Path("configs/experiments/alps_v1_manifest.json")
@@ -30,7 +36,11 @@ def _version_tuple(value: str | None) -> tuple[int, int]:
         return (0, 0)
 
 
-def _validate_model_snapshot(model_source: Path, experiment: dict[str, Any]) -> list[str]:
+def _validate_model_snapshot(
+    model_source: Path,
+    experiment: dict[str, Any],
+    plp_config: dict[str, Any] | None = None,
+) -> list[str]:
     failures: list[str] = []
     if not model_source.is_dir():
         return ["frozen model is not available locally; set MODEL_PATH or download it"]
@@ -58,6 +68,10 @@ def _validate_model_snapshot(model_source: Path, experiment: dict[str, Any]) -> 
             layer_count = int(config.get("num_hidden_layers", 0))
             if int(experiment["model"]["feature_layer"]) >= layer_count:
                 failures.append("frozen feature layer is outside the model layer range")
+            if plp_config is not None and int(config.get("hidden_size", 0)) != int(
+                plp_config["representation"]["hidden_size"]
+            ):
+                failures.append("model hidden_size does not match the PLP representation")
 
     tokenizer_path = model_source / "tokenizer_config.json"
     if tokenizer_path.is_file():
@@ -96,6 +110,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--experiment", type=Path, default=DEFAULT_EXPERIMENT)
     parser.add_argument("--model", help="Optional local model path override")
     parser.add_argument(
+        "--plp-config",
+        type=Path,
+        help="Also validate a PLP method config and report its worst-case storage budget",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         help="Report path; defaults to <run_root>/environment/preflight.json",
@@ -114,6 +133,55 @@ def main() -> None:
         "platform": platform.platform(),
     }
 
+    plp_config: dict[str, Any] | None = None
+    plp_minimum_disk_bytes = 0
+    plp_recommended_disk_bytes = 0
+    if args.plp_config is not None:
+        try:
+            plp_config = load_plp_config(args.plp_config)
+            plp_experiment, _ = load_plp_base_experiment(plp_config)
+            validate_plp_config(plp_config, plp_experiment)
+            if plp_experiment["experiment_id"] != experiment["experiment_id"]:
+                failures.append("PLP base experiment does not match --experiment")
+            hidden_size = int(plp_config["representation"]["hidden_size"])
+            input_dim = int(plp_config["representation"]["input_dim"])
+            stride = int(plp_config["trace"]["stride"])
+            max_new_tokens = int(experiment["generation"]["max_new_tokens"])
+            points_per_trace = (
+                1
+                + max_new_tokens // stride
+                + int(max_new_tokens % stride != 0)
+            )
+            rollout_count = int(experiment["inputs"]["rollout_count"])
+            trace_bytes = rollout_count * (
+                hidden_size * 4
+                + points_per_trace * (hidden_size * 4 + 3 * 4)
+                + max_new_tokens * 4
+            )
+            parameter_count = plp_head_parameter_count(
+                input_dim, int(plp_config["prediction_head"]["num_bins"])
+            )
+            checkpoint_bytes = parameter_count * 4
+            plp_minimum_disk_bytes = trace_bytes + checkpoint_bytes + 1024**3
+            plp_recommended_disk_bytes = int(
+                trace_bytes * 1.25 + checkpoint_bytes + 5 * 1024**3
+            )
+            report["plp"] = {
+                "method_id": plp_config["method_id"],
+                "hidden_size": hidden_size,
+                "input_dim": input_dim,
+                "worst_case_points_per_trace": points_per_trace,
+                "worst_case_trace_storage_gib": round(trace_bytes / 1024**3, 3),
+                "trainable_parameter_count": parameter_count,
+                "estimated_checkpoint_mib": round(checkpoint_bytes / 1024**2, 2),
+                "minimum_free_disk_gib": round(plp_minimum_disk_bytes / 1024**3, 2),
+                "recommended_free_disk_gib": round(
+                    plp_recommended_disk_bytes / 1024**3, 2
+                ),
+            }
+        except (KeyError, OSError, TypeError, ValueError) as error:
+            failures.append(f"invalid PLP config: {error}")
+
     if _version_tuple(platform.python_version()) < (3, 10):
         failures.append("Python 3.10 or newer is required")
     try:
@@ -131,15 +199,20 @@ def main() -> None:
         failures.append(str(error))
     else:
         report["model_source"] = str(model_source)
-        failures.extend(_validate_model_snapshot(model_source, experiment))
+        failures.extend(_validate_model_snapshot(model_source, experiment, plp_config))
 
-    trace_root = Path(experiment["outputs"]["trace_root"])
-    run_root = Path(experiment["outputs"]["run_root"])
+    outputs = plp_config["outputs"] if plp_config is not None else experiment["outputs"]
+    trace_root = Path(outputs["trace_root"])
+    run_root = Path(outputs["run_root"])
     trace_root.mkdir(parents=True, exist_ok=True)
     free_bytes = shutil.disk_usage(trace_root).free
     report["free_disk_gib"] = round(free_bytes / 1024**3, 2)
     if free_bytes < 40 * 1024**3:
         warnings.append("less than 40 GiB free disk remains")
+    if plp_minimum_disk_bytes and free_bytes < plp_minimum_disk_bytes:
+        failures.append("free disk is below the PLP worst-case minimum budget")
+    elif plp_recommended_disk_bytes and free_bytes < plp_recommended_disk_bytes:
+        warnings.append("free disk is below the recommended PLP safety budget")
 
     try:
         import torch

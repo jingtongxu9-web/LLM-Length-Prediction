@@ -27,9 +27,9 @@
 - Treat **Dynamic-Signal MLP v1** as the executable project comparator: step, entropy, entropy
   trend, and EOS probability, with no ALPS prior or hidden-state input.
 - Train a later ALPS+PLP hybrid from prior length plus the same dynamic signals.
-- Reserve **paper-reproduction PLP v2** for a separate future experiment using decode-time hidden
-  states and the paper's soft-label length-bin head, because v1 traces did not store the required
-  hidden states.
+- Run **Hidden-State PLP v2** through its now-implemented separate collector, prediction head, and
+  evaluator. It uses entropy-pooled Prompt hidden states plus current causal decode hidden states,
+  and therefore requires new GPU generation because v1 traces did not store those inputs.
 - Report the uncertainty cone, error versus decode progress, time-to-target-accuracy, and prediction overhead.
 - Gate: error and interval width should generally shrink as decoding progresses.
 

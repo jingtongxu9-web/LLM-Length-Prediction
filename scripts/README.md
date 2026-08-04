@@ -36,6 +36,15 @@ python scripts/evaluate_input_baseline.py --split test --confirm-final-test
 # 9. Fit/evaluate Dynamic-Signal MLP v1 without regenerating Qwen outputs.
 python scripts/train_dynamic.py
 python scripts/evaluate_dynamic.py --split test --confirm-final-test
+
+# 10. Collect, train, and evaluate Hidden-State PLP v2 (requires a new Qwen run).
+python scripts/preflight_server.py --plp-config configs/experiments/plp_v2_manifest.json
+python scripts/collect_plp_dataset.py --splits train --limit 6
+python scripts/collect_plp_dataset.py --splits train
+python scripts/train_plp.py
+python scripts/evaluate_plp.py --split train
+python scripts/collect_plp_dataset.py --splits test --confirm-final-test
+python scripts/evaluate_plp.py --split test --confirm-final-test
 ```
 
 The batch collector stores one atomic trace per `(prompt_id, seed)` and skips valid completed files,
@@ -55,6 +64,9 @@ so the same command safely resumes an interrupted run.
 | `evaluate_input_baseline.py` | Implemented | Evaluate the input-token Ridge with final-test protection |
 | `train_dynamic.py` | Implemented | Train Dynamic-Signal MLP v1 from non-terminal dynamic trace points |
 | `evaluate_dynamic.py` | Implemented | Evaluate Dynamic-Signal MLP v1 overall and by decode progress |
+| `collect_plp_dataset.py` | Implemented, not yet run | Re-run frozen prompts and save entropy-pooled Prompt plus final-layer decode hidden states as NPZ |
+| `train_plp.py` | Implemented, not yet run | Train the PLP-only 20-bin soft-label head on Train hidden-state traces |
+| `evaluate_plp.py` | Implemented, not yet run | Evaluate PLP overall, by decode progress, task, intended-length group, 3x3 task-length cell, and seed |
 | `collect_traces.py` | Debug helper | Collect one manually supplied prompt; not the official 540-rollout experiment |
 | `download_model.py` | Setup helper | Download the exact Qwen revision and write `.frozen_revision` |
 | `build_prompt_manifest.py` | Maintenance helper | Deterministically rebuild the frozen 180-prompt manifest; do not run casually |
@@ -85,7 +97,9 @@ models/Qwen2.5-7B-Instruct/ or MODEL_PATH
 ```
 
 Large outputs are ignored by Git. Copy or archive experiment artifacts before releasing a rented
-instance.
+instance. The frozen, human-readable v1 result summary is
+[`docs/results/v1/README.md`](../docs/results/v1/README.md); raw JSON/CSV outputs remain under
+`artifacts/runs/alps_v1/`.
 
 `analyze_prior.py` consumes the existing `train_evaluation.csv` and `test_evaluation.csv`. It does
 not load Qwen, regenerate answers, or refit Ridge. It writes `{split}_breakdown.json`,
@@ -108,5 +122,17 @@ one deployable Ridge on all Train traces.
 each rollout contributes the same total training weight. It does not consume the ALPS prior or
 prefill hidden state. The original PLP paper uses decode-time hidden states; because v1 traces do
 not store those states, this implementation is an explicit project adaptation rather than an exact
-paper reproduction. See [`docs/dynamic_signal_mlp_v1.md`](../docs/dynamic_signal_mlp_v1.md) for
+paper reproduction. See [`docs/results/v1/dynamic_signal_mlp.md`](../docs/results/v1/dynamic_signal_mlp.md) for
 the frozen architecture, 9089-parameter calculation, source boundary, and planned v2 scope.
+
+`collect_plp_dataset.py`, `train_plp.py`, and `evaluate_plp.py` read
+`configs/experiments/plp_v2_manifest.json`. This is a separate data route: existing ALPS JSONL
+files do not contain decode hidden states and cannot train it. PLP v2 does not consume the ALPS
+prediction. Its input concatenates one entropy-guided pooled final-layer Prompt vector with the
+current generated token's final-layer causal vector. The prediction head produces a distribution
+over 20 remaining-length bins and uses its expected value as the point prediction.
+
+The PLP-aware preflight reports the frozen 7168-dimensional input, exact 25,772,564 trainable
+parameters, estimated checkpoint size, worst-case trace storage, and minimum/recommended free-disk
+budgets. A completed collection command resumes without loading Qwen when every selected trace is
+already valid.

@@ -1,5 +1,13 @@
 # ALPS v1 实验结果
 
+本文件是 ALPS v1 的完整实验记录，统一收纳冻结设置、Train/Test、任务和长度分组、九宫格、
+family-grouped 五折、泛化判断以及预测区间校准问题。v1 的跨方法总览见
+[`README.md`](README.md)。
+
+ALPS Ridge 的输入只有 Qwen2.5-7B zero-based Layer 14 最后一个 Prompt token 的 3584 维
+hidden state。`prompt_family_id` 只用于数据切分和五折分组；任务类型、长度条件和 Prompt
+token 数不进入 ALPS，它们仅用于分组分析或独立 baseline。
+
 ## 1. 统计指标
 
 ### 1.1 点预测指标
@@ -58,8 +66,8 @@ NLL和Coverage使用全部rollout评价，因为它们需要衡量三个seed产�
 Test Prompt-mean的Raw R²为0.9050、Log R²为0.9354、Pearson相关为0.9680，说明ALPS
 能够较强地预测未见Prompt的总体平均输出长度和相对排序。
 
-Train几乎被完美拟合，而Test MAE上升到58.01，表明当前Ridge存在明显的Train/Test
-泛化差距。
+Train几乎被完美拟合，而Test MAE上升到58.01，说明Train分数存在明显的高维拟合乐观
+偏差。是否发生不可接受的过拟合不能只看该差距，需要结合未见family的五折和Test结果。
 
 ### 3.2 Rollout-level点预测与概率结果
 
@@ -71,6 +79,42 @@ Train几乎被完美拟合，而Test MAE上升到58.01，表明当前Ridge存在
 Prompt-mean相对rollout-level使Test MAE从66.97下降到58.01，说明seed随机性贡献了部分
 单次生成误差，但ALPS在未见Prompt上的误差仍然存在。Test Coverage只有63.9%，概率
 区间明显过窄。
+
+### 3.3 Family-grouped 五折
+
+五折只使用432条Train rollout。每折按`prompt_family_id`隔离，临时训练一个Ridge并预测
+未见family；五个临时Ridge在评价后丢弃，不合并，也不替换最终由全部Train拟合的模型。
+
+```bash
+python scripts/evaluate_grouped_cv.py
+```
+
+| 方法 | Rollout MAE | RMSE | Raw R² | Log R² | 95% Coverage | 区间均宽 |
+|---|---:|---:|---:|---:|---:|---:|
+| Global mean | 284.12 | 324.78 | -0.091 | -0.002 | 98.4% | 2514.11 |
+| Prompt tokens | 260.60 | 313.97 | -0.020 | 0.018 | 96.5% | 2486.80 |
+| Metadata | 92.95 | 140.88 | 0.795 | 0.925 | 94.7% | 547.68 |
+| Metadata + Prompt tokens | 92.94 | 140.08 | 0.797 | 0.925 | 94.9% | 545.99 |
+| **ALPS Layer 14** | **60.87** | **91.31** | **0.914** | **0.953** | 71.1% | **180.81** |
+
+ALPS的五折Prompt-mean MAE为54.03、Raw R²为0.937、Log R²为0.962。五折与Final Test
+接近，说明点预测能够迁移到未见family；Train接近完美不能作为主要证据。
+
+### 3.4 高维拟合与过拟合判断
+
+单层hidden state有3584维，而Train只有144个不同Prompt和48个独立family。同一Prompt
+三个seed共享相同的生成前特征，只增加输出随机性观测，不产生三个独立输入。因此即使
+使用`Ridge(alpha=1.0)`，模型仍能非常贴近Train中每个Prompt的平均长度。
+
+| 评价位置 | Rollout MAE | RMSE | Log R² |
+|---|---:|---:|---:|
+| Train | 32.19 | 48.74 | 0.991 |
+| Family-grouped OOF | 60.87 | 91.31 | 0.953 |
+| Final Test | 66.97 | 97.11 | 0.929 |
+
+五折不会消除过拟合，只负责测出未见family上的真实水平。当前五折和Test没有像Train那样
+接近插值，但彼此相近，所以结论是：存在高维Train乐观偏差，尚无证据表明点预测因严重
+过拟合而失效。
 
 ## 4. 按长度条件分析
 
@@ -119,12 +163,14 @@ Summarization预测最好，QA次之，Code误差最大。三类任务的Pearson
 | Code / Medium | 4 | 747.67 | 816.49 | +68.82 | 108.68 | 146.29 | −6.3445 | −4.1111 | 0.7971 |
 | Code / Long | 4 | 823.17 | 927.32 | +104.16 | 134.79 | 151.05 | −6.4314 | −5.6151 | −0.4560 |
 
-九个单元的Prompt-mean R²均小于0。该结果说明，当前ALPS的总体高R²主要来自任务类型和
-长度条件之间的大尺度差异；在同一任务、同一长度条件内部，尚未表现出稳定的细粒度Prompt
-预测能力。
+九个单元的Prompt-mean R²均小于0，但不能把它直接解释成“单个Prompt都预测得很差”。
+每个单元只有4个Prompt，而且同一任务和长度条件内部的真实长度方差很小；此时只要几个
+误差略大，R²就会迅速变成负数。MAE仍直接描述token误差，而R²回答的是模型能否优于这个
+小单元内部的均值参照，两者不是同一个问题。
 
-每个单元只有4个Prompt，R²和相关系数对单个样本非常敏感，因此不能把具体数值视为稳定
-估计。但九个单元方向一致，说明组内泛化是当前ALPS v1需要重点验证的问题。
+当前数据能够支持的谨慎结论是：ALPS已经证明能够预测跨任务、跨长度条件的总体尺度，也
+取得较低的整体MAE；但在固定任务和固定长度条件后，只有4个Prompt，尚不足以稳定证明
+细粒度Prompt排序能力。这里需要更多独立family，而不是根据九个不稳定R²否定整体结果。
 
 ## 7. 长度变化感知
 
@@ -162,6 +208,39 @@ ALPS对“是否变长”的方向判断较好，但对“变长多少”的预�
 
 当前ALPS概率分布没有充分覆盖实际生成波动，其中Short和Code的区间校准最弱。
 
+### 8.1 当前95%区间的构造
+
+Ridge输出log空间中心`mu`。当前实现使用最终Train的in-sample residual均方值估计一个
+全局方差`sigma_squared`，再构造：
+
+\[
+lower=\max(0,\exp(\mu-1.96\sigma)-1)
+\]
+
+\[
+upper=\exp(\mu+1.96\sigma)-1
+\]
+
+Family-grouped OOF的名义95%区间实际只覆盖71.1%，Final Test只覆盖63.9%。这表示区间
+相对未见family误差和seed波动过窄、过度自信。高Coverage本身也不代表方法好：global
+mean虽然覆盖98.4%，平均宽度却达到2514 tokens，几乎没有调度价值。
+
+### 8.2 区间问题的边界与修正
+
+原始ALPS主要报告R²、MAE、RMSE、相关性、held-out Test和五折交叉验证；当前项目使用的
+`log1p + residual variance + shifted log-normal + Coverage`属于额外概率扩展。因此区间
+欠校准不等于原论文的Ridge点预测失败。
+
+推荐保留Layer 14、`alpha=1.0`和最终Ridge，只替换不确定性来源：从family-grouped OOF
+prediction计算未见family residual，并用其上下经验分位数做不对称conformal calibration。
+不得根据已经打开的v1 Test反复调宽区间；确认性评价应使用nested grouped CV或新holdout。
+该修正可读取现有trace和五折预测在CPU完成，不需要重新生成Qwen rollout。
+
+参考：
+
+- [ALPS preprint](https://zenodo.org/records/19078431/files/alps.pdf?download=1)
+- [ALPS官方仓库](https://github.com/glenfmessenger/alps)
+
 ## 9. 结果分析
 
 ### 9.1 已验证的能力
@@ -180,11 +259,11 @@ ALPS对“是否变长”的方向判断较好，但对“变长多少”的预�
 
 ### 9.2 当前不足
 
-1. **Train/Test差距明显。**
-   Train Prompt-mean MAE仅1.83，Test为58.01，当前Ridge存在明显过拟合迹象。
+1. **Train分数不能代表泛化能力。**
+   Train Prompt-mean MAE仅1.83，属于高维Ridge的乐观拟合；应以五折和Test为主要证据。
 
-2. **小单元内预测能力不足。**
-   九宫格Prompt-mean R²全部为负，当前总体性能主要来自跨组差异。
+2. **细粒度组内能力尚未被稳定测量。**
+   九宫格每格只有4个Prompt，负R²对小样本和窄方差很敏感，不能据此否定整体MAE结果。
 
 3. **Code任务误差较大。**
    Code Prompt-mean MAE为99.55，并平均高估45.54 tokens。
@@ -195,18 +274,19 @@ ALPS对“是否变长”的方向判断较好，但对“变长多少”的预�
 ### 9.3 结论
 
 > ALPS v1能够利用Layer 14隐藏状态预测未见Prompt的总体输出长度尺度，并较好识别任务和
-> 长度条件引起的变化；但当前优势主要体现在组间区分，同组内部的细粒度泛化尚未得到
-> 支持。Ridge在Train Prompt均值上接近完美拟合，Test误差明显上升，同时概率区间覆盖
-> 不足。因此，ALPS v1可以作为有效的静态长度预测基线，但仍需要对论文派生的固定配置
-> 进行family-grouped泛化验证，并改进概率校准。
+> 长度条件引起的变化。Family-grouped五折与Final Test接近，支持点预测向未见family
+> 泛化；同组内部的细粒度排序因每格样本过少仍未被稳定测量。当前最明确的缺陷是项目新增
+> 概率区间覆盖不足。因此，ALPS v1可以作为有效的静态长度预测方法，同时需要独立改进
+> 概率校准。
 
 ## 10. 后续重点
 
-1. 在Train内部按`prompt_family_id`进行五折交叉验证，固定Layer 14和`alpha=1.0`，
-   只检查泛化能力并比较baseline，不据此修改v1。
-2. 增加每个任务—长度单元的独立Prompt数量，稳定估计组内能力。
-3. 使用out-of-fold残差校准ALPS概率分布。
-4. 保留当前ALPS v1结果；任何新配置使用新的未见holdout进行最终评价。
+1. 增加每个任务—长度单元的独立Prompt数量，稳定估计组内能力。
+2. 使用out-of-fold残差校准ALPS概率分布。
+3. 保留当前ALPS v1结果；任何新配置使用新的未见holdout进行最终评价。
+
+具体实施顺序和完成标准见
+[`../../planning/alps_improvement_plan.md`](../../planning/alps_improvement_plan.md)。
 
 ## 11. 结果文件
 
@@ -217,4 +297,6 @@ artifacts/runs/alps_v1/stage1/train_prompt_mean_breakdown.csv
 artifacts/runs/alps_v1/stage1/test_prompt_mean_breakdown.csv
 artifacts/runs/alps_v1/stage1/train_length_contrasts.csv
 artifacts/runs/alps_v1/stage1/test_length_contrasts.csv
+artifacts/runs/alps_v1/diagnostics/grouped_cv/results.json
+artifacts/runs/alps_v1/diagnostics/grouped_cv/summary.csv
 ```

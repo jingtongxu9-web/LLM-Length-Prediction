@@ -11,6 +11,11 @@ from llm_length_prediction.experiment import (
     load_frozen_prompts,
     rollout_jobs,
 )
+from llm_length_prediction.plp_experiment import (
+    load_plp_base_experiment,
+    load_plp_config,
+    validate_plp_config,
+)
 
 
 def test_frozen_experiment_manifest() -> None:
@@ -37,5 +42,20 @@ def test_frozen_project_plp_manifest() -> None:
     assert config["scope"]["uses_alps_prior"] is False
     assert config["scope"]["paper_exact_plp"] is False
     assert config["provenance"]["exact_replication"] is False
-    assert config["provenance"]["paper_replication_version"] == "future-v2"
+    assert config["provenance"]["paper_replication_version"] == (
+        "configs/experiments/plp_v2_manifest.json"
+    )
     assert config["training"]["hyperparameter_selection"] == "none"
+
+
+def test_hidden_state_plp_v2_manifest() -> None:
+    config = load_plp_config(Path("configs/experiments/plp_v2_manifest.json"))
+    experiment, _ = load_plp_base_experiment(config)
+    validate_plp_config(config, experiment)
+    assert config["scope"]["plp_only"] is True
+    assert config["scope"]["uses_alps_prior"] is False
+    assert config["scope"]["uses_prompt_hidden_state"] is True
+    assert config["scope"]["uses_decode_hidden_state"] is True
+    assert config["representation"]["hidden_layer"] == "final_transformer_layer"
+    assert config["prediction_head"]["num_bins"] == 20
+    assert config["prediction_head"]["lambda_ce"] == 0.95

@@ -1,13 +1,12 @@
 # LLM Length Prediction
 
-面向大模型推理服务的输出长度预测研究。项目首先使用 ALPS 方法，在回答生成前从 Qwen
-的中间隐藏状态预测最终输出长度；当前 v1 再使用 Dynamic-Signal MLP，在生成过程中利用
-entropy、EOS probability 等已有 trace 信号预测剩余长度。
+面向大模型推理服务的输出长度预测研究。项目使用 ALPS 在回答生成前预测最终输出长度，
+并使用 PLP 在回答生成过程中持续预测剩余长度。
 
-> **版本边界：**当前动态方法的正式名称是 **Dynamic-Signal MLP v1（项目版 PLP）**。
-> 它借鉴“生成过程中逐步预测剩余长度”的 PLP 研究问题，但输入特征、标量 MLP 输出头和
-> 损失函数都是本项目针对已有 trace 的工程设计，**不是论文原版 PLP 的复现**。论文方法
-> 的 hidden-state 拼接、soft-label length bins 与联合损失留作 v2 单独实现和验证。
+> **版本边界：**已跑完的 **Dynamic-Signal MLP v1** 只使用五个动态标量，是工程 baseline，
+> 不是论文 PLP。新实现的 **Hidden-State PLP v2** 使用 entropy-guided Prompt 表征、解码期
+> 最终层隐藏状态和 20-bin soft-label 预测头；它是 PLP-only，不读取 ALPS prior。v2 代码已
+> 完成，但必须重新采集 hidden-state trace，当前还没有实验结果。
 
 预测结果最终用于评估 batching、延迟、KV-cache 规划和长输出低估风险，而不仅仅是比较
 MAE。
@@ -19,15 +18,17 @@ MAE。
 | Prompt 数据集 | 已完成 | 60 个 family、180 个 Prompt、固定 80/20 Train/Test |
 | Hugging Face trace 采集 | 已完成 | AutoDL 已采集 432 Train + 108 Test rollout |
 | ALPS Ridge prior | v1 主实验已完成 | 固定 Layer 14、`StandardScaler + Ridge(alpha=1.0)` |
-| ALPS 五折验证 | 代码完成，真实结果待运行 | 固定配置的 family-grouped 泛化检查与 baseline 对照，不选择参数 |
-| 输入长度 Ridge baseline | 代码完成，真实结果待运行 | 只使用 Prompt token 数，复用同一次五折与全部 Train |
-| Dynamic-Signal MLP v1 | 代码完成，真实结果待运行 | 项目版 PLP；使用已有 trace 的动态概率信号，不是论文原版复现 |
+| ALPS 五折验证 | 已完成 | OOF MAE `60.87`、Log R² `0.953`，固定配置不选择参数 |
+| 输入长度 Ridge baseline | 已完成 | Test MAE `246.77`、Log R² `0.011`，预测力很弱 |
+| Dynamic-Signal MLP v1 | 已完成 | Test sequence-balanced MAE `136.66`、Raw R² `0.089`，仅中段有一定能力 |
+| Hidden-State PLP v2 | 代码已完成，尚未运行 | 论文对齐、非精确复现；需重新生成并采集 Prompt/Decode 最终层 hidden state |
 | Serving benchmark | 尚未实现 | `run_benchmark.py` 目前是占位入口 |
 
-当前 ALPS v1 的采集、最终 Ridge、Train/Test 评价和分组结果分析已经完成。补充的五折
-验证只使用 Train，固定论文复现条件，不修改 v1 的 alpha、Layer 或已打开的 Test 结果。
-输入长度 baseline 与 Dynamic-Signal MLP v1 已有可运行的训练/评估入口，但真实指标尚未在
-AutoDL trace 上产出。Serving benchmark 仍未实现。
+当前 ALPS v1 的采集、最终 Ridge、Train/Test 分组分析、固定五折、输入长度 baseline 和
+Dynamic-Signal MLP v1 均已完成。ALPS 点预测泛化能力较强，但概率区间欠校准；输入 token
+baseline 很弱；Dynamic-Signal MLP 呈现早期低估、后期高估。Hidden-State PLP v2 已具备
+采集、训练和评估入口，尚未在 GPU 上运行。v1 完整汇总见
+[`docs/results/v1/README.md`](docs/results/v1/README.md)。Serving benchmark 仍未实现。
 
 ## 系统架构
 
@@ -49,9 +50,11 @@ flowchart TD
     SRC --> RESULTS["Ridge 与评估结果<br/>artifacts/runs/"]
 ```
 
-这里有三个容易混淆的边界：
+这里有几个容易混淆的边界：
 
 - `configs/` 决定实验条件，不决定实际显卡型号。
+- `configs/experiments/` 保存机器可读实验合同，不是实验结果目录。
+- `artifacts/runs/` 保存本机生成的原始模型与指标；`docs/results/` 保存可提交的结果报告。
 - GPU 由本地机器、服务器或 AutoDL 提供；PyTorch/CUDA 决定代码能否使用它。
 - `models/`、`data/interim/` 和 `artifacts/runs/` 包含机器本地的大文件，不提交 Git。
 
@@ -76,10 +79,10 @@ python -m pip install --no-deps --editable .
 
 - 学校 RTX 4090 服务器：保留原有 `Dockerfile`、`docker-compose.yml`、`.env`
   和 `requirements-docker.lock`，按
-  [`docs/docker_4090_runbook.md`](docs/docker_4090_runbook.md) 运行。
+  [`docs/deployment/docker_4090.md`](docs/deployment/docker_4090.md) 运行。
 - AutoDL RTX 5090：不使用上述 Docker 镜像，选择 CUDA 12.8 兼容的 PyTorch
   镜像后直接运行 Python，按
-  [`docs/autodl_5090_runbook.md`](docs/autodl_5090_runbook.md) 操作。
+  [`docs/deployment/autodl_5090.md`](docs/deployment/autodl_5090.md) 操作。
 
 ### 2. 准备冻结模型
 
@@ -210,14 +213,61 @@ Dynamic-Signal MLP v1 的冻结合同位于
 [`configs/experiments/plp_v1_manifest.json`](configs/experiments/plp_v1_manifest.json)。
 它固定使用 step、entropy、entropy rolling mean/slope 和 EOS probability，每 5 token
 更新一次；不读取 ALPS prior 或任何 hidden state。其完整定义、9089 个参数的计算方式、
-冻结训练条件和论文边界见
-[`docs/dynamic_signal_mlp_v1.md`](docs/dynamic_signal_mlp_v1.md)。
+冻结训练条件、实验结果和论文边界见
+[`docs/results/v1/dynamic_signal_mlp.md`](docs/results/v1/dynamic_signal_mlp.md)。
 
 现有 v1 Test 已经用于 ALPS 开发后的分析，因此新增比较方法在该 Test 上属于事后对照。
 不得根据这些 Test 指标继续调参；严格的最终结论需要下一轮新 holdout。
 
-五折、官方论文结果和当前过拟合现象的详细解释见
-[`docs/alps_v1_cv_overfitting.md`](docs/alps_v1_cv_overfitting.md)。
+### 11. 运行真正的 Hidden-State PLP v2
+
+旧 ALPS trace 没有保存生成 token 的隐藏状态，因此 v2 **不能只重跑评估**，必须让 Qwen
+按相同 Prompt、temperature、top-p 和 seeds 再生成一次。先只做 Train pilot：
+
+```bash
+python scripts/collect_plp_dataset.py --splits train --limit 6
+```
+
+确认 `data/interim/plp_v2/` 出现 `.npz` 文件后，完成 Train、训练预测头并评价 Train：
+
+```bash
+python scripts/collect_plp_dataset.py --splits train
+python scripts/train_plp.py
+python scripts/evaluate_plp.py --split train
+```
+
+最后再采集和评价 Test：
+
+```bash
+python scripts/collect_plp_dataset.py --splits test --confirm-final-test
+python scripts/evaluate_plp.py --split test --confirm-final-test
+```
+
+PLP v2 固定使用最终 Transformer 层。每个预测点输入为：
+
+```text
+[entropy-guided pooled Prompt final-layer state ;
+ current generated token final-layer causal state]
+```
+
+当前 token 的 causal state 已经注意到此前生成的全部 token。论文写的是把 Prompt 表征与
+此前生成状态“简单拼接”，但公开仓库目前没有 PLP 源码，也没有说明可变长拼接如何进入固定
+维度预测头；因此本项目把它冻结为上述固定维度解释，并在
+[`configs/experiments/plp_v2_manifest.json`](configs/experiments/plp_v2_manifest.json)
+明确标记为 paper-aligned、non-exact replication。训练头采用论文的 20 bins、
+`CE + MSE`、`lambda=0.95`、AdamW、learning rate `2e-5`、10 epochs、batch size 16、seed 42。
+完整方法说明见
+[`docs/methods/plp_only_explained.md`](docs/methods/plp_only_explained.md)；实验合同和运行边界见
+[`docs/planning/hidden_state_plp_v2.md`](docs/planning/hidden_state_plp_v2.md)。
+
+本轮继续复用已经打开过的 v1 Test，所以将来得到的 v2 Test 数字只能作为开发性对照；严格
+确认性结论仍需要新的 family-level holdout。
+
+本轮 ALPS、baseline 与 Dynamic-Signal MLP 的统一结果见
+[`docs/results/v1/README.md`](docs/results/v1/README.md)。ALPS 的分组结果、五折
+泛化判断和预测区间校准问题统一见
+[`docs/results/v1/alps.md`](docs/results/v1/alps.md)，后续校准实施步骤见
+[`docs/planning/alps_improvement_plan.md`](docs/planning/alps_improvement_plan.md)。
 
 ## 数据流与输出
 
@@ -240,6 +290,12 @@ data/interim/alps_v1/{train,test}/
                 +----> train_input_baseline.py -> comparisons/input_token_ridge/
                 |
                 `----> train_dynamic.py --------> comparisons/plp_only/
+
+data/prompts/alps_v1_prompts.jsonl + Qwen
+                |
+                `----> collect_plp_dataset.py --> data/interim/plp_v2/
+                                      |
+                                      `----> train_plp.py --> artifacts/runs/plp_v2/
 ```
 
 主要输出：
@@ -258,6 +314,8 @@ data/interim/alps_v1/{train,test}/
 | `artifacts/runs/alps_v1/stage1/{train,test}_length_contrasts.csv` | Short→Medium→Long配对变化 |
 | `artifacts/runs/alps_v1/comparisons/input_token_ridge/` | 输入 token Ridge 模型与 Train/Test 结果 |
 | `artifacts/runs/alps_v1/comparisons/plp_only/` | Dynamic-Signal MLP v1、训练记录和按解码进度分组结果 |
+| `data/interim/plp_v2/` | Hidden-State PLP v2 的压缩 NPZ trace；包含 Prompt pooled state 与解码 hidden states |
+| `artifacts/runs/plp_v2/` | PLP v2 checkpoint、训练记录、Train/Test 总体和分进度结果 |
 
 ## 冻结实验条件
 
@@ -290,7 +348,7 @@ manifest。具体区别见 [`configs/README.md`](configs/README.md)。
 | `data/` | 固定 Prompt 与本地生成 trace | [`data/README.md`](data/README.md) |
 | `models/` | 本地 Qwen 模型挂载点 | [`models/README.md`](models/README.md) |
 | `artifacts/` | Ridge、预测和评估结果 | [`artifacts/README.md`](artifacts/README.md) |
-| `docs/` | 研究计划与部署手册 | [`docs/README.md`](docs/README.md) |
+| `docs/` | 方法解释、已完成结果、未来计划、部署手册与参考资料 | [`docs/README.md`](docs/README.md) |
 | `tests/` | 数据合同和数学实现测试 | [`tests/README.md`](tests/README.md) |
 | `notebooks/` | 探索性分析，不放正式流程 | [`notebooks/README.md`](notebooks/README.md) |
 
@@ -307,6 +365,7 @@ python -m ruff check .
 ## 研究路线
 
 项目计划分为四个阶段：ALPS 静态 prior、动态剩余长度预测、端到端 serving benchmark 和
-错误反馈分析。当前 Dynamic-Signal MLP v1 与论文 PLP v2 复现是两个明确分开的实验版本。
+错误反馈分析。Dynamic-Signal MLP v1 是已完成的标量 baseline；Hidden-State PLP v2 是
+已实现、待 GPU 采集和训练的真正 PLP-only 路线。
 研究问题、对比方法和后续里程碑见
-[`docs/research_plan.md`](docs/research_plan.md)。
+[`docs/planning/research_plan.md`](docs/planning/research_plan.md)。

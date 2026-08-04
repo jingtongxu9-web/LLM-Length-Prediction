@@ -9,7 +9,7 @@
     "paper_url": "https://arxiv.org/html/2602.11812v2",
     "relationship": "shares_progressive_remaining_length_objective_only",
     "exact_replication": false,
-    "paper_replication_version": "future-v2"
+    "paper_replication_version": "configs/experiments/plp_v2_manifest.json"
   },
   "scope": {
     "uses_existing_rollouts": true,
