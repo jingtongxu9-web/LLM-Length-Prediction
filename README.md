@@ -5,8 +5,8 @@
 
 > **版本边界：**已跑完的 **Dynamic-Signal MLP v1** 只使用五个动态标量，是工程 baseline，
 > 不是论文 PLP。新实现的 **Hidden-State PLP v2** 使用 entropy-guided Prompt 表征、解码期
-> 最终层隐藏状态和 20-bin soft-label 预测头；它是 PLP-only，不读取 ALPS prior。v2 代码已
-> 完成，但必须重新采集 hidden-state trace，当前还没有实验结果。
+> 最终层隐藏状态和 20-bin soft-label 预测头；它是 PLP-only，不读取 ALPS prior。v2 已在
+> AutoDL RTX 5090 上完成采集、训练和开发性 Test 评价。
 
 预测结果最终用于评估 batching、延迟、KV-cache 规划和长输出低估风险，而不仅仅是比较
 MAE。
@@ -21,14 +21,15 @@ MAE。
 | ALPS 五折验证 | 已完成 | OOF MAE `60.87`、Log R² `0.953`，固定配置不选择参数 |
 | 输入长度 Ridge baseline | 已完成 | Test MAE `246.77`、Log R² `0.011`，预测力很弱 |
 | Dynamic-Signal MLP v1 | 已完成 | Test sequence-balanced MAE `136.66`、Raw R² `0.089`，仅中段有一定能力 |
-| Hidden-State PLP v2 | 代码已完成，尚未运行 | 论文对齐、非精确复现；需重新生成并采集 Prompt/Decode 最终层 hidden state |
+| Hidden-State PLP v2 | 已完成 | Test sequence-balanced MAE `60.03`、Raw R² `0.790`；论文对齐、非精确复现 |
 | Serving benchmark | 尚未实现 | `run_benchmark.py` 目前是占位入口 |
 
 当前 ALPS v1 的采集、最终 Ridge、Train/Test 分组分析、固定五折、输入长度 baseline 和
 Dynamic-Signal MLP v1 均已完成。ALPS 点预测泛化能力较强，但概率区间欠校准；输入 token
-baseline 很弱；Dynamic-Signal MLP 呈现早期低估、后期高估。Hidden-State PLP v2 已具备
-采集、训练和评估入口，尚未在 GPU 上运行。v1 完整汇总见
-[`docs/results/v1/README.md`](docs/results/v1/README.md)。Serving benchmark 仍未实现。
+baseline 很弱；Dynamic-Signal MLP 呈现早期低估、后期高估。Hidden-State PLP v2 显著优于
+旧动态 baseline，但存在 Train/Test 泛化差距和后期高估。v1 完整汇总见
+[`docs/results/v1/README.md`](docs/results/v1/README.md)，PLP v2 结果见
+[`docs/results/v2/plp_v2_results.md`](docs/results/v2/plp_v2_results.md)。Serving benchmark 仍未实现。
 
 ## 系统架构
 

@@ -6,6 +6,7 @@
 | 版本 | 状态 | 入口 |
 |---|---|---|
 | v1 | 已完成 | [`v1/README.md`](v1/README.md) |
-| v2 | 尚未执行 | 目前仅有[`../planning/v2_experiment_plan.md`](../planning/v2_experiment_plan.md) |
+| v2 | Hidden-State PLP 已完成 | [`v2/plp_v2_results.md`](v2/plp_v2_results.md) |
 
-只有当某一版本完成冻结评价后，才创建对应的版本目录。
+v2 Test 是复用已打开的 family holdout，因此属于开发性对照；严格确认性结果仍需要新
+holdout。只有当某一版本完成冻结评价后，才创建对应的版本目录。

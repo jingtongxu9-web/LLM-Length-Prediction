@@ -8,7 +8,8 @@
 
 ## 从哪里开始
 
-- 想看已经跑出的结果：从 [`results/v1/README.md`](results/v1/README.md) 开始；
+- 想看 ALPS 与旧 baseline：从 [`results/v1/README.md`](results/v1/README.md) 开始；
+- 想看 Hidden-State PLP v2：阅读 [`results/v2/plp_v2_results.md`](results/v2/plp_v2_results.md)；
 - 想从零理解 PLP-only：阅读 [`methods/plp_only_explained.md`](methods/plp_only_explained.md)；
 - 想运行 Hidden-State PLP v2：阅读根目录 README 的“运行真正的 Hidden-State PLP v2”与
   [`planning/v2_experiment_plan.md`](planning/v2_experiment_plan.md)；
@@ -26,10 +27,12 @@ docs/
 │   └── plp_only_explained.md      # 导航类比、entropy、hidden state与20-bin预测
 ├── results/                       # 已完成实验的冻结报告
 │   ├── README.md                  # 已完成版本索引
-│   └── v1/
+│   ├── v1/
 │       ├── README.md              # v1 总体结果与方法对比
 │       ├── alps.md                # ALPS 结果、五折与校准分析
 │       └── dynamic_signal_mlp.md  # 项目版 PLP 方法与结果
+│   └── v2/
+│       └── README.md              # Hidden-State PLP v2 完整结果
 ├── planning/                      # 尚未执行或仍在设计的工作
 │   ├── alps_improvement_plan.md   # ALPS概率校准的可执行计划
 │   ├── hidden_state_plp_v2.md     # 真正PLP输入、论文边界与运行方法
@@ -50,10 +53,10 @@ docs/
 | [`results/v1/README.md`](results/v1/README.md) | ALPS、Prompt-token baseline 和 Dynamic-Signal MLP 的总体比较 |
 | [`results/v1/alps.md`](results/v1/alps.md) | ALPS 冻结设置、Train/Test、九宫格、五折、泛化和区间校准 |
 | [`results/v1/dynamic_signal_mlp.md`](results/v1/dynamic_signal_mlp.md) | 项目版 PLP 的特征、结构、冻结条件、分阶段结果和论文边界 |
+| [`results/v2/plp_v2_results.md`](results/v2/plp_v2_results.md) | Hidden-State PLP v2 的 Train/Test、进度、九宫格、泛化和过拟合分析 |
 
-`results/` 只保存已经完成且数字固定的实验报告。Hidden-State PLP v2 代码和机器可读合同
-已经存在，但尚未在 GPU 上跑出数字；完成后再新增 `results/v2/`，此前不得把它写成已完成
-结果。
+`results/` 只保存已经完成且数字固定的实验报告。Hidden-State PLP v2 已完成 GPU 采集、
+训练和开发性 Test 评价；后续改进必须使用新方法 ID 和新 holdout，不覆盖 v2 数字。
 
 ## 方法解释
 

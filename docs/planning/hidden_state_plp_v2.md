@@ -5,8 +5,8 @@
 Hidden-State PLP v2 是本项目的 **PLP-only** 路线。它不读取 ALPS Layer-14 Ridge 的预测值，
 也不把 Dynamic-Signal MLP v1 的五个标量当作主输入。
 
-状态：采集、训练和评估代码已实现；尚未在 GPU 上完成 pilot、Train 或 Test，因此本文没有
-结果数字。
+状态：采集、训练和评估已经在 AutoDL RTX 5090 上完成。冻结结果见
+[`../results/v2/plp_v2_results.md`](../results/v2/plp_v2_results.md)；本文继续保留实施合同和运行步骤。
 
 参考来源：
 

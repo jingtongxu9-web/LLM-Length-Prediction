@@ -243,7 +243,8 @@ length-bin prediction head；公开方法还采用20个length bins和CE + MSE联
 - [论文公开仓库LP_Bench](https://github.com/xiehuanyi/LP_Bench)
 
 这些内容已经在 `configs/experiments/plp_v2_manifest.json` 与对应采集、训练、评估脚本中
-实现；当前仍需在GPU上重新采集和训练，尚无v2结果。公开仓库没有PLP源码，因此v2对
+实现。后续已在GPU上完成采集和训练，结果见 [`../v2/plp_v2_results.md`](../v2/plp_v2_results.md)。公开
+仓库没有PLP源码，因此v2对
 可变长“简单拼接”采用了固定维度解释，并非逐行exact replication。
 
 ## 12. 运行与原始结果

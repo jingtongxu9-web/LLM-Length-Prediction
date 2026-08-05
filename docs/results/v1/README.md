@@ -248,7 +248,8 @@ holdout 或 v2 数据划分。
 > Prompt 输入 token 数几乎没有预测力。Dynamic-Signal MLP v1 虽成功完成动态训练与评价，
 > 但五个标量信号无法在整个解码过程中稳定预测剩余长度，仅在生成中段表现出一定能力，
 > 并呈现早期低估、后期高估。因此它应作为 v1 工程 baseline 保留。独立的 Hidden-State
-> PLP v2 代码已经实现，需重新采集 hidden-state trace 后才能产生可比较结果。
+> 后续 Hidden-State PLP v2 已完成，结果见 [`../v2/plp_v2_results.md`](../v2/plp_v2_results.md)。本文件继续
+> 冻结保存 v1 当时的实验结论。
 
 ## 9. 原始结果路径
 
