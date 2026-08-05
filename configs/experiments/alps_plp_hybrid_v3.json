@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "method_id": "alps-plp-hybrid-v3",
+  "display_name": "ALPS+PLP Hybrid v3 confirmatory experiment",
+  "base_experiment": "configs/experiments/alps_plp_hybrid_v3_base.json",
+  "base_experiment_id": "alps-plp-hybrid-v3-qwen2.5-7b-instruct",
+  "preserves_frozen_v2": true,
+  "trace": {
+    "schema_name": "hybrid-v3-unified-trace",
+    "schema_version": 1,
+    "stride": 5,
+    "include_first_point": true,
+    "include_terminal_point": true,
+    "storage_dtype": "float32"
+  },
+  "representation": {
+    "prior_layer": 14,
+    "prior_hidden_size": 3584,
+    "prompt_layer": "final_transformer_layer",
+    "decode_layer": "final_transformer_layer",
+    "hidden_size": 3584,
+    "prompt_pooling": "entropy_softmax_all_formatted_prompt_tokens",
+    "prompt_pooling_temperature": 1.0,
+    "dynamic_features": ["step", "entropy", "entropy_mean", "entropy_slope", "eos_probability"]
+  },
+  "stacking": {
+    "alps_target": "log1p_output_tokens",
+    "alps_standardize": true,
+    "alps_ridge_alpha": 1.0,
+    "residual_variance_estimator": "rollout_balanced_mle",
+    "train_prior_features": "family_grouped_cross_fitted",
+    "validation_prior_features": "fit_on_outer_train_only",
+    "prior_summary_features": [
+      "mu_log_total",
+      "residual_variance",
+      "mean_total_tokens",
+      "mean_remaining_countdown",
+      "median_remaining_countdown"
+    ]
+  },
+  "progressive_head": {
+    "num_bins": 20,
+    "target_range_percentiles": [1.0, 99.0],
+    "target_range_weighting": "rollout_balanced_positive_targets",
+    "terminal_zero_bin": true,
+    "lambda_ce": 0.95,
+    "lambda_mse": 0.05,
+    "mse_scale": "raw_token_space",
+    "dropout": 0.1
+  },
+  "training": {
+    "optimizer": "adamw",
+    "seed": 42,
+    "epochs": 10,
+    "batch_size": 16,
+    "learning_rate": 0.00002,
+    "weight_decay": 0.0,
+    "device": "auto",
+    "hyperparameter_selection": "none_after_protocol_freeze"
+  },
+  "censoring": {
+    "definition": "stop_reason == max_new_tokens",
+    "primary_analysis": "complete_case_excluding_censored",
+    "warning_rate": 0.05,
+    "abort_rate": 0.1,
+    "impute_unknown_remaining_as_zero": false
+  },
+  "outputs": {
+    "trace_root": "data/interim/alps_plp_hybrid_v3",
+    "run_root": "artifacts/runs/alps_plp_hybrid_v3"
+  }
+}

@@ -42,6 +42,10 @@ ID. Do not edit the v1 manifest after viewing final-test results.
 | `experiments/alps_v1_manifest.json` | Frozen executable ALPS v1 contract | Yes |
 | `experiments/plp_v1_manifest.json` | Frozen Dynamic-Signal MLP v1 contract; project adaptation, not paper PLP reproduction | Yes |
 | `experiments/plp_v2_manifest.json` | Hidden-State PLP v2 contract; PLP-only, requires a new hidden-state collection | Yes |
+| `experiments/alps_plp_hybrid_v3_base.json` | Shared Qwen, prompt, split and generation contract for Hybrid v3 | Yes |
+| `experiments/alps_plp_hybrid_v3.json` | Isolated unified trace, ALPS stacking and progressive-head contract | Yes |
+| `experiments/alps_plp_hybrid_v3_protocol.json` | Eight methods, nested grouped OOF, bootstrap, gate and serving replay | Yes |
+| `reports/alps_plp_hybrid_v3_report_schema.json` | Minimum machine-readable final-report contract | Yes |
 
 The method definition and paper boundary are documented in
 [`docs/results/v1/dynamic_signal_mlp.md`](../docs/results/v1/dynamic_signal_mlp.md). Its internal compatibility

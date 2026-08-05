@@ -9,7 +9,8 @@ Current layout:
 ```text
 data/
 |-- prompts/
-|   `-- alps_v1_prompts.jsonl  # 180 versioned prompts with frozen 80/20 split
+|   |-- alps_v1_prompts.jsonl  # 180 versioned prompts with frozen 80/20 split
+|   `-- alps_plp_hybrid_v3_prompts.jsonl # 180 design + 36 unopened holdout prompts
 |-- raw/                       # optional external source material; local only
 |-- interim/                   # generated Qwen rollouts; local only and ignored by Git
 |   |-- alps_v1/
@@ -18,6 +19,7 @@ data/
 |   `-- plp_v2/
 |       |-- train/             # Hidden-State PLP compressed NPZ traces
 |       `-- test/              # collected only with explicit Test confirmation
+|   `-- alps_plp_hybrid_v3/    # isolated shared NPZ traces; 540 Train + 108 Test
 |-- processed/                 # optional accepted/derived datasets; local only
 `-- README.md
 ```
@@ -41,6 +43,11 @@ concatenation is created in RAM during training rather than duplicated on disk.
 
 All matched prompts and trajectories derived from one `prompt_family_id` must remain in the same
 split.
+
+Hybrid v3 intentionally changes the data boundary: all 60 previously opened v1 families are Train
+design data; 12 newly authored families form the only confirmatory Test. Its manifest contains 216
+prompts and is frozen by SHA-256. The Test text is committed for reproducibility, but experimenters
+must not generate or inspect its Qwen outputs until the one-way gate opens.
 
 The committed Prompt Manifest is intentionally small. Do not commit generated answers, prefill
 hidden states, decode entropy traces, model checkpoints, or other large experiment outputs. Those

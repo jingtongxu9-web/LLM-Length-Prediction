@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "protocol_id": "alps-plp-hybrid-v3-confirmatory-2026",
+  "status": "frozen_before_gpu_collection",
+  "base_experiment": "configs/experiments/alps_plp_hybrid_v3_base.json",
+  "method_config": "configs/experiments/alps_plp_hybrid_v3.json",
+  "primary_claim": "ALPS+PLP Hybrid v3 improves remaining-length prediction over every frozen comparator on unseen prompt families",
+  "data_policy": {
+    "group_unit": "prompt_family_id",
+    "train_family_count": 60,
+    "final_test_family_count": 12,
+    "train_oof_folds": 5,
+    "inner_prior_crossfit_folds": 4,
+    "fold_seed": 20260805,
+    "all_seeds_lengths_and_timesteps_stay_with_family": true,
+    "final_test_access": "single_confirmed_access_after_oof_and_model_hash_freeze"
+  },
+  "methods": {
+    "step_only_ridge": {"role": "minimal_progress_baseline"},
+    "alps_countdown": {"role": "static_prior_baseline"},
+    "dynamic_ridge": {"role": "cheap_dynamic_baseline"},
+    "dynamic_signal_mlp_v1": {"role": "frozen_project_dynamic_baseline"},
+    "plp_v2_frozen": {"role": "current_github_v2_algorithm_on_shared_v3_rollouts"},
+    "plp_small_terminal_v3": {"role": "capacity_and_terminal_ablation", "hidden_dim": 512},
+    "alps_dynamic_ridge": {"role": "prior_plus_cheap_dynamic_ablation"},
+    "alps_plp_hybrid_v3": {"role": "primary_method", "hidden_dim": 1024}
+  },
+  "evaluation": {
+    "primary_metric": "family_macro_sequence_balanced_mae_tokens",
+    "secondary_metrics": [
+      "sequence_balanced_rmse_tokens",
+      "family_macro_mean_error_tokens",
+      "underprediction_rate",
+      "p95_positive_underprediction_tokens",
+      "top_10_percent_remaining_mae_tokens",
+      "absolute_step_mae",
+      "predictor_latency_memory_and_parameter_count"
+    ],
+    "absolute_step_bins": [1, 5, 10, 20, 50, 100, 200],
+    "bootstrap": {
+      "unit": "prompt_family_id",
+      "replicates": 2000,
+      "confidence_level": 0.95,
+      "seed": 20260805,
+      "paired": true
+    },
+    "primary_familywise_rule": {
+      "comparisons": 7,
+      "alpha": 0.05,
+      "correction": "bonferroni",
+      "per_comparison_confidence_level": 0.9928571428571429,
+      "claim_passes_when": "the upper bound of Hybrid-minus-comparator MAE is below zero for all seven comparators"
+    }
+  },
+  "serving_evaluation": {
+    "status": "required_for_serving_superiority_claim",
+    "prediction_only_claim_allowed_without_serving": true,
+    "simulator": {
+      "type": "deterministic_offline_replay",
+      "batch_size": 8,
+      "length_bucket_boundaries": [32, 64, 128, 256, 512, 1024, 2048, 4096],
+      "kv_allocation_quantum_tokens": 16,
+      "request_order": "bucket_then_prompt_id_seed",
+      "batch_duration": "maximum_observed_generation_duration_in_batch"
+    },
+    "metrics": ["mean_completion_time", "p95_completion_time", "throughput", "kv_cache_overreservation", "underallocation_rate"]
+  },
+  "test_gate": {
+    "final_report_schema": "configs/reports/alps_plp_hybrid_v3_report_schema.json",
+    "required_before_opening": [
+      "tests and lint pass",
+      "all Train traces validate",
+      "Train censoring is below abort_rate",
+      "all eight grouped-OOF predictions and confidence intervals exist",
+      "all final model bytes and hashes are frozen",
+      "serving simulation configuration is frozen",
+      "no new Test trace exists"
+    ]
+  },
+  "outputs": {
+    "run_root": "artifacts/runs/alps_plp_hybrid_v3",
+    "oof_report": "oof/oof_report.json",
+    "models": "models",
+    "final_test": "final_test",
+    "serving": "serving",
+    "logs": "logs",
+    "environment": "environment"
+  }
+}
