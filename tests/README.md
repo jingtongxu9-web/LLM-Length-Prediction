@@ -22,6 +22,9 @@ Current coverage includes:
   metrics, progress/task/length/seed grouping, complete generated-token provenance, strict stride
   schedules, censored-trace accounting, atomic checkpoint writes, and the frozen v2 manifest
   contract.
+- Hybrid v3 216-prompt manifest checksum and new-family holdout isolation;
+- unified pickle-free trace provenance, family-stratified folds, shifted log-normal prior;
+- exact terminal zero bin, censoring warning/abort policy, family-macro metrics and paired-family CI.
 
 The local suite does not train either PyTorch MLP. Real training and Qwen hidden-state collection are
 exercised on the server runtime that provides PyTorch; local tests cover storage, contracts and

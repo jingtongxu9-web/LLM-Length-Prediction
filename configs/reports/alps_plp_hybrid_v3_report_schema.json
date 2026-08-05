@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "alps-plp-hybrid-v3-final-report",
+  "type": "object",
+  "required": [
+    "protocol_id",
+    "split",
+    "test_opened",
+    "test_access",
+    "censoring",
+    "methods",
+    "hybrid_paired_differences",
+    "primary_claim_result"
+  ],
+  "properties": {
+    "protocol_id": {"const": "alps-plp-hybrid-v3-confirmatory-2026"},
+    "split": {"const": "final_test"},
+    "test_opened": {"const": true},
+    "test_access": {"type": "object"},
+    "censoring": {"type": "object"},
+    "methods": {"type": "object", "minProperties": 8},
+    "hybrid_paired_differences": {"type": "object", "minProperties": 7},
+    "primary_claim_result": {"type": "object"}
+  },
+  "additionalProperties": true
+}

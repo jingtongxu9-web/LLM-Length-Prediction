@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "experiment_id": "alps-plp-hybrid-v3-qwen2.5-7b-instruct",
+  "model": {
+    "id": "Qwen/Qwen2.5-7B-Instruct",
+    "revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "tokenizer_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "dtype": "bfloat16",
+    "feature_layer": 14,
+    "layer_indexing": "zero_based_transformer_block"
+  },
+  "inputs": {
+    "prompt_manifest": "data/prompts/alps_plp_hybrid_v3_prompts.jsonl",
+    "prompt_manifest_sha256": "1b4c42acfbefe274d14777d1e42426488965d199a8f1289a836caa65a73c2038",
+    "prompt_count": 216,
+    "rollout_count": 648,
+    "family_count": 72,
+    "splits": {"train": 540, "test": 108},
+    "split_policy": {
+      "train": "all 60 previously opened ALPS v1 families are design data",
+      "test": "12 newly authored families, unopened until the one-way gate"
+    }
+  },
+  "generation": {
+    "temperature": 0.7,
+    "top_p": 0.95,
+    "max_new_tokens": 4096,
+    "seeds": [42, 43, 44],
+    "chat_template": "tokenizer_default",
+    "output_length_includes_eos": true,
+    "trace_stride": 5,
+    "entropy_window": 20
+  },
+  "target": {
+    "static": "log1p_output_tokens",
+    "progressive": "remaining_tokens",
+    "terminal_definition": "remaining_tokens == 0"
+  },
+  "outputs": {
+    "trace_root": "data/interim/alps_plp_hybrid_v3",
+    "run_root": "artifacts/runs/alps_plp_hybrid_v3"
+  }
+}

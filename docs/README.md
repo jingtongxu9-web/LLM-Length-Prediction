@@ -13,6 +13,9 @@
 - 想从零理解 PLP-only：阅读 [`methods/plp_only_explained.md`](methods/plp_only_explained.md)；
 - 想运行 Hidden-State PLP v2：阅读根目录 README 的“运行真正的 Hidden-State PLP v2”与
   [`planning/v2_experiment_plan.md`](planning/v2_experiment_plan.md)；
+- 想运行最终 ALPS+PLP 确认性比较：先读
+  [`planning/alps_plp_hybrid_v3.md`](planning/alps_plp_hybrid_v3.md)，再严格按
+  [`deployment/alps_plp_hybrid_v3_direct_server.md`](deployment/alps_plp_hybrid_v3_direct_server.md)；
 - 想看ALPS怎么修正：阅读 [`planning/alps_improvement_plan.md`](planning/alps_improvement_plan.md)；
 - 想在服务器运行：进入 [`deployment/`](deployment/) 选择对应环境；
 - 想理解整体研究路线：阅读 [`planning/research_plan.md`](planning/research_plan.md)。
@@ -57,6 +60,9 @@ docs/
 
 `results/` 只保存已经完成且数字固定的实验报告。Hidden-State PLP v2 已完成 GPU 采集、
 训练和开发性 Test 评价；后续改进必须使用新方法 ID 和新 holdout，不覆盖 v2 数字。
+
+Hybrid v3 当前属于“实现与协议已冻结、GPU 实验尚未运行”，所以文档位于 `planning/` 和
+`deployment/`，不能提前放入 `results/` 或宣称实验成功。
 
 ## 方法解释
 
