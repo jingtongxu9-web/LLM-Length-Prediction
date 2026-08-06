@@ -12,6 +12,8 @@
 - 想看 Hidden-State PLP v2：阅读 [`results/v2/plp_v2_results.md`](results/v2/plp_v2_results.md)；
 - 想看 PLP-only v3 三消融和最终 Test：阅读
   [`results/v3/plp_terminal_zero_v3_results.md`](results/v3/plp_terminal_zero_v3_results.md)；
+- 想综合比较 Baseline、ALPS 与 PLP v3：阅读
+  [`results/baseline_alps_plp_v3_comparison.md`](results/baseline_alps_plp_v3_comparison.md)；
 - 想从零理解 PLP-only：阅读 [`methods/plp_only_explained.md`](methods/plp_only_explained.md)；
 - 想运行 Hidden-State PLP v2：阅读根目录 README 的“运行真正的 Hidden-State PLP v2”与
   [`planning/v2_experiment_plan.md`](planning/v2_experiment_plan.md)；
@@ -55,6 +57,7 @@ docs/
 
 | 文档 | 内容 |
 |---|---|
+| [`results/baseline_alps_plp_v3_comparison.md`](results/baseline_alps_plp_v3_comparison.md) | 当前 Baseline、ALPS、PLP v3 的公平口径、能力边界与 Hybrid 动机 |
 | [`results/v1/README.md`](results/v1/README.md) | ALPS、Prompt-token baseline 和 Dynamic-Signal MLP 的总体比较 |
 | [`results/v1/alps.md`](results/v1/alps.md) | ALPS 冻结设置、Train/Test、九宫格、五折、泛化和区间校准 |
 | [`results/v1/dynamic_signal_mlp.md`](results/v1/dynamic_signal_mlp.md) | 项目版 PLP 的特征、结构、冻结条件、分阶段结果和论文边界 |

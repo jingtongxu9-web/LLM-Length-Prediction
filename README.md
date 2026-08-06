@@ -38,6 +38,9 @@ baseline 很弱；Dynamic-Signal MLP 呈现早期低估、后期高估。Hidden-
 [`docs/results/v1/README.md`](docs/results/v1/README.md)，PLP v2 结果见
 [`docs/results/v2/plp_v2_results.md`](docs/results/v2/plp_v2_results.md)。
 
+当前 Baseline、ALPS 和 PLP terminal-zero v3 的统一比较见
+[`docs/results/baseline_alps_plp_v3_comparison.md`](docs/results/baseline_alps_plp_v3_comparison.md)。
+
 独立 **PLP-only terminal-zero v3** 已经完成并冻结。当前进入 ALPS+PLP 阶段；由于现有
 12-family holdout 已被 PLP-only Test 消耗，Hybrid 必须另建测试 family。PLP 最终结论见
 [`docs/results/v3/plp_terminal_zero_v3_results.md`](docs/results/v3/plp_terminal_zero_v3_results.md)。

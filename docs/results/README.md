@@ -3,6 +3,8 @@
 本目录只保存已经完成、数字已经固定的人工可读实验报告。原始JSON/CSV、模型和逐样本预测
 保存在本地`artifacts/runs/`，不在这里重复提交。
 
+跨阶段总览：[`baseline_alps_plp_v3_comparison.md`](baseline_alps_plp_v3_comparison.md)。
+
 | 版本 | 状态 | 入口 |
 |---|---|---|
 | v1 | 已完成 | [`v1/README.md`](v1/README.md) |
