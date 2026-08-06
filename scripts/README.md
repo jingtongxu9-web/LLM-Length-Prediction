@@ -3,6 +3,38 @@
 Run commands from the repository root. Files in this directory are user-facing entry points; they
 call reusable implementation under `src/llm_length_prediction/`.
 
+## Selected PLP-only terminal-zero v3 workflow
+
+The completed five-fold family-grouped OOF ablation selects `plp_terminal_zero_v3`. This
+standalone route freezes only the old PLP v2 control and the selected terminal-zero candidate; it
+does not train the other eight Hybrid-suite methods.
+
+```bash
+# If train_hybrid_v3_models.py already completed, reuse its byte-identical two checkpoints.
+python scripts/train_plp_v3_models.py --reuse-hybrid-models
+
+# Otherwise train only the two PLP-only heads on the existing 540 Train traces.
+python scripts/train_plp_v3_models.py --device auto
+```
+
+Both commands recompute and freeze the OOF selection report before writing the two model hashes.
+No Qwen generation is repeated. See
+[`docs/results/v3/README.md`](../docs/results/v3/README.md) before opening final Test.
+
+The following commands irreversibly assign the currently unopened 12-family holdout to PLP-only:
+
+```bash
+python scripts/open_plp_v3_test_gate.py --confirm-final-test
+python scripts/collect_hybrid_v3_dataset.py \
+  --splits test \
+  --test-owner plp-terminal-v3 \
+  --confirm-final-test
+python scripts/evaluate_plp_v3_final.py
+```
+
+After this, the same families cannot be described as an untouched Hybrid final Test. A later
+confirmatory Hybrid experiment must author a new holdout.
+
 ## Frozen ALPS+PLP Hybrid v3 workflow
 
 The complete direct-server command sequence and the meaning of every step are in
@@ -98,6 +130,9 @@ so the same command safely resumes an interrupted run.
 | `open_hybrid_v3_test_gate.py` | Implemented | Re-run tests/lint, validate hashes, and irreversibly open final Test |
 | `evaluate_hybrid_v3_final.py` | Implemented | One-time holdout metrics and Bonferroni paired-family claim |
 | `run_hybrid_v3_serving_benchmark.py` | Implemented | Frozen deterministic offline serving replay after final evaluation |
+| `train_plp_v3_models.py` | Implemented | Reproduce the OOF choice and freeze only PLP v2 control + terminal-zero v3; can safely import matching Hybrid checkpoints |
+| `open_plp_v3_test_gate.py` | Implemented | Irreversibly assign the shared unopened holdout to PLP-only v3 after tests, hashes, and model freeze |
+| `evaluate_plp_v3_final.py` | Implemented | Final PLP-only comparison with overall, task, length, 3x3, seed, progress, and terminal breakdowns |
 
 ## Inputs and outputs
 

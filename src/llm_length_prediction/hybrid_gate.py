@@ -17,6 +17,14 @@ from llm_length_prediction.hybrid_experiment import (
 )
 from llm_length_prediction.models.hybrid_suite import METHOD_IDS
 
+HYBRID_HOLDOUT_OWNER = "alps-plp-hybrid-v3-confirmatory-2026"
+
+
+def shared_holdout_owner_path(config: dict[str, Any]) -> Path:
+    """Return the one shared ownership marker for the 12-family holdout."""
+
+    return Path(config["outputs"]["run_root"]) / "final_test" / "HOLDOUT_OWNER.json"
+
 
 def _atomic_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -40,6 +48,14 @@ def validate_hybrid_test_gate(
     _, records = load_hybrid_experiment(config)
     run_root = Path(config["outputs"]["run_root"])
     root = trace_root or Path(config["outputs"]["trace_root"])
+    owner_path = shared_holdout_owner_path(config)
+    if owner_path.is_file():
+        owner = json.loads(owner_path.read_text(encoding="utf-8"))
+        if owner.get("protocol_id") != HYBRID_HOLDOUT_OWNER:
+            raise ValueError(
+                "the shared 12-family holdout was already assigned to "
+                f"{owner.get('protocol_id')}"
+            )
     oof_path = run_root / protocol["outputs"]["oof_report"]
     registry_path = run_root / protocol["outputs"]["models"] / "model_registry.json"
     checks_path = run_root / "validation" / "pre_open_checks.json"
@@ -131,5 +147,13 @@ def begin_hybrid_test_access(
         "opened_at_utc": datetime.now(timezone.utc).isoformat(),
         **evidence,
     }
+    _atomic_json(
+        shared_holdout_owner_path(config),
+        {
+            "schema_version": 1,
+            "protocol_id": HYBRID_HOLDOUT_OWNER,
+            "assigned_at_utc": marker["opened_at_utc"],
+        },
+    )
     _atomic_json(marker_path, marker)
     return marker

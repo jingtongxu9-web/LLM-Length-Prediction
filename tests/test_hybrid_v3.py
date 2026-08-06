@@ -28,6 +28,7 @@ from llm_length_prediction.models.hybrid_suite import (
     METHOD_IDS,
     progressive_method_settings,
 )
+from llm_length_prediction.models.plp_v3 import PLP_V3_METHOD_IDS, method_settings
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -226,3 +227,16 @@ def test_plp_v3_ablation_contract_changes_one_factor_at_a_time() -> None:
         familywise["per_comparison_confidence_level"],
         1.0 - familywise["alpha"] / familywise["comparisons"],
     )
+
+
+def test_standalone_plp_v3_freezes_only_control_and_selected_candidate() -> None:
+    protocol = json.loads(
+        (ROOT / "configs/experiments/plp_terminal_v3_protocol.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert tuple(protocol["methods"]) == PLP_V3_METHOD_IDS
+    assert method_settings(protocol, "plp_v2_frozen") == (3584, False, False)
+    assert method_settings(protocol, "plp_terminal_zero_v3") == (3584, True, False)
+    assert protocol["selection"]["familywise_comparisons"] == 3
+    assert protocol["final_test_policy"]["mutually_exclusive_owner"] is True

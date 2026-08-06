@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "protocol_id": "plp-terminal-zero-v3-confirmatory-2026",
+  "status": "candidate_selected_by_grouped_oof_test_unopened",
+  "shared_trace_config": "configs/experiments/alps_plp_hybrid_v3.json",
+  "primary_claim": "PLP terminal-zero v3 improves remaining-length prediction over the frozen PLP v2 control on unseen prompt families",
+  "methods": {
+    "plp_v2_frozen": {
+      "role": "frozen_control_retrained_on_the_same_v3_train_traces",
+      "hidden_dim": 3584,
+      "terminal_zero_bin": false,
+      "target_range_weighting": "unweighted_all_targets"
+    },
+    "plp_terminal_zero_v3": {
+      "role": "selected_plp_only_method",
+      "hidden_dim": 3584,
+      "terminal_zero_bin": true,
+      "target_range_weighting": "unweighted_positive_targets"
+    }
+  },
+  "selection": {
+    "source_report": "artifacts/runs/alps_plp_hybrid_v3/oof/oof_report.json",
+    "source_predictions": "artifacts/runs/alps_plp_hybrid_v3/oof/oof_predictions.csv",
+    "candidate_ablation_ids": [
+      "plp_terminal_zero_v3",
+      "plp_small_head_v3",
+      "plp_weighted_range_v3"
+    ],
+    "control_id": "plp_v2_frozen",
+    "bootstrap_unit": "prompt_family_id",
+    "bootstrap_replicates": 2000,
+    "bootstrap_seed": 20260805,
+    "familywise_comparisons": 3,
+    "familywise_confidence_level": 0.9833333333333333,
+    "selection_rule": "lowest family-macro sequence-balanced MAE and upper familywise paired CI below zero"
+  },
+  "data_policy": {
+    "group_unit": "prompt_family_id",
+    "train_family_count": 60,
+    "final_test_family_count": 12,
+    "train_oof_folds": 5,
+    "all_seeds_lengths_and_timesteps_stay_with_family": true,
+    "final_test_access": "single_confirmed_access_after_selection_and_model_hash_freeze"
+  },
+  "final_test_policy": {
+    "holdout_source": "the_same_12_unopened_families_reserved_by_alps_plp_hybrid_v3",
+    "mutually_exclusive_owner": true,
+    "warning": "Opening this holdout for PLP-only consumes it; a later Hybrid confirmatory test must use newly authored families."
+  },
+  "evaluation": {
+    "primary_metric": "family_macro_sequence_balanced_mae_tokens",
+    "secondary_metrics": [
+      "sequence_balanced_rmse_tokens",
+      "family_macro_mean_error_tokens",
+      "underprediction_rate",
+      "p95_positive_underprediction_tokens",
+      "top_10_percent_remaining_mae_tokens"
+    ],
+    "bootstrap_replicates": 2000,
+    "bootstrap_confidence_level": 0.95,
+    "bootstrap_seed": 20260805,
+    "paired": true,
+    "required_breakdowns": [
+      "task",
+      "intended_length",
+      "task_x_intended_length",
+      "seed",
+      "decode_progress",
+      "terminal_vs_nonterminal"
+    ]
+  },
+  "outputs": {
+    "run_root": "artifacts/runs/plp_terminal_v3",
+    "selection_report": "selection/oof_selection.json",
+    "models": "models",
+    "final_test": "final_test"
+  }
+}

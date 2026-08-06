@@ -1,4 +1,4 @@
-"""Collect the shared Train or one-time Test traces for Hybrid v3."""
+"""Collect shared v3 traces for Hybrid development or the selected PLP-only final Test."""
 
 from __future__ import annotations
 
@@ -28,6 +28,7 @@ from llm_length_prediction.runtime.model_paths import resolve_model_source
 
 DEFAULT_CONFIG = Path("configs/experiments/alps_plp_hybrid_v3.json")
 DEFAULT_PROTOCOL = Path("configs/experiments/alps_plp_hybrid_v3_protocol.json")
+DEFAULT_PLP_PROTOCOL = Path("configs/experiments/plp_terminal_v3_protocol.json")
 
 
 def _validate_local_revision(model_source: str, expected: str) -> None:
@@ -140,10 +141,16 @@ def _write_index(
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
-    parser.add_argument("--protocol", type=Path, default=DEFAULT_PROTOCOL)
+    parser.add_argument("--protocol", type=Path)
     parser.add_argument("--model")
     parser.add_argument("--splits", nargs="+", choices=("train", "test"), default=["train"])
     parser.add_argument("--confirm-final-test", action="store_true")
+    parser.add_argument(
+        "--test-owner",
+        choices=("hybrid", "plp-terminal-v3"),
+        default="hybrid",
+        help="one protocol that irreversibly owns the shared 12-family holdout",
+    )
     parser.add_argument("--limit", type=int)
     args = parser.parse_args()
     if "test" in args.splits and not args.confirm_final_test:
@@ -156,14 +163,24 @@ def main() -> None:
     root = Path(config["outputs"]["trace_root"])
     run_root = Path(config["outputs"]["run_root"])
     if "test" in args.splits:
-        from llm_length_prediction.hybrid_gate import begin_hybrid_test_access
+        if args.test_owner == "plp-terminal-v3":
+            from llm_length_prediction.plp_v3_gate import begin_plp_v3_test_access
 
-        marker = begin_hybrid_test_access(
-            protocol_path=args.protocol,
-            config_path=args.config,
-            trace_root=root,
-        )
-        print(f"Hybrid v3 Test marker: {marker['opened_at_utc']}")
+            marker = begin_plp_v3_test_access(
+                protocol_path=args.protocol or DEFAULT_PLP_PROTOCOL,
+                config_path=args.config,
+                trace_root=root,
+            )
+            print(f"PLP terminal-zero v3 Test marker: {marker['opened_at_utc']}")
+        else:
+            from llm_length_prediction.hybrid_gate import begin_hybrid_test_access
+
+            marker = begin_hybrid_test_access(
+                protocol_path=args.protocol or DEFAULT_PROTOCOL,
+                config_path=args.config,
+                trace_root=root,
+            )
+            print(f"Hybrid v3 Test marker: {marker['opened_at_utc']}")
     selected = set(args.splits)
     jobs = [job for job in rollout_jobs(records) if job[0]["split"] in selected]
     if args.limit is not None:
