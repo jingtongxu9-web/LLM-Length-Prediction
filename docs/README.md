@@ -10,7 +10,8 @@
 
 - 想看 ALPS 与旧 baseline：从 [`results/v1/README.md`](results/v1/README.md) 开始；
 - 想看 Hidden-State PLP v2：阅读 [`results/v2/plp_v2_results.md`](results/v2/plp_v2_results.md)；
-- 想看 PLP-only v3 消融结论和下一步命令：阅读 [`results/v3/README.md`](results/v3/README.md)；
+- 想看 PLP-only v3 三消融和最终 Test：阅读
+  [`results/v3/plp_terminal_zero_v3_results.md`](results/v3/plp_terminal_zero_v3_results.md)；
 - 想从零理解 PLP-only：阅读 [`methods/plp_only_explained.md`](methods/plp_only_explained.md)；
 - 想运行 Hidden-State PLP v2：阅读根目录 README 的“运行真正的 Hidden-State PLP v2”与
   [`planning/v2_experiment_plan.md`](planning/v2_experiment_plan.md)；
@@ -58,14 +59,13 @@ docs/
 | [`results/v1/alps.md`](results/v1/alps.md) | ALPS 冻结设置、Train/Test、九宫格、五折、泛化和区间校准 |
 | [`results/v1/dynamic_signal_mlp.md`](results/v1/dynamic_signal_mlp.md) | 项目版 PLP 的特征、结构、冻结条件、分阶段结果和论文边界 |
 | [`results/v2/plp_v2_results.md`](results/v2/plp_v2_results.md) | Hidden-State PLP v2 的 Train/Test、进度、九宫格、泛化和过拟合分析 |
-| [`results/v3/README.md`](results/v3/README.md) | PLP-only 三个单因素消融、OOF 选择与 terminal-zero v3 冻结流程 |
+| [`results/v3/plp_terminal_zero_v3_results.md`](results/v3/plp_terminal_zero_v3_results.md) | PLP v2 baseline、三个单因素消融、OOF 选择与 terminal-zero v3 最终 Test |
 
 `results/` 只保存已经完成且数字固定的实验报告。Hidden-State PLP v2 已完成 GPU 采集、
 训练和开发性 Test 评价；后续改进必须使用新方法 ID 和新 holdout，不覆盖 v2 数字。
 
-Hybrid v3 的共享 Train trace 和十方法 grouped OOF 已经运行，但最终 Test 尚未打开。OOF 中
-PLP-only 三个单因素消融的数字已经固定，因此其开发结论进入 `results/v3/`；Hybrid 最终结论
-仍留在 `planning/`，不能提前宣称确认性实验成功。
+PLP-only v3 已完成三个单因素消融和最终 Test。原 Hybrid 协议预留的 12-family holdout 已由
+PLP-only 使用，因此不能继续作为 Hybrid 的未见 Test；ALPS+PLP 下一阶段必须新建 holdout。
 
 ## 方法解释
 

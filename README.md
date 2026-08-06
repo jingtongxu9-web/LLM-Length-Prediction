@@ -8,10 +8,10 @@
 > 最终层隐藏状态和 20-bin soft-label 预测头；它是 PLP-only，不读取 ALPS prior。v2 已在
 > AutoDL RTX 5090 上完成采集、训练和开发性 Test 评价。
 
-> **Hybrid v3 Train/OOF 已运行，最终 Test 未打开：**新版本不覆盖 v2。540 条共享 Train trace
-> 和十方法 family-grouped OOF 已完成；PLP-only 消融已选择 `plp_terminal_zero_v3`。12 个全新
-> holdout family 仍未使用。完整服务器命令见
-> [`docs/deployment/alps_plp_hybrid_v3_direct_server.md`](docs/deployment/alps_plp_hybrid_v3_direct_server.md)。
+> **PLP-only v3 已完成：**三个单因素消融从 PLP v2 baseline 中选择了
+> `plp_terminal_zero_v3`。最终 Test MAE 从 `75.06` 降至 `71.04`，但配对 95% CI 略微跨 0，
+> 因此记录为小幅改善而非显著优越。完整报告见
+> [`docs/results/v3/plp_terminal_zero_v3_results.md`](docs/results/v3/plp_terminal_zero_v3_results.md)。
 
 预测结果最终用于评估 batching、延迟、KV-cache 规划和长输出低估风险，而不仅仅是比较
 MAE。
@@ -27,8 +27,8 @@ MAE。
 | 输入长度 Ridge baseline | 已完成 | Test MAE `246.77`、Log R² `0.011`，预测力很弱 |
 | Dynamic-Signal MLP v1 | 已完成 | Test sequence-balanced MAE `136.66`、Raw R² `0.089`，仅中段有一定能力 |
 | Hidden-State PLP v2 | 已完成 | Test sequence-balanced MAE `60.03`、Raw R² `0.790`；论文对齐、非精确复现 |
-| PLP terminal-zero v3 | OOF 选择完成，最终 Test 未打开 | OOF MAE `59.78`；相对 v2 改善 `1.26` token；5 fold/3 seed 方向一致 |
-| ALPS+PLP Hybrid v3 | Train/十方法 OOF 已完成，最终 Test 未打开 | 540 Train rollout、新 holdout、一次性最终 Test |
+| PLP terminal-zero v3 | **已完成** | Test MAE `71.04`，相对 v2 改善约 `5.35%`；严格显著性未通过 |
+| ALPS+PLP Hybrid | 下一阶段 | 需要新 holdout；当前 12-family Test 已由 PLP-only 使用 |
 | Hybrid v3 serving replay | 已实现，待最终 Test 后运行 | 固定 bucket/batch/KV 规则的离线 replay；不等于生产测量 |
 
 当前 ALPS v1 的采集、最终 Ridge、Train/Test 分组分析、固定五折、输入长度 baseline 和
@@ -38,10 +38,9 @@ baseline 很弱；Dynamic-Signal MLP 呈现早期低估、后期高估。Hidden-
 [`docs/results/v1/README.md`](docs/results/v1/README.md)，PLP v2 结果见
 [`docs/results/v2/plp_v2_results.md`](docs/results/v2/plp_v2_results.md)。
 
-当前先完成独立 **PLP-only terminal-zero v3**。它的 OOF 消融只使用旧 60 个 design family；
-若把现有 12 个新 family 分配给 PLP-only 最终 Test，它们之后不能再充当 Hybrid 的未见
-holdout，Hybrid 必须另建测试 family。选择结论和命令见
-[`docs/results/v3/README.md`](docs/results/v3/README.md)。
+独立 **PLP-only terminal-zero v3** 已经完成并冻结。当前进入 ALPS+PLP 阶段；由于现有
+12-family holdout 已被 PLP-only Test 消耗，Hybrid 必须另建测试 family。PLP 最终结论见
+[`docs/results/v3/plp_terminal_zero_v3_results.md`](docs/results/v3/plp_terminal_zero_v3_results.md)。
 
 ## 系统架构
 
