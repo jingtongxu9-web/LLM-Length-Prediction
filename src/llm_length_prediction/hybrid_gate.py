@@ -66,7 +66,7 @@ def validate_hybrid_test_gate(
         tuple(oof.get("methods", {})) != METHOD_IDS
         or tuple(registry.get("methods", {})) != METHOD_IDS
     ):
-        raise ValueError("OOF/model registry does not contain exactly eight methods")
+        raise ValueError("OOF/model registry does not contain exactly ten methods")
     if oof.get("test_opened") is not False or registry.get("test_opened") is not False:
         raise ValueError("pre-Test artifacts must declare test_opened=false")
     if oof.get("training_dataset_digest") != registry.get("training_dataset_digest"):

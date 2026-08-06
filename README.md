@@ -9,7 +9,7 @@
 > AutoDL RTX 5090 上完成采集、训练和开发性 Test 评价。
 
 > **Hybrid v3 已冻结、尚未运行：**新版本不覆盖 v2。它增加 12 个全新 holdout family、
-> 八方法共享 trace、nested family-grouped OOF、terminal zero bin、删失门槛、家族级配对
+> 十方法共享 trace、nested family-grouped OOF、三个单因素 PLP-only 消融、删失门槛、家族级配对
 > bootstrap、一次性 Test gate 和离线 serving replay。完整服务器命令见
 > [`docs/deployment/alps_plp_hybrid_v3_direct_server.md`](docs/deployment/alps_plp_hybrid_v3_direct_server.md)。
 
@@ -27,7 +27,7 @@ MAE。
 | 输入长度 Ridge baseline | 已完成 | Test MAE `246.77`、Log R² `0.011`，预测力很弱 |
 | Dynamic-Signal MLP v1 | 已完成 | Test sequence-balanced MAE `136.66`、Raw R² `0.089`，仅中段有一定能力 |
 | Hidden-State PLP v2 | 已完成 | Test sequence-balanced MAE `60.03`、Raw R² `0.790`；论文对齐、非精确复现 |
-| ALPS+PLP Hybrid v3 | 代码与协议已冻结，待服务器运行 | 新 holdout、8 方法、grouped OOF、一次性最终 Test |
+| ALPS+PLP Hybrid v3 | 代码与协议已冻结，待服务器运行 | 新 holdout、10 方法、grouped OOF、一次性最终 Test |
 | Hybrid v3 serving replay | 已实现，待最终 Test 后运行 | 固定 bucket/batch/KV 规则的离线 replay；不等于生产测量 |
 
 当前 ALPS v1 的采集、最终 Ridge、Train/Test 分组分析、固定五折、输入长度 baseline 和

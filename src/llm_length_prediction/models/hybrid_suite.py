@@ -1,4 +1,4 @@
-"""Frozen eight-method comparison suite used by Hybrid v3."""
+"""Frozen ten-method comparison suite used by Hybrid v3."""
 
 from __future__ import annotations
 
@@ -35,7 +35,9 @@ METHOD_IDS = (
     "dynamic_ridge",
     "dynamic_signal_mlp_v1",
     "plp_v2_frozen",
-    "plp_small_terminal_v3",
+    "plp_terminal_zero_v3",
+    "plp_small_head_v3",
+    "plp_weighted_range_v3",
     "alps_dynamic_ridge",
     "alps_plp_hybrid_v3",
 )
@@ -57,6 +59,29 @@ def weights(samples: Sequence[HybridSample]) -> np.ndarray:
     return np.asarray([sample.sequence_weight for sample in samples], dtype=np.float64)
 
 
+def progressive_method_settings(
+    protocol: dict[str, Any], method_id: str
+) -> tuple[int, bool, bool]:
+    """Read and validate one progressive-head variant from the frozen protocol."""
+
+    method = protocol["methods"][method_id]
+    hidden_dim = int(method["hidden_dim"])
+    if hidden_dim <= 0:
+        raise ValueError(f"{method_id} hidden_dim must be positive")
+    terminal_value = method["terminal_zero_bin"]
+    if not isinstance(terminal_value, bool):
+        raise ValueError(f"{method_id} terminal_zero_bin must be a boolean")
+    terminal_zero = terminal_value
+    weighting = str(method["target_range_weighting"])
+    expected_scope = "positive_targets" if terminal_zero else "all_targets"
+    if weighting not in {f"unweighted_{expected_scope}", f"rollout_balanced_{expected_scope}"}:
+        raise ValueError(
+            f"{method_id} target_range_weighting={weighting!r} conflicts with "
+            f"terminal_zero_bin={terminal_zero}"
+        )
+    return hidden_dim, terminal_zero, weighting.startswith("rollout_balanced_")
+
+
 @dataclass
 class FittedSuite:
     alps_prior: WeightedLogRidge
@@ -65,8 +90,12 @@ class FittedSuite:
     dynamic_mlp: Any
     plp_v2_head: Any
     plp_v2_metadata: dict[str, Any]
+    plp_terminal_zero_head: Any
+    plp_terminal_zero_metadata: dict[str, Any]
     plp_small_head: Any
     plp_small_metadata: dict[str, Any]
+    plp_weighted_range_head: Any
+    plp_weighted_range_metadata: dict[str, Any]
     alps_dynamic_ridge: WeightedLogRidge
     hybrid_head: Any
     hybrid_metadata: dict[str, Any]
@@ -126,21 +155,48 @@ def fit_suite(
         "device": device,
     }
     plp = plp_matrix(samples)
+    v2_dim, v2_terminal, v2_weighted = progressive_method_settings(
+        protocol, "plp_v2_frozen"
+    )
     plp_v2_head, plp_v2_metadata = fit_progressive_head(
         samples,
         plp,
-        hidden_dim=plp.shape[1] // 2,
-        terminal_zero=False,
-        weighted_range=False,
+        hidden_dim=v2_dim,
+        terminal_zero=v2_terminal,
+        weighted_range=v2_weighted,
         **common,
     )
-    small_dim = int(protocol["methods"]["plp_small_terminal_v3"]["hidden_dim"])
+    terminal_dim, terminal_zero, terminal_weighted = progressive_method_settings(
+        protocol, "plp_terminal_zero_v3"
+    )
+    plp_terminal_zero_head, plp_terminal_zero_metadata = fit_progressive_head(
+        samples,
+        plp,
+        hidden_dim=terminal_dim,
+        terminal_zero=terminal_zero,
+        weighted_range=terminal_weighted,
+        **common,
+    )
+    small_dim, small_terminal, small_weighted = progressive_method_settings(
+        protocol, "plp_small_head_v3"
+    )
     plp_small_head, plp_small_metadata = fit_progressive_head(
         samples,
         plp,
         hidden_dim=small_dim,
-        terminal_zero=True,
-        weighted_range=True,
+        terminal_zero=small_terminal,
+        weighted_range=small_weighted,
+        **common,
+    )
+    weighted_dim, weighted_terminal, weighted_range = progressive_method_settings(
+        protocol, "plp_weighted_range_v3"
+    )
+    plp_weighted_range_head, plp_weighted_range_metadata = fit_progressive_head(
+        samples,
+        plp,
+        hidden_dim=weighted_dim,
+        terminal_zero=weighted_terminal,
+        weighted_range=weighted_range,
         **common,
     )
     summary_scaler = fit_summary_scaler(cross_fitted_prior, sample_weights)
@@ -153,13 +209,15 @@ def fit_suite(
         target_name="log1p_remaining_tokens",
     )
     hybrid_features = hybrid_feature_matrix(samples, cross_fitted_prior, scaler=summary_scaler)
-    hybrid_dim = int(protocol["methods"]["alps_plp_hybrid_v3"]["hidden_dim"])
+    hybrid_dim, hybrid_terminal, hybrid_weighted = progressive_method_settings(
+        protocol, "alps_plp_hybrid_v3"
+    )
     hybrid_head, hybrid_metadata = fit_progressive_head(
         samples,
         hybrid_features,
         hidden_dim=hybrid_dim,
-        terminal_zero=True,
-        weighted_range=True,
+        terminal_zero=hybrid_terminal,
+        weighted_range=hybrid_weighted,
         **common,
     )
     return FittedSuite(
@@ -169,13 +227,24 @@ def fit_suite(
         dynamic_mlp=dynamic_mlp,
         plp_v2_head=plp_v2_head,
         plp_v2_metadata=plp_v2_metadata,
+        plp_terminal_zero_head=plp_terminal_zero_head,
+        plp_terminal_zero_metadata=plp_terminal_zero_metadata,
         plp_small_head=plp_small_head,
         plp_small_metadata=plp_small_metadata,
+        plp_weighted_range_head=plp_weighted_range_head,
+        plp_weighted_range_metadata=plp_weighted_range_metadata,
         alps_dynamic_ridge=alps_dynamic_ridge,
         hybrid_head=hybrid_head,
         hybrid_metadata=hybrid_metadata,
         prior_summary_scaler=summary_scaler,
-        reports={"dynamic_signal_mlp_v1": dynamic_report},
+        reports={
+            "dynamic_signal_mlp_v1": dynamic_report,
+            "plp_v2_frozen": plp_v2_metadata,
+            "plp_terminal_zero_v3": plp_terminal_zero_metadata,
+            "plp_small_head_v3": plp_small_metadata,
+            "plp_weighted_range_v3": plp_weighted_range_metadata,
+            "alps_plp_hybrid_v3": hybrid_metadata,
+        },
     )
 
 
@@ -193,7 +262,9 @@ def predict_suite(
     scaled_prior = fitted.prior_summary_scaler.transform(prior)
     hybrid = hybrid_feature_matrix(samples, prior, scaler=fitted.prior_summary_scaler)
     v2_device = str(fitted.plp_v2_metadata["device"])
+    terminal_device = str(fitted.plp_terminal_zero_metadata["device"])
     small_device = str(fitted.plp_small_metadata["device"])
+    weighted_device = str(fitted.plp_weighted_range_metadata["device"])
     hybrid_device = str(fitted.hybrid_metadata["device"])
     predictions = {
         "step_only_ridge": fitted.step_ridge.predict_mean(dynamic[:, :1]),
@@ -203,8 +274,20 @@ def predict_suite(
         "plp_v2_frozen": predict_progressive_head(
             fitted.plp_v2_head, plp, batch_size=batch_size, device=v2_device
         ),
-        "plp_small_terminal_v3": predict_progressive_head(
+        "plp_terminal_zero_v3": predict_progressive_head(
+            fitted.plp_terminal_zero_head,
+            plp,
+            batch_size=batch_size,
+            device=terminal_device,
+        ),
+        "plp_small_head_v3": predict_progressive_head(
             fitted.plp_small_head, plp, batch_size=batch_size, device=small_device
+        ),
+        "plp_weighted_range_v3": predict_progressive_head(
+            fitted.plp_weighted_range_head,
+            plp,
+            batch_size=batch_size,
+            device=weighted_device,
         ),
         "alps_dynamic_ridge": fitted.alps_dynamic_ridge.predict_mean(
             np.concatenate((dynamic, scaled_prior), axis=1)
@@ -233,9 +316,19 @@ def save_suite(fitted: FittedSuite, output_dir: Path) -> dict[str, list[str]]:
         )
     checkpoints = {
         "plp_v2_frozen.pt": (fitted.plp_v2_head, fitted.plp_v2_metadata, None),
-        "plp_small_terminal_v3.pt": (
+        "plp_terminal_zero_v3.pt": (
+            fitted.plp_terminal_zero_head,
+            fitted.plp_terminal_zero_metadata,
+            None,
+        ),
+        "plp_small_head_v3.pt": (
             fitted.plp_small_head,
             fitted.plp_small_metadata,
+            None,
+        ),
+        "plp_weighted_range_v3.pt": (
+            fitted.plp_weighted_range_head,
+            fitted.plp_weighted_range_metadata,
             None,
         ),
         "alps_plp_hybrid_v3.pt": (
@@ -260,7 +353,9 @@ def save_suite(fitted: FittedSuite, output_dir: Path) -> dict[str, list[str]]:
         "dynamic_ridge": ["dynamic_ridge.json"],
         "dynamic_signal_mlp_v1": ["dynamic_signal_mlp_v1.json"],
         "plp_v2_frozen": ["plp_v2_frozen.pt"],
-        "plp_small_terminal_v3": ["plp_small_terminal_v3.pt"],
+        "plp_terminal_zero_v3": ["plp_terminal_zero_v3.pt"],
+        "plp_small_head_v3": ["plp_small_head_v3.pt"],
+        "plp_weighted_range_v3": ["plp_weighted_range_v3.pt"],
         "alps_dynamic_ridge": ["alps_prior.json", "alps_dynamic_ridge.json"],
         "alps_plp_hybrid_v3": ["alps_prior.json", "alps_plp_hybrid_v3.pt"],
     }
@@ -288,7 +383,13 @@ def load_suite(output_dir: Path) -> FittedSuite:
         return json.loads((output_dir / name).read_text(encoding="utf-8"))
 
     v2_head, v2_metadata, _ = _load_head(output_dir / "plp_v2_frozen.pt")
-    small_head, small_metadata, _ = _load_head(output_dir / "plp_small_terminal_v3.pt")
+    terminal_head, terminal_metadata, _ = _load_head(
+        output_dir / "plp_terminal_zero_v3.pt"
+    )
+    small_head, small_metadata, _ = _load_head(output_dir / "plp_small_head_v3.pt")
+    weighted_head, weighted_metadata, _ = _load_head(
+        output_dir / "plp_weighted_range_v3.pt"
+    )
     hybrid_head, hybrid_metadata, scaler_payload = _load_head(output_dir / "alps_plp_hybrid_v3.pt")
     if scaler_payload is None:
         raise ValueError("Hybrid checkpoint is missing its prior summary scaler")
@@ -299,8 +400,12 @@ def load_suite(output_dir: Path) -> FittedSuite:
         dynamic_mlp=StandardizedMLPRemainingLength.from_dict(read("dynamic_signal_mlp_v1.json")),
         plp_v2_head=v2_head,
         plp_v2_metadata=v2_metadata,
+        plp_terminal_zero_head=terminal_head,
+        plp_terminal_zero_metadata=terminal_metadata,
         plp_small_head=small_head,
         plp_small_metadata=small_metadata,
+        plp_weighted_range_head=weighted_head,
+        plp_weighted_range_metadata=weighted_metadata,
         alps_dynamic_ridge=WeightedLogRidge.from_dict(read("alps_dynamic_ridge.json")),
         hybrid_head=hybrid_head,
         hybrid_metadata=hybrid_metadata,

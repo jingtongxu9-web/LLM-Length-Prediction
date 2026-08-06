@@ -22,6 +22,11 @@ from llm_length_prediction.models.hybrid import (
     WeightedLogRidge,
     bin_centers,
     soft_labels,
+    target_range,
+)
+from llm_length_prediction.models.hybrid_suite import (
+    METHOD_IDS,
+    progressive_method_settings,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -120,6 +125,28 @@ def test_terminal_bin_is_exactly_zero() -> None:
     assert centers[0] == 0.0
     assert labels[0, 0] == 1.0
     assert labels[0, 1:].sum() == 0.0
+    assert labels[1, 0] == 0.0
+    assert np.isclose(labels[1, 1:].sum(), 1.0)
+
+
+def test_rollout_balanced_target_range_stops_long_rollouts_dominating() -> None:
+    targets = np.asarray([10.0, 0.0, *range(90, -1, -10)])
+    weights = np.asarray([0.5, 0.5, *([0.1] * 10)])
+    unweighted = target_range(
+        targets,
+        weights,
+        percentiles=(50.0, 90.0),
+        positive_only=False,
+        weighted=False,
+    )
+    rollout_balanced = target_range(
+        targets,
+        weights,
+        percentiles=(50.0, 90.0),
+        positive_only=False,
+        weighted=True,
+    )
+    assert rollout_balanced[0] < unweighted[0]
 
 
 def test_family_macro_and_paired_interval_use_family_unit() -> None:
@@ -157,3 +184,45 @@ def test_v2_contract_files_are_not_replaced_by_v3() -> None:
     assert v2["trace"]["schema_version"] == 2
     assert v3["trace"]["schema_name"] == "hybrid-v3-unified-trace"
     assert v3["preserves_frozen_v2"] is True
+
+
+def test_plp_v3_ablation_contract_changes_one_factor_at_a_time() -> None:
+    protocol = json.loads(
+        (ROOT / "configs/experiments/alps_plp_hybrid_v3_protocol.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    config = json.loads(
+        (ROOT / "configs/experiments/alps_plp_hybrid_v3.json").read_text(encoding="utf-8")
+    )
+    methods = protocol["methods"]
+    assert tuple(methods) == METHOD_IDS
+    assert "plp_small_terminal_v3" not in methods
+    assert progressive_method_settings(protocol, "plp_v2_frozen") == (3584, False, False)
+    assert progressive_method_settings(protocol, "plp_terminal_zero_v3") == (
+        3584,
+        True,
+        False,
+    )
+    assert progressive_method_settings(protocol, "plp_small_head_v3") == (
+        512,
+        False,
+        False,
+    )
+    assert progressive_method_settings(protocol, "plp_weighted_range_v3") == (
+        3584,
+        False,
+        True,
+    )
+    hybrid = protocol["methods"]["alps_plp_hybrid_v3"]
+    assert hybrid["terminal_zero_bin"] == config["progressive_head"]["terminal_zero_bin"]
+    assert (
+        hybrid["target_range_weighting"]
+        == config["progressive_head"]["target_range_weighting"]
+    )
+    familywise = protocol["evaluation"]["primary_familywise_rule"]
+    assert familywise["comparisons"] == len(METHOD_IDS) - 1
+    assert np.isclose(
+        familywise["per_comparison_confidence_level"],
+        1.0 - familywise["alpha"] / familywise["comparisons"],
+    )

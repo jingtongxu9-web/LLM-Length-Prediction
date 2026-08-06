@@ -112,7 +112,7 @@ python scripts/collect_hybrid_v3_dataset.py \
   2>&1 | tee artifacts/runs/alps_plp_hybrid_v3/train_collection.log
 ```
 
-意义：生成一次共享 trajectory；全部 8 种方法都读取这些相同 trace。完成后 summary 中
+意义：生成一次共享 trajectory；全部 10 种方法都读取这些相同 trace。完成后 summary 中
 `by_split.train` 应为 540。若断线，重复同一命令即可续跑。
 
 ## 7. 跑严格 grouped OOF
@@ -124,7 +124,7 @@ python scripts/evaluate_hybrid_v3_oof.py --device auto \
 ```
 
 意义：执行 5-fold family-grouped OOF，并在每个外层 Train 内对 ALPS prior 再做 4-fold
-cross-fit；同时生成八种方法的 OOF prediction、家族级指标和置信区间。它不会读取 Test。
+cross-fit；同时生成十种方法的 OOF prediction、家族级指标和置信区间。它不会读取 Test。
 
 检查：
 
@@ -135,7 +135,7 @@ python -c "import json; p='artifacts/runs/alps_plp_hybrid_v3/oof/oof_report.json
 若 censoring status 为 `abort`，代码会直接停止；不要靠删除失败样本绕过门槛。OOF 结果仅用于
 检查稳定性，不根据它修改冻结超参数，否则必须创建新 protocol/version。
 
-## 8. 用全部 Train 冻结最终八种模型
+## 8. 用全部 Train 冻结最终十种模型
 
 ```bash
 set -o pipefail
@@ -154,7 +154,7 @@ python scripts/train_hybrid_v3_models.py --device auto \
 python scripts/open_hybrid_v3_test_gate.py --confirm-final-test
 ```
 
-意义：重新运行 pytest 与 ruff；验证 OOF、Train digest、八种模型、全部哈希，并确认不存在
+意义：重新运行 pytest 与 ruff；验证 OOF、Train digest、十种模型、全部哈希，并确认不存在
 任何 v3 Test trace；然后创建 `final_test/OPENED.json`。gate 打开后只能完成预注册流程，不能
 根据 Test 结果返回修改模型再测。
 
@@ -182,11 +182,11 @@ python scripts/evaluate_hybrid_v3_final.py \
 
 主要输出：
 
-- `final_test/predictions.csv`：每个保存点的真实值和八种预测；
+- `final_test/predictions.csv`：每个保存点的真实值和十种预测；
 - `final_test/final_report.json`：总体/家族宏平均指标、absolute-step 分组、配对 CI；
-- `primary_claim_result.passed`：七个 Bonferroni CI 上界是否全部小于 0。
+- `primary_claim_result.passed`：九个 Bonferroni CI 上界是否全部小于 0。
 
-`passed=true` 才支持“Hybrid 在此冻结 holdout 的 prediction MAE 上优于全部七个对照”。它不
+`passed=true` 才支持“Hybrid 在此冻结 holdout 的 prediction MAE 上优于全部九个对照”。它不
 自动证明真实 serving 更好，也不代表所有模型/数据分布。
 
 ## 12. 跑冻结的离线 serving replay

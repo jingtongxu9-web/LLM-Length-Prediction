@@ -1,4 +1,4 @@
-"""Freeze all eight final Hybrid v3 models after grouped OOF is complete."""
+"""Freeze all ten final Hybrid v3 models after grouped OOF is complete."""
 
 from __future__ import annotations
 
@@ -96,12 +96,7 @@ def main() -> None:
             }
             for method in METHOD_IDS
         },
-        "training_reports": {
-            **fitted.reports,
-            "plp_v2_frozen": fitted.plp_v2_metadata,
-            "plp_small_terminal_v3": fitted.plp_small_metadata,
-            "alps_plp_hybrid_v3": fitted.hybrid_metadata,
-        },
+        "training_reports": fitted.reports,
     }
     (model_dir / "model_registry.json").write_text(
         json.dumps(registry, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"

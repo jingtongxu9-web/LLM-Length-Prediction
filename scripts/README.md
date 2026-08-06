@@ -92,8 +92,8 @@ so the same command safely resumes an interrupted run.
 | `build_prompt_manifest.py` | Maintenance helper | Deterministically rebuild the frozen 180-prompt manifest; do not run casually |
 | `run_benchmark.py` | Placeholder | Future input-length/ALPS/PLP/hybrid serving comparison |
 | `build_hybrid_v3_manifest.py` | Implemented, frozen input builder/checker | Reproduce or verify the 60-family Train plus 12-new-family Test manifest |
-| `collect_hybrid_v3_dataset.py` | Implemented, resumable | Capture one unified trace for all eight v3 methods; Test requires the one-way gate |
-| `evaluate_hybrid_v3_oof.py` | Implemented | Nested family-grouped OOF, eight methods, censoring and family bootstrap |
+| `collect_hybrid_v3_dataset.py` | Implemented, resumable | Capture one unified trace for all ten v3 methods; Test requires the one-way gate |
+| `evaluate_hybrid_v3_oof.py` | Implemented | Nested family-grouped OOF, ten methods, censoring and family bootstrap |
 | `train_hybrid_v3_models.py` | Implemented | Fit all final models on Train and freeze every artifact SHA-256 |
 | `open_hybrid_v3_test_gate.py` | Implemented | Re-run tests/lint, validate hashes, and irreversibly open final Test |
 | `evaluate_hybrid_v3_final.py` | Implemented | One-time holdout metrics and Bonferroni paired-family claim |

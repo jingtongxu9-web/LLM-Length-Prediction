@@ -328,11 +328,12 @@ def soft_labels(
     logits = -np.abs(np.arange(num_bins)[None, :] - bins[:, None]).astype(np.float32)
     logits -= logits.max(axis=1, keepdims=True)
     probabilities = np.exp(logits)
-    probabilities /= probabilities.sum(axis=1, keepdims=True)
     if terminal_zero:
         terminal = targets == 0
+        probabilities[~terminal, 0] = 0.0
         probabilities[terminal] = 0.0
         probabilities[terminal, 0] = 1.0
+    probabilities /= probabilities.sum(axis=1, keepdims=True)
     return probabilities
 
 

@@ -14,7 +14,7 @@ v1/v2 的 Test 已在开发过程中打开，不能再承担确认性结论。v2
 1. 新增 12 个从未打开的 family holdout；
 2. 所有方法使用同一次 Qwen generation 和完全相同的保存点；
 3. 训练阶段以 family 为 group 做 OOF，Hybrid 的 ALPS 输入再做内层 grouped cross-fit；
-4. 在一次性 Test 上进行家族级配对 bootstrap 和七重比较校正。
+4. 在一次性 Test 上进行家族级配对 bootstrap 和九重比较校正。
 
 ## 数据与目标
 
@@ -24,18 +24,35 @@ v1/v2 的 Test 已在开发过程中打开，不能再承担确认性结论。v2
 - ALPS target：`log1p(output_tokens)`；
 - ALPS 输出：残差方差与 shifted log-normal prior；
 - progressive target：每个保存点的 `remaining_tokens`；
-- terminal：专用 zero bin，不把终点强行映射到正长度箱。
+- terminal：主方法和 terminal-zero 消融使用专用 zero bin；真实终点在该 bin 上为 one-hot，
+  正长度 soft label 在该 bin 上的概率严格为 0；其余 PLP-only 方法保留 v2 定义。
 
-## 八种冻结方法
+## 十种冻结方法
 
 1. `step_only_ridge`：只用生成步数；
 2. `alps_countdown`：静态 ALPS 总长度减当前步；
 3. `dynamic_ridge`：五个动态标量的 Ridge；
 4. `dynamic_signal_mlp_v1`：已经定义的项目版动态 MLP；
 5. `plp_v2_frozen`：在共享 v3 trajectory 上原样运行 v2 算法；
-6. `plp_small_terminal_v3`：小容量、正确 terminal 的消融；
-7. `alps_dynamic_ridge`：prior summaries 加五个动态标量；
-8. `alps_plp_hybrid_v3`：prior summaries 加 Prompt/decode hidden state 的主方法。
+6. `plp_terminal_zero_v3`：只在 v2 上增加专用 zero bin；
+7. `plp_small_head_v3`：只把 v2 的隐藏层从 3584 维缩到 512 维；
+8. `plp_weighted_range_v3`：只用 rollout-balanced 权重估计 v2 的目标范围；
+9. `alps_dynamic_ridge`：prior summaries 加五个动态标量；
+10. `alps_plp_hybrid_v3`：prior summaries 加 Prompt/decode hidden state 的主方法。
+
+三个 PLP-only v3 方法是严格的单因素消融，共同基线都是 `plp_v2_frozen`。它们分别只改变
+terminal 表示、预测头容量、目标范围估计中的一个因素，不能再把三项改动合并后归因。
+
+| 方法 | 隐藏层宽度 | terminal zero bin | 目标范围估计 |
+|---|---:|---:|---|
+| `plp_v2_frozen` | 3584 | 否 | 不加权、包含全部 target |
+| `plp_terminal_zero_v3` | 3584 | 是 | 不加权、正 target 决定正长度范围 |
+| `plp_small_head_v3` | 512 | 否 | 不加权、包含全部 target |
+| `plp_weighted_range_v3` | 3584 | 否 | rollout-balanced、包含全部 target |
+
+训练数据、输入特征、20 个 bin、loss、dropout、epoch、batch size、learning rate、weight
+decay 和 seed 对四个 PLP-only 方法保持一致。`weighted_range` 只改变 1%/99% 目标范围的
+估计方式；四种方法的训练 loss 本身始终保持 sequence-balanced。
 
 ## 泄漏控制
 
@@ -49,8 +66,8 @@ v1/v2 的 Test 已在开发过程中打开，不能再承担确认性结论。v2
 
 `stop_reason == max_new_tokens` 是右删失，主分析完整排除，不把未知 remaining 当作 0。删失率
 达到 5% 发出 warning，达到 10% 终止实验。主指标是 family-macro、sequence-balanced MAE。
-置信区间以 family 为 bootstrap 单位，固定 2000 次。主方法与七个对照的配对差为
-`Hybrid MAE - comparator MAE`；七个 Bonferroni 置信区间的上界都小于 0，才支持预注册的
+置信区间以 family 为 bootstrap 单位，固定 2000 次。主方法与九个对照的配对差为
+`Hybrid MAE - comparator MAE`；九个 Bonferroni 置信区间的上界都小于 0，才支持预注册的
 “预测效果优于全部对照”结论。
 
 OOF 是开发阶段稳定性证据，不是最终 claim。最终 Test 只打开一次；预测 superiority 与

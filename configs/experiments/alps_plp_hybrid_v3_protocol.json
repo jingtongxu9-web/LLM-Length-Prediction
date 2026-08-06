@@ -20,10 +20,37 @@
     "alps_countdown": {"role": "static_prior_baseline"},
     "dynamic_ridge": {"role": "cheap_dynamic_baseline"},
     "dynamic_signal_mlp_v1": {"role": "frozen_project_dynamic_baseline"},
-    "plp_v2_frozen": {"role": "current_github_v2_algorithm_on_shared_v3_rollouts"},
-    "plp_small_terminal_v3": {"role": "capacity_and_terminal_ablation", "hidden_dim": 512},
+    "plp_v2_frozen": {
+      "role": "current_github_v2_algorithm_on_shared_v3_rollouts",
+      "hidden_dim": 3584,
+      "terminal_zero_bin": false,
+      "target_range_weighting": "unweighted_all_targets"
+    },
+    "plp_terminal_zero_v3": {
+      "role": "terminal_zero_bin_only_ablation",
+      "hidden_dim": 3584,
+      "terminal_zero_bin": true,
+      "target_range_weighting": "unweighted_positive_targets"
+    },
+    "plp_small_head_v3": {
+      "role": "prediction_head_capacity_only_ablation",
+      "hidden_dim": 512,
+      "terminal_zero_bin": false,
+      "target_range_weighting": "unweighted_all_targets"
+    },
+    "plp_weighted_range_v3": {
+      "role": "rollout_balanced_target_range_only_ablation",
+      "hidden_dim": 3584,
+      "terminal_zero_bin": false,
+      "target_range_weighting": "rollout_balanced_all_targets"
+    },
     "alps_dynamic_ridge": {"role": "prior_plus_cheap_dynamic_ablation"},
-    "alps_plp_hybrid_v3": {"role": "primary_method", "hidden_dim": 1024}
+    "alps_plp_hybrid_v3": {
+      "role": "primary_method",
+      "hidden_dim": 1024,
+      "terminal_zero_bin": true,
+      "target_range_weighting": "rollout_balanced_positive_targets"
+    }
   },
   "evaluation": {
     "primary_metric": "family_macro_sequence_balanced_mae_tokens",
@@ -45,11 +72,11 @@
       "paired": true
     },
     "primary_familywise_rule": {
-      "comparisons": 7,
+      "comparisons": 9,
       "alpha": 0.05,
       "correction": "bonferroni",
-      "per_comparison_confidence_level": 0.9928571428571429,
-      "claim_passes_when": "the upper bound of Hybrid-minus-comparator MAE is below zero for all seven comparators"
+      "per_comparison_confidence_level": 0.9944444444444445,
+      "claim_passes_when": "the upper bound of Hybrid-minus-comparator MAE is below zero for all nine comparators"
     }
   },
   "serving_evaluation": {
@@ -71,7 +98,7 @@
       "tests and lint pass",
       "all Train traces validate",
       "Train censoring is below abort_rate",
-      "all eight grouped-OOF predictions and confidence intervals exist",
+      "all ten grouped-OOF predictions and confidence intervals exist",
       "all final model bytes and hashes are frozen",
       "serving simulation configuration is frozen",
       "no new Test trace exists"

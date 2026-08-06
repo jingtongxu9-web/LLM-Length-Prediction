@@ -18,8 +18,8 @@
     "test_opened": {"const": true},
     "test_access": {"type": "object"},
     "censoring": {"type": "object"},
-    "methods": {"type": "object", "minProperties": 8},
-    "hybrid_paired_differences": {"type": "object", "minProperties": 7},
+    "methods": {"type": "object", "minProperties": 10},
+    "hybrid_paired_differences": {"type": "object", "minProperties": 9},
     "primary_claim_result": {"type": "object"}
   },
   "additionalProperties": true
