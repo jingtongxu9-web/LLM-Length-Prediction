@@ -5,6 +5,7 @@
 | 文档 | 适合读者 | 内容 |
 |---|---|---|
 | [`plp_only_explained.md`](plp_only_explained.md) | 第一次接触隐藏状态、entropy 和 PLP 的读者 | 用导航类比解释 Hidden-State PLP-only 的完整工作过程 |
+| [`alps_plp_hybrid_v1_v2.md`](alps_plp_hybrid_v1_v2.md) | 希望理解 ALPS 与 PLP 如何融合的读者 | 对比特征拼接 v1 与“ALPS 基线 + 残差修正”v2，说明训练、OOF 和输出 |
 
 实验是否已经运行、使用什么配置以及如何执行命令，分别查看：
 

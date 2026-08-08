@@ -3,6 +3,21 @@
 Run commands from the repository root. Files in this directory are user-facing entry points; they
 call reusable implementation under `src/llm_length_prediction/`.
 
+## Explicit Hybrid v1/v2 development workflow
+
+The historical ten-method Hybrid v3 protocol remains frozen. The following commands compare the
+two explicit fusion algorithms on the existing Train traces without regenerating Qwen outputs and
+without reading the already-consumed Test:
+
+```bash
+python scripts/evaluate_hybrid_versions_oof.py --device auto
+python scripts/train_hybrid_versions.py --device auto
+```
+
+The first command produces leakage-safe five-fold family-grouped OOF evidence. The second fits
+deployable models on all design-Train families only after that report exists. Technical details are
+in [`docs/methods/alps_plp_hybrid_v1_v2.md`](../docs/methods/alps_plp_hybrid_v1_v2.md).
+
 ## Selected PLP-only terminal-zero v3 workflow
 
 The completed five-fold family-grouped OOF ablation selects `plp_terminal_zero_v3`. This

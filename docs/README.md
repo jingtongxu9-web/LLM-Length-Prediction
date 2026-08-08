@@ -15,6 +15,8 @@
 - 想综合比较 Baseline、ALPS 与 PLP v3：阅读
   [`results/baseline_alps_plp_v3_comparison.md`](results/baseline_alps_plp_v3_comparison.md)；
 - 想从零理解 PLP-only：阅读 [`methods/plp_only_explained.md`](methods/plp_only_explained.md)；
+- 想理解 ALPS+PLP 两种融合方式：阅读
+  [`methods/alps_plp_hybrid_v1_v2.md`](methods/alps_plp_hybrid_v1_v2.md)；
 - 想运行 Hidden-State PLP v2：阅读根目录 README 的“运行真正的 Hidden-State PLP v2”与
   [`planning/v2_experiment_plan.md`](planning/v2_experiment_plan.md)；
 - 想运行最终 ALPS+PLP 确认性比较：先读
@@ -31,7 +33,8 @@ docs/
 ├── README.md
 ├── methods/                       # 面向读者的方法原理解释
 │   ├── README.md
-│   └── plp_only_explained.md      # 导航类比、entropy、hidden state与20-bin预测
+│   ├── plp_only_explained.md      # 导航类比、entropy、hidden state与20-bin预测
+│   └── alps_plp_hybrid_v1_v2.md  # 特征拼接 v1 与残差修正 v2
 ├── results/                       # 已完成实验的冻结报告
 │   ├── README.md                  # 已完成版本索引
 │   ├── v1/
@@ -76,6 +79,10 @@ PLP-only 使用，因此不能继续作为 Hybrid 的未见 Test；ALPS+PLP 下�
 从 token、hidden state 和 entropy 开始，解释一个 Prompt 怎样得到一个 `h_prompt`、生成
 阶段的 `h'_t` 是什么、PLP 输入为何是7168维，以及20-bin soft-label prediction head怎样
 输出具体的剩余token数。
+
+[`methods/alps_plp_hybrid_v1_v2.md`](methods/alps_plp_hybrid_v1_v2.md) 对比两条融合路线：
+v1 把五维 ALPS 摘要与 PLP 隐藏状态拼接；v2 把 ALPS 倒计时作为网络外的显式基线，让
+PLP 只学习有正负号的动态修正量。
 
 ## 部署方式
 

@@ -180,7 +180,90 @@ MAE 点估计相对改善约 `5.35%`。配对 95% CI 为 `[-9.03,0.57]`，略微
 任务差异仍然明显：QA MAE 改善约 14.99 token，Summarization 基本持平，Code 退化约
 3.37 token。PLP v3 改善了输出头的终点结构，但没有解决所有任务的 family-level 泛化。
 
-## 4. 当前方法能力矩阵
+## 4. ALPS countdown 与 PLP v3 的同 Trace 公平比较
+
+v3 的 60-family OOF 已经在相同生成输出、相同 seed 和相同 timestep 上保存了 ALPS 与 PLP
+预测。因此可以把 ALPS 的总长度预测转换为动态 countdown，再与 PLP v3 直接比较：
+
+\[
+\widehat{R}^{ALPS}_t=\max(0,\widehat{T}_{ALPS}-t)
+\]
+
+### 4.1 总体结果
+
+| 方法 | Family-macro MAE | RMSE | Raw R² | Bias |
+|---|---:|---:|---:|---:|
+| Step-only Ridge | 235.48 | 276.04 | -0.669 | +132.02 |
+| **ALPS countdown** | **55.72** | **83.94** | **0.846** | +0.38 |
+| PLP terminal-zero v3 | 59.78 | 95.81 | 0.799 | -6.40 |
+
+PLP v3 相对 ALPS countdown 的 family 配对差值为：
+
+```text
+PLP v3 MAE − ALPS countdown MAE
+estimate = +4.054 token
+95% CI   = [-2.970, 10.951]
+family_count = 60
+```
+
+就点估计而言，ALPS countdown 总体领先约 4.05 token；但配对区间跨 0，当前 OOF 不能证明
+ALPS 在所有未见 family 上稳定优于 PLP。两者远远优于只使用 step 的动态 baseline。
+
+### 4.2 任务与长度差异
+
+下表的变化为 `PLP v3 − ALPS countdown`，负数表示 PLP 更好。
+
+| 分组 | ALPS MAE | PLP v3 MAE | PLP−ALPS |
+|---|---:|---:|---:|
+| QA | **55.45** | 67.49 | +12.05 |
+| Summarization | **29.07** | 31.90 | +2.84 |
+| Code | 82.66 | **79.94** | -2.72 |
+| Short | **20.94** | 25.55 | +4.61 |
+| Medium | **70.75** | 73.79 | +3.04 |
+| Long | **75.48** | 80.00 | +4.52 |
+
+ALPS 在 QA、Summarization 和三个预设长度条件上整体占优；PLP 在 Code 上略好。这里使用
+的是 Train-family OOF，而 PLP 最终 Test 中 Code 相对 v2 出现退化，两者并不矛盾：前者比较
+PLP 与 ALPS，后者比较 terminal-zero 与旧 PLP v2，回答的是不同问题。
+
+### 4.3 解码阶段差异
+
+| 解码进度 | ALPS countdown MAE | PLP v3 MAE | PLP−ALPS |
+|---|---:|---:|---:|
+| 0–10% | **59.71** | 78.74 | +19.03 |
+| 10–25% | **60.41** | 77.76 | +17.35 |
+| 25–50% | **59.54** | 67.82 | +8.27 |
+| 50–75% | 58.47 | **52.84** | -5.63 |
+| 75–100% | 45.51 | **41.10** | -4.41 |
+| 精确终点 | 28.05 | **1.36** | **-26.69** |
+| 非终点整体 | **56.05** | 60.71 | +4.66 |
+
+这张表比总体 MAE 更能说明二者的关系：
+
+- **生成早期 ALPS 明显更好。**此时实际 decode 路径信息很少，而 ALPS 已经提供完整 Prompt
+  的全局长度 prior；
+- **生成后半程 PLP 反超。**当前 causal hidden state 已经包含实际生成路径，能够修正静态
+  prior 无法预知的 seed 与路径差异；
+- **终点 PLP 明显更合理。**Terminal zero bin 几乎消除了 ALPS countdown 和旧 PLP 都存在
+  的正剩余长度下限。
+
+所以更准确的结论不是“ALPS 胜过 PLP”或“PLP 胜过 ALPS”，而是：
+
+> ALPS 擅长早期全局尺度，PLP 擅长后期路径纠偏和终点判断；两者的优势出现在不同阶段。
+
+### 4.4 现有 Hybrid OOF 作为下一步信号
+
+同一 OOF 中，开发版 `alps_plp_hybrid_v3` 的 family-macro MAE 为 `49.87`：
+
+- 相对 ALPS countdown 改善 `5.86` token，普通配对 95% CI 为 `[-11.60,-0.84]`；
+- 相对 PLP terminal-zero v3 改善 `9.91` token，95% CI 为 `[-12.94,-7.17]`；
+- 对 ALPS 的九比较 familywise 修正区间上界为 `+0.93`，因此不能提前作最终确认性声明。
+
+这些只是 design-family OOF 开发证据，不是新的 Final Test。但它已经支持研究优先级：结合
+方向比继续单独修改 PLP-only 更有希望。由于原 v3 holdout 已由 PLP-only 使用，Hybrid 必须
+在新 holdout 上重新做一次冻结后的确认性评价。
+
+## 5. 当前方法能力矩阵
 
 | 维度 | 简单 baseline | ALPS | PLP terminal-zero v3 |
 |---|---|---|---|
@@ -201,7 +284,7 @@ MAE 点估计相对改善约 `5.35%`。配对 95% CI 为 `[-9.03,0.57]`，略微
 - ALPS 适合请求刚到达时做初始 batching、KV-cache 或资源预算；
 - PLP 适合生成开始后不断更新剩余长度和结束时间估计。
 
-## 5. 为什么需要 ALPS+PLP
+## 6. 为什么需要 ALPS+PLP
 
 可以把长度预测类比为导航：
 
@@ -221,12 +304,12 @@ ALPS+PLP 的核心假设是：
 > ALPS 提供全局总长度 prior，PLP 提供生成路径的动态修正；二者融合后，尤其在解码早期，
 > 应比任何一者单独使用更稳定。
 
-## 6. 下一阶段怎样公平比较
+## 7. 下一阶段怎样公平比较
 
 新的 Hybrid 实验不能把现有 ALPS MAE `60.87` 与 PLP MAE `71.04` 直接放在同一排行榜。
 应在同一批新 Test trace 的每个 timestep 上，把所有方法统一成“预测剩余长度”：
 
-### 6.1 ALPS-only countdown
+### 7.1 ALPS-only countdown
 
 先用 ALPS 预测最终总长度，再减去已经生成的 token 数：
 
@@ -234,7 +317,7 @@ ALPS+PLP 的核心假设是：
 \widehat{R}^{ALPS}_t=\max(0,\widehat{T}_{ALPS}-t)
 \]
 
-### 6.2 PLP-only
+### 7.2 PLP-only
 
 使用本阶段冻结的 terminal-zero PLP：
 
@@ -242,7 +325,7 @@ ALPS+PLP 的核心假设是：
 \widehat{R}^{PLP}_t=f(h_{prompt},h'_t)
 \]
 
-### 6.3 ALPS+PLP
+### 7.3 ALPS+PLP
 
 将 ALPS prior summary 与 PLP hidden-state features 共同输入动态 head：
 
@@ -269,7 +352,7 @@ g(h_{prompt},h'_t,\widehat{T}_{ALPS},\sigma^2_{ALPS},t)
 | ALPS+PLP vs PLP v3 | ALPS prior 是否提供 PLP 之外的增量信息 |
 | ALPS+PLP vs ALPS countdown | 动态 hidden state 是否提供静态 prior 之外的增量信息 |
 
-## 7. 数据与 Test 边界
+## 8. 数据与 Test 边界
 
 当前结果不是来自一套完全相同的最终 Test：
 
@@ -284,7 +367,7 @@ Final Test MAE 写成一个统一显著性排行榜。
 的未见 Test。下一阶段必须新建并冻结 Hybrid holdout，否则所谓“Hybrid 最终结果”实际上是
 在已看过的 Test 上继续开发。
 
-## 8. 当前阶段最终判断
+## 9. 当前阶段最终判断
 
 ### Baseline
 
