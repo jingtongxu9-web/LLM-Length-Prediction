@@ -28,7 +28,7 @@ MAE。
 | Dynamic-Signal MLP v1 | 已完成 | Test sequence-balanced MAE `136.66`、Raw R² `0.089`，仅中段有一定能力 |
 | Hidden-State PLP v2 | 已完成 | Test sequence-balanced MAE `60.03`、Raw R² `0.790`；论文对齐、非精确复现 |
 | PLP terminal-zero v3 | **已完成** | Test MAE `71.04`，相对 v2 改善约 `5.35%`；严格显著性未通过 |
-| ALPS+PLP Hybrid | v1/v2 已实现，待 OOF | v1 为特征拼接，v2 为 ALPS 基线 + PLP 残差修正；最终确认仍需新 holdout |
+| ALPS+PLP Hybrid | v1 已选中，v2.1 待增量 OOF | concat v1 OOF MAE 49.92；直接残差 v2 明确更差，新增保守门控 residual v2.1；最终确认仍需新 holdout |
 | Hybrid v3 serving replay | 已实现，待最终 Test 后运行 | 固定 bucket/batch/KV 规则的离线 replay；不等于生产测量 |
 
 当前 ALPS v1 的采集、最终 Ridge、Train/Test 分组分析、固定五折、输入长度 baseline 和
@@ -44,6 +44,8 @@ baseline 很弱；Dynamic-Signal MLP 呈现早期低估、后期高估。Hidden-
 ALPS+PLP 已拆成两个独立方法版本：`alps_plp_concat_v1` 和
 `alps_plp_residual_v2`。原理、数据防泄漏与运行入口见
 [`docs/methods/alps_plp_hybrid_v1_v2.md`](docs/methods/alps_plp_hybrid_v1_v2.md)。
+当前 OOF 选择 concat v1；失败的直接 residual v2 不覆盖，后续以
+`alps_plp_gated_residual_v2_1` 做保守门控增量实验。
 
 独立 **PLP-only terminal-zero v3** 已经完成并冻结。当前进入 ALPS+PLP 阶段；由于现有
 12-family holdout 已被 PLP-only Test 消耗，Hybrid 必须另建测试 family。PLP 最终结论见

@@ -183,3 +183,111 @@ python scripts/train_hybrid_versions.py --device auto
 
 第二条命令只训练最终模型，不会产生新的独立证据。方法选择必须依据第一条命令的 OOF 报告；
 最终确认性结论仍需要另建一个从未看过的新 Hybrid holdout。
+
+## 8. Residual v2 的 OOF 结果与 v2.1 修正
+
+原始 `alps_plp_residual_v2` 必须保留，不能用新实现覆盖。它在 60-family OOF 中的
+family-macro MAE 为 57.93，而 concat v1 为 49.92；v2-minus-v1 的 99% familywise CI 为
+`[2.24, 14.94]`，说明当前 v2 明确更差。其平均修正为 `+5.75` token，但 ALPS 实际平均只需
+`-0.41` token 修正，修正成功率仅 43.47%。
+
+这并不能否定 residual 结构本身，因为 v2 同时改变了融合方式、输入、损失和 terminal 结构。
+因此新增开发方法 `alps_plp_gated_residual_v2_1`，而不是篡改 v2。
+
+### 8.1 v2.1 的保守更新
+
+令 ALPS 倒计时仍为 `A_t`。网络先产生有界候选修正：
+
+```text
+bounded_delta_t = B_t * tanh(raw_delta_t)
+```
+
+其中：
+
+```text
+B_t = max(16, 0.5 * (A_t + 1))
+```
+
+再计算生成进度和信任门：
+
+```text
+progress_t = step / max(step + A_t, 1)
+gate_t = progress_t * sigmoid(gate_logit_t)
+```
+
+最终预测为：
+
+```text
+applied_delta_t = gate_t * bounded_delta_t
+R_hat_t = max(0, A_t + applied_delta_t)
+```
+
+这个结构有三个安全边界：
+
+1. `tanh` 限制候选修正幅度；
+2. `gate_t <= progress_t`，生成早期不能过度改写 ALPS；
+3. gate bias 固定初始化为 -3，训练开始时只允许很小的动态修正。
+
+### 8.2 模型与损失
+
+v2.1 复用 v2 的 7174 维输入，但把隐层从 1024 缩小为 512，并使用 `weight_decay=1e-4`。
+terminal 分类不再共享 correction backbone，而是只读取最后六个标准化控制量的独立线性分支，
+避免已经很容易学会的 EOS 判断干扰弱 residual 信号。
+
+训练损失由四部分组成：
+
+```text
+normalized Smooth-L1 final-prediction loss
++ 0.05 * correction magnitude penalty
++ 0.01 * gate usage penalty
++ 0.10 * class-balanced terminal BCE
+```
+
+这些惩罚表达一个明确先验：没有稳定动态证据时，保持 ALPS 比主动修正更安全。
+
+### 8.3 增量 OOF
+
+v2.1 必须使用与原 v1/v2 完全相同的五个 family folds，但无需重新训练旧控制模型。
+增量脚本会验证原 OOF 的数据 digest、family-fold 映射、方法列和每个逐点键，然后只训练五个
+v2.1 折模型。同时拟合一个计算成本很低的 `alps_scalar_residual_ridge`：它只用 ALPS
+countdown、step、entropy、entropy mean/slope 和 EOS probability 六个标量预测有符号残差。
+这个诊断用于区分“残差信号本身不可预测”和“高维 MLP 训练方式不合适”。
+
+运行命令：
+
+```bash
+python scripts/evaluate_gated_residual_v2_1_oof.py --device auto
+```
+
+结果写入：
+
+```text
+artifacts/runs/alps_plp_gated_residual_v2_1/oof/
+```
+
+报告不只给总体 MAE。`gated_correction_diagnostics` 专门检验 gate 是否真的学会了“何时信任
+动态修正”，包含：
+
+- learned gate confidence 与乘上 progress 后 effective gate 的加权分位数，以及
+  `0.05/0.10/0.25/0.50` 阈值使用率；
+- 按生成进度、gate 强度、任务、预设长度、3×3 任务-长度单元、terminal 状态和 outer fold
+  分组的指标；
+- v2.1 相对 ALPS 和 concat v1 的逐点 MAE 改善、修正方向一致率和修正成功率；
+- gate 与改善幅度的加权相关性，以及修正幅度与真实所需修正幅度的相关性；
+- 候选修正是否频繁撞到幅度上限；
+- terminal 分类的 TP、FP、FN、TN、precision、recall 和 F1。
+
+learned gate confidence 是网络主动输出的信任程度，effective gate 才是实际施加修正的比例；
+后者还受到生成进度的硬约束。这里“gate 使用率”不能单独证明模型有效。平均 gate 很大可能
+只是网络频繁改写 ALPS；只有
+高-gate 区间同时产生正的 MAE improvement，并且在不同 fold 与 3×3 单元中保持一致，才说明
+gate 提供了有用的选择机制。逐点明细 CSV 还保存 progress、correction bound、相对两种控制
+方法的改善量、修正是否成功以及是否触碰边界，便于后续画图和复核。
+
+只有当 v2.1-minus-concat-v1 的 familywise CI 上界严格小于 0，最终全量训练入口才会放行：
+
+```bash
+python scripts/train_gated_residual_v2_1.py --device auto
+```
+
+否则脚本会停止并要求继续保留 concat v1。

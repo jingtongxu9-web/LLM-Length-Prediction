@@ -18,6 +18,26 @@ The first command produces leakage-safe five-fold family-grouped OOF evidence. T
 deployable models on all design-Train families only after that report exists. Technical details are
 in [`docs/methods/alps_plp_hybrid_v1_v2.md`](../docs/methods/alps_plp_hybrid_v1_v2.md).
 
+Direct residual v2 underperformed concat v1 in all five outer folds. Its evidence remains frozen.
+The conservative gated residual v2.1 follow-up reuses the verified control predictions and exact
+family folds, so it trains only the new candidate:
+
+```bash
+python scripts/evaluate_gated_residual_v2_1_oof.py --device auto
+```
+
+The report separates learned gate confidence from the progress-limited effective gate, then reports
+their quantiles/usage thresholds, correction direction and saturation,
+terminal precision/recall, decode-progress bands, gate bands, task, intended length, the 3x3
+task-length grid, and outer-fold stability. Positive per-band MAE improvement means v2.1 reduced
+error relative to the named control; a high gate value by itself is not evidence of usefulness.
+
+Only if the frozen familywise selection rule passes may the final Train model be fitted:
+
+```bash
+python scripts/train_gated_residual_v2_1.py --device auto
+```
+
 ## Selected PLP-only terminal-zero v3 workflow
 
 The completed five-fold family-grouped OOF ablation selects `plp_terminal_zero_v3`. This

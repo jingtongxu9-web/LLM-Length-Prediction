@@ -46,6 +46,7 @@ ID. Do not edit the v1 manifest after viewing final-test results.
 | `experiments/alps_plp_hybrid_v3.json` | Isolated unified trace, ALPS stacking and progressive-head contract | Yes |
 | `experiments/alps_plp_hybrid_v3_protocol.json` | Ten methods, three single-factor PLP ablations, nested grouped OOF, bootstrap, gate and serving replay | Yes |
 | `experiments/alps_plp_hybrid_versions.json` | Development-only four-method comparison of concat v1 and residual-correction v2; forbids reuse of the old Test | Yes |
+| `experiments/alps_plp_gated_residual_v2_1.json` | Supplemental OOF contract for conservative progress-gated residual v2.1; reuses verified controls and identical folds | Yes |
 | `reports/alps_plp_hybrid_v3_report_schema.json` | Minimum machine-readable final-report contract | Yes |
 
 For Hybrid v3, `alps_plp_hybrid_v3.json.progressive_head` defines the shared head settings and the
@@ -61,6 +62,11 @@ The explicit Hybrid method versions are implemented separately from the historic
 protocol. `alps_plp_concat_v1` reproduces feature concatenation; `alps_plp_residual_v2` adds a
 learned PLP correction to the ALPS countdown. See
 [`docs/methods/alps_plp_hybrid_v1_v2.md`](../docs/methods/alps_plp_hybrid_v1_v2.md).
+The same document records why direct residual v2 failed and freezes the bounded, progress-gated
+v2.1 follow-up without overwriting the original evidence.
+Its frozen diagnostics additionally test gate usage by decode progress, gate band, task, intended
+length, 3x3 task-length cell, and fold, together with correction saturation and terminal confusion
+metrics. These fields describe behavior only and are not added to the model input.
 
 `plp_v2_manifest.json` is the executable contract for the paper-aligned, non-exact hidden-state
 route. It keeps the

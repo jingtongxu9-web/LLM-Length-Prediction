@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "protocol_id": "alps-plp-gated-residual-v2-1-development-2026",
+  "status": "supplemental_oof_before_new_holdout",
+  "method_id": "alps_plp_gated_residual_v2_1",
+  "method_config": "configs/experiments/alps_plp_hybrid_v3.json",
+  "source_oof": {
+    "protocol_id": "alps-plp-hybrid-v1-v2-development-2026",
+    "report": "artifacts/runs/alps_plp_hybrid_versions/oof/oof_report.json",
+    "predictions": "artifacts/runs/alps_plp_hybrid_versions/oof/oof_predictions.csv",
+    "required_methods": [
+      "alps_countdown",
+      "plp_terminal_zero_v3",
+      "alps_plp_concat_v1",
+      "alps_plp_residual_v2"
+    ]
+  },
+  "data_policy": {
+    "group_unit": "prompt_family_id",
+    "train_oof_folds": 5,
+    "inner_prior_crossfit_folds": 4,
+    "fold_seed": 20260805,
+    "reuse_exact_source_family_folds": true,
+    "test_access": "forbidden_until_a_new_hybrid_holdout_is_authored"
+  },
+  "method": {
+    "input": "plp_7168_plus_standardized_alps_countdown_and_five_dynamic_controls",
+    "hidden_dim": 512,
+    "dropout": 0.1,
+    "gate": "decode_progress_times_sigmoid_learned_logit",
+    "gate_initial_bias": -3.0,
+    "correction": "gate_times_bound_times_tanh_raw_correction",
+    "correction_bound_fraction": 0.5,
+    "minimum_correction_bound_tokens": 16.0,
+    "correction_penalty": 0.05,
+    "gate_penalty": 0.01,
+    "terminal_classifier": "separate_linear_head_on_six_controls",
+    "terminal_loss_weight": 0.1,
+    "terminal_threshold": 0.5
+  },
+  "scalar_residual_ridge": {
+    "role": "diagnose_signed_residual_predictability_from_six_controls",
+    "features": [
+      "alps_countdown",
+      "step",
+      "entropy",
+      "entropy_mean",
+      "entropy_slope",
+      "eos_probability"
+    ],
+    "alpha": 1.0
+  },
+  "training": {
+    "optimizer": "adamw",
+    "seed": 42,
+    "epochs": 10,
+    "batch_size": 16,
+    "learning_rate": 0.00002,
+    "weight_decay": 0.0001,
+    "hyperparameter_selection": "none_after_v2_failure_review"
+  },
+  "evaluation": {
+    "primary_metric": "family_macro_sequence_balanced_mae_tokens",
+    "absolute_step_bins": [1, 5, 10, 20, 50, 100, 200],
+    "gate_diagnostics": {
+      "decode_progress_boundaries": [0.0, 0.1, 0.25, 0.5, 0.75, 1.0],
+      "decode_progress_labels": ["0-10%", "10-25%", "25-50%", "50-75%", "75-100%"],
+      "gate_boundaries": [0.0, 0.05, 0.1, 0.25, 0.5, 1.0],
+      "gate_labels": ["0-0.05", "0.05-0.10", "0.10-0.25", "0.25-0.50", "0.50-1.00"],
+      "gate_thresholds": [0.05, 0.1, 0.25, 0.5],
+      "gate_quantiles": [0.1, 0.25, 0.5, 0.75, 0.9, 0.95],
+      "bound_saturation_ratio": 0.95,
+      "direction_tolerance_tokens": 1.0
+    },
+    "bootstrap": {
+      "unit": "prompt_family_id",
+      "replicates": 2000,
+      "confidence_level": 0.95,
+      "seed": 20260808,
+      "paired": true
+    },
+    "familywise_comparisons": 5,
+    "familywise_confidence_level": 0.99,
+    "selection_rule": "select v2.1 only if its familywise paired MAE CI versus concat_v1 is entirely below zero; otherwise retain concat_v1"
+  },
+  "outputs": {
+    "run_root": "artifacts/runs/alps_plp_gated_residual_v2_1",
+    "oof_report": "oof/oof_report.json",
+    "oof_predictions": "oof/oof_predictions.csv",
+    "models": "models"
+  }
+}
