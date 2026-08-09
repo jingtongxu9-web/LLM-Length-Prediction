@@ -6,7 +6,7 @@ Hidden-State PLP v2 是本项目的 **PLP-only** 路线。它不读取 ALPS Laye
 也不把 Dynamic-Signal MLP v1 的五个标量当作主输入。
 
 状态：采集、训练和评估已经在 AutoDL RTX 5090 上完成。冻结结果见
-[`../results/v2/plp_v2_results.md`](../results/v2/plp_v2_results.md)；本文继续保留实施合同和运行步骤。
+[`../results/plp/hidden_state_plp_v2_results.md`](../results/plp/hidden_state_plp_v2_results.md)；本文继续保留实施合同和运行步骤。
 
 参考来源：
 

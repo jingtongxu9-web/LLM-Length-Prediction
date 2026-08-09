@@ -16,7 +16,18 @@ python scripts/train_hybrid_versions.py --device auto
 
 The first command produces leakage-safe five-fold family-grouped OOF evidence. The second fits
 deployable models on all design-Train families only after that report exists. Technical details are
-in [`docs/methods/alps_plp_hybrid_v1_v2.md`](../docs/methods/alps_plp_hybrid_v1_v2.md).
+in [`docs/methods/hybrid_concat_residual_gated.md`](../docs/methods/hybrid_concat_residual_gated.md).
+
+After concat v1 selection, add the missing minimal input-length comparator without retraining Qwen
+or any neural head:
+
+```bash
+python scripts/evaluate_main_comparison_oof.py
+python scripts/train_main_baseline.py
+```
+
+The first command fits only five tiny Prompt-token Ridge fold models and reuses the frozen ALPS,
+PLP and concat-v1 OOF predictions. The second fits one full-Train Ridge for the future holdout.
 
 Direct residual v2 underperformed concat v1 in all five outer folds. Its evidence remains frozen.
 The conservative gated residual v2.1 follow-up reuses the verified control predictions and exact
@@ -54,7 +65,7 @@ python scripts/train_plp_v3_models.py --device auto
 
 Both commands recompute and freeze the OOF selection report before writing the two model hashes.
 No Qwen generation is repeated. See
-[`docs/results/v3/README.md`](../docs/results/v3/README.md) before opening final Test.
+[`docs/results/plp/README.md`](../docs/results/plp/README.md) before opening final Test.
 
 The following commands irreversibly assign the currently unopened 12-family holdout to PLP-only:
 
@@ -195,7 +206,7 @@ models/Qwen2.5-7B-Instruct/ or MODEL_PATH
 
 Large outputs are ignored by Git. Copy or archive experiment artifacts before releasing a rented
 instance. The frozen, human-readable v1 result summary is
-[`docs/results/v1/README.md`](../docs/results/v1/README.md); raw JSON/CSV outputs remain under
+[`docs/results/comparisons/stage1_alps_baselines_dynamic.md`](../docs/results/comparisons/stage1_alps_baselines_dynamic.md); raw JSON/CSV outputs remain under
 `artifacts/runs/alps_v1/`.
 
 `analyze_prior.py` consumes the existing `train_evaluation.csv` and `test_evaluation.csv`. It does
@@ -219,7 +230,7 @@ one deployable Ridge on all Train traces.
 each rollout contributes the same total training weight. It does not consume the ALPS prior or
 prefill hidden state. The original PLP paper uses decode-time hidden states; because v1 traces do
 not store those states, this implementation is an explicit project adaptation rather than an exact
-paper reproduction. See [`docs/results/v1/dynamic_signal_mlp.md`](../docs/results/v1/dynamic_signal_mlp.md) for
+paper reproduction. See [`docs/results/plp/dynamic_signal_mlp_v1_results.md`](../docs/results/plp/dynamic_signal_mlp_v1_results.md) for
 the frozen architecture, 9089-parameter calculation, source boundary, and planned v2 scope.
 
 `collect_plp_dataset.py`, `train_plp.py`, and `evaluate_plp.py` read

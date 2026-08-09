@@ -147,7 +147,7 @@ python scripts/evaluate_dynamic.py \
 Dynamic-Signal MLP v1 is a project adaptation, not the paper PLP architecture. Qwen generated the
 expensive traces earlier. PyTorch from the AutoDL image is still required to fit the MLP, but the
 task can run on CPU or GPU according to the frozen `configs/experiments/plp_v1_manifest.json`.
-See [`results/v1/dynamic_signal_mlp.md`](../results/v1/dynamic_signal_mlp.md) for the exact
+See [`results/plp/dynamic_signal_mlp_v1_results.md`](../results/plp/dynamic_signal_mlp_v1_results.md) for the exact
 version boundary.
 
 Inspect:

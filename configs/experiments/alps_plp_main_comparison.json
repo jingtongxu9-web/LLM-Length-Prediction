@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "protocol_id": "alps-plp-four-method-main-comparison-2026",
+  "status": "supplemental_input_baseline_after_concat_v1_selection",
+  "method_config": "configs/experiments/alps_plp_hybrid_v3.json",
+  "source_oof": {
+    "protocol_id": "alps-plp-hybrid-v1-v2-development-2026",
+    "report": "artifacts/runs/alps_plp_hybrid_versions/oof/oof_report.json",
+    "predictions": "artifacts/runs/alps_plp_hybrid_versions/oof/oof_predictions.csv",
+    "required_methods": [
+      "alps_countdown",
+      "plp_terminal_zero_v3",
+      "alps_plp_concat_v1"
+    ]
+  },
+  "methods": {
+    "prompt_token_ridge_countdown": {
+      "role": "minimal_input_length_baseline",
+      "input": "formatted_prompt_token_count",
+      "training_target": "log1p_total_output_tokens",
+      "decode_prediction": "max(predicted_total_output_tokens-step,0)",
+      "ridge_alpha": 1.0
+    },
+    "alps_countdown": {
+      "role": "semantic_static_prior"
+    },
+    "plp_terminal_zero_v3": {
+      "role": "dynamic_hidden_state_predictor"
+    },
+    "alps_plp_concat_v1": {
+      "role": "selected_joint_fusion"
+    }
+  },
+  "data_policy": {
+    "group_unit": "prompt_family_id",
+    "reuse_source_family_folds": true,
+    "test_access": "forbidden_until_a_new_hybrid_holdout_is_authored"
+  },
+  "evaluation": {
+    "primary_metric": "family_macro_sequence_balanced_mae_tokens",
+    "absolute_step_bins": [1, 5, 10, 20, 50, 100, 200],
+    "decode_progress_boundaries": [0.0, 0.1, 0.25, 0.5, 0.75, 1.0],
+    "decode_progress_labels": ["0-10%", "10-25%", "25-50%", "50-75%", "75-100%"],
+    "bootstrap": {
+      "unit": "prompt_family_id",
+      "replicates": 2000,
+      "confidence_level": 0.95,
+      "seed": 20260809,
+      "paired": true
+    },
+    "primary_familywise_comparisons": 3,
+    "primary_familywise_confidence_level": 0.9833333333333333,
+    "selection_status": "concat_v1_was_selected_before_this_supplemental_baseline"
+  },
+  "outputs": {
+    "run_root": "artifacts/runs/alps_plp_main_comparison",
+    "oof_report": "oof/oof_report.json",
+    "oof_predictions": "oof/oof_predictions.csv",
+    "baseline_model": "models/prompt_token_ridge.json",
+    "baseline_registry": "models/baseline_registry.json"
+  }
+}

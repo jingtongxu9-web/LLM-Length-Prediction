@@ -1,14 +1,30 @@
-# 方法原理
+# 方法原理总索引
 
-这里存放与具体实验结果、服务器部署无关的方法解释。
+本目录解释模型为什么这样设计，不记录会随实验运行变化的结果数字。结果统一位于
+[`../results/`](../results/README.md)。
 
-| 文档 | 适合读者 | 内容 |
-|---|---|---|
-| [`plp_only_explained.md`](plp_only_explained.md) | 第一次接触隐藏状态、entropy 和 PLP 的读者 | 用导航类比解释 Hidden-State PLP-only 的完整工作过程 |
-| [`alps_plp_hybrid_v1_v2.md`](alps_plp_hybrid_v1_v2.md) | 希望理解 ALPS 与 PLP 如何融合的读者 | 对比特征拼接 v1、失败的直接残差 v2 与保守门控 v2.1，说明训练、OOF 和输出 |
+## 从简单到复杂阅读
 
-实验是否已经运行、使用什么配置以及如何执行命令，分别查看：
+| 顺序 | 文档 | 主要内容 |
+|---:|---|---|
+| 1 | [`prompt_token_baseline.md`](prompt_token_baseline.md) | 只用输入 token 数的 Ridge、`log1p` 目标、countdown 与五折逻辑 |
+| 2 | [`alps.md`](alps.md) | Layer 14、最后 Prompt token、Ridge、静态总长度预测与概率区间 |
+| 3 | [`plp_versions.md`](plp_versions.md) | Dynamic v1、Hidden-State v2、Terminal-Zero v3 的版本关系 |
+| 4 | [`plp_only_explained.md`](plp_only_explained.md) | 面向初学者完整解释 entropy pooling、`h_prompt`、`h'_t`、7168 维输入、20-bin 和 MLP |
+| 5 | [`hybrid_concat_residual_gated.md`](hybrid_concat_residual_gated.md) | concat v1、residual v2、gated v2.1 的融合结构、训练和 OOF |
 
-- [`../planning/hidden_state_plp_v2.md`](../planning/hidden_state_plp_v2.md)：PLP v2 实施边界与运行顺序；
-- [`../../configs/experiments/plp_v2_manifest.json`](../../configs/experiments/plp_v2_manifest.json)：机器可读冻结合同；
-- [`../results/`](../results/README.md)：已经完成并有数字的实验结果。
+## 四条论文主路线
+
+| 路线 | 生成前/生成中 | 输入 | 预测器 |
+|---|---|---|---|
+| Prompt-token baseline | 生成前 | Prompt token 数 | Ridge |
+| ALPS | 生成前 | Layer-14 Prompt hidden state | Ridge |
+| PLP terminal-zero v3 | 生成中 | Prompt/decode final-layer hidden states | Progressive MLP |
+| Hybrid concat v1 | 生成中 | PLP states + ALPS 摘要 | Progressive MLP |
+
+## 结果与实施合同
+
+- 完成后的实验数字：[`../results/README.md`](../results/README.md)
+- 尚未执行或后续改进：[`../planning/`](../planning/)
+- 机器可读冻结合同：[`../../configs/experiments/`](../../configs/experiments/)
+- 实际运行入口：[`../../scripts/README.md`](../../scripts/README.md)

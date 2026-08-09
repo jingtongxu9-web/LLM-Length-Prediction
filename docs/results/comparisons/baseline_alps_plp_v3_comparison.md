@@ -12,11 +12,11 @@ ALPS+PLP。
 
 详细结果见：
 
-- ALPS 与静态 baseline：[`v1/README.md`](v1/README.md)；
-- ALPS 完整报告：[`v1/alps.md`](v1/alps.md)；
-- Hidden-State PLP v2：[`v2/plp_v2_results.md`](v2/plp_v2_results.md)；
+- ALPS 与静态 baseline：[`stage1_alps_baselines_dynamic.md`](stage1_alps_baselines_dynamic.md)；
+- ALPS 完整报告：[`../alps/alps_v1_results.md`](../alps/alps_v1_results.md)；
+- Hidden-State PLP v2：[`../plp/hidden_state_plp_v2_results.md`](../plp/hidden_state_plp_v2_results.md)；
 - PLP 三消融与 terminal-zero v3：
-  [`v3/plp_terminal_zero_v3_results.md`](v3/plp_terminal_zero_v3_results.md)。
+  [`../plp/terminal_zero_v3_results.md`](../plp/terminal_zero_v3_results.md)。
 
 ## 0. 核心结论
 

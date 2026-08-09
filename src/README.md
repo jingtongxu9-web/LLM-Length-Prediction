@@ -58,6 +58,16 @@ scripts/train_plp.py + scripts/evaluate_plp.py
   -> models/plp.py
   -> evaluation/plp.py
   -> artifacts/runs/plp_v2/
+
+scripts/evaluate_main_comparison_oof.py
+  -> hybrid_experiment.py
+  -> models/prompt_token_baseline.py
+  -> evaluation/hybrid.py
+  -> artifacts/runs/alps_plp_main_comparison/oof/
+
+scripts/train_main_baseline.py
+  -> models/prompt_token_baseline.py
+  -> artifacts/runs/alps_plp_main_comparison/models/
 ```
 
 The Qwen weights and tokenizer are never trained here. Stage 1 fits small Ridge models; project
@@ -70,3 +80,9 @@ states, their step/target metadata, and the complete generated token-ID sequence
 the Qwen weights or a duplicated 7168-dimensional feature matrix per Trace. Training constructs the
 7168-dimensional concatenation in host memory, then fits only the PLP head. Task and intended-length
 labels are carried solely for subgroup reporting and never enter the model feature vector.
+
+The four-method comparison adds a deliberately small Prompt-token baseline. It fits Ridge on
+`prompt_token_count -> log1p(total_output_tokens)` within the same family-grouped OOF folds used by
+ALPS, PLP, and Hybrid, then converts the total-length estimate into a remaining-length countdown at
+each saved decode step. This keeps the target, samples, folds, and evaluation points aligned across
+all four methods; it does not rerun Qwen or use task/family metadata as model input.

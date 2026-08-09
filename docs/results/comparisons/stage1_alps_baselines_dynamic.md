@@ -1,8 +1,8 @@
-# v1 综合实验结果
+# 第一阶段综合结果：Baseline、ALPS 与 Dynamic-Signal MLP
 
 本文件是 v1 实验的唯一总入口。ALPS 的完整分组、五折和校准分析见
-[`alps.md`](alps.md)；Dynamic-Signal MLP 的方法与结果见
-[`dynamic_signal_mlp.md`](dynamic_signal_mlp.md)。
+[`../alps/alps_v1_results.md`](../alps/alps_v1_results.md)；Dynamic-Signal MLP 的方法与结果见
+[`../plp/dynamic_signal_mlp_v1_results.md`](../plp/dynamic_signal_mlp_v1_results.md)。
 
 本报告汇总当前 v1 的三组实验：
 
@@ -96,7 +96,7 @@ Train 指标明显过于乐观，但五折与 Test 接近，说明高维 Ridge �
 较差，却给出了更宽、覆盖更充分的区间。
 
 该问题的模型输入边界、论文评价范围和 OOF conformal 修正建议见
-[`alps.md`](alps.md)。
+[`../alps/alps_v1_results.md`](../alps/alps_v1_results.md)。
 
 ## 4. Prompt 输入 token Ridge baseline
 
@@ -144,7 +144,7 @@ Test Sequence-balanced Raw R² 只有 0.089，Log R² 接近 0，说明五个动
 目标或校准方式不足；Train/Test 之间存在一定差距，但不是当前失败的主因。
 
 完整方法和分阶段结果见
-[`dynamic_signal_mlp.md`](dynamic_signal_mlp.md)。
+[`../plp/dynamic_signal_mlp_v1_results.md`](../plp/dynamic_signal_mlp_v1_results.md)。
 
 ### 5.2 Test 按解码进度
 
@@ -248,7 +248,7 @@ holdout 或 v2 数据划分。
 > Prompt 输入 token 数几乎没有预测力。Dynamic-Signal MLP v1 虽成功完成动态训练与评价，
 > 但五个标量信号无法在整个解码过程中稳定预测剩余长度，仅在生成中段表现出一定能力，
 > 并呈现早期低估、后期高估。因此它应作为 v1 工程 baseline 保留。独立的 Hidden-State
-> 后续 Hidden-State PLP v2 已完成，结果见 [`../v2/plp_v2_results.md`](../v2/plp_v2_results.md)。本文件继续
+> 后续 Hidden-State PLP v2 已完成，结果见 [`../plp/hidden_state_plp_v2_results.md`](../plp/hidden_state_plp_v2_results.md)。本文件继续
 > 冻结保存 v1 当时的实验结论。
 
 ## 9. 原始结果路径

@@ -53,7 +53,7 @@ Every reported result should identify the experiment config, code commit, prompt
 model/tokenizer revision, trace checksums, seeds, hardware, and software runtime. Generated run
 directories are ignored by Git, so copy them to durable storage before releasing a rented machine.
 The compact, committed interpretation of the completed v1 outputs lives in
-[`docs/results/v1/`](../docs/results/v1/README.md); this directory remains the machine-generated evidence,
+[`docs/results/comparisons/stage1_alps_baselines_dynamic.md`](../docs/results/comparisons/stage1_alps_baselines_dynamic.md); this directory remains the machine-generated evidence,
 not the narrative report.
 
 The grouped-CV outputs validate the frozen Layer-14 / `alpha=1.0` configuration before the final

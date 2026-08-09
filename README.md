@@ -11,7 +11,7 @@
 > **PLP-only v3 已完成：**三个单因素消融从 PLP v2 baseline 中选择了
 > `plp_terminal_zero_v3`。最终 Test MAE 从 `75.06` 降至 `71.04`，但配对 95% CI 略微跨 0，
 > 因此记录为小幅改善而非显著优越。完整报告见
-> [`docs/results/v3/plp_terminal_zero_v3_results.md`](docs/results/v3/plp_terminal_zero_v3_results.md)。
+> [`docs/results/plp/terminal_zero_v3_results.md`](docs/results/plp/terminal_zero_v3_results.md)。
 
 预测结果最终用于评估 batching、延迟、KV-cache 规划和长输出低估风险，而不仅仅是比较
 MAE。
@@ -28,28 +28,28 @@ MAE。
 | Dynamic-Signal MLP v1 | 已完成 | Test sequence-balanced MAE `136.66`、Raw R² `0.089`，仅中段有一定能力 |
 | Hidden-State PLP v2 | 已完成 | Test sequence-balanced MAE `60.03`、Raw R² `0.790`；论文对齐、非精确复现 |
 | PLP terminal-zero v3 | **已完成** | Test MAE `71.04`，相对 v2 改善约 `5.35%`；严格显著性未通过 |
-| ALPS+PLP Hybrid | v1 已选中，v2.1 待增量 OOF | concat v1 OOF MAE 49.92；直接残差 v2 明确更差，新增保守门控 residual v2.1；最终确认仍需新 holdout |
+| ALPS+PLP Hybrid | concat v1 已选中并完成全量 Train | concat v1 OOF MAE 49.92；residual v2 与 gated v2.1 均淘汰；同口径 Prompt-token baseline 与新 holdout 待完成 |
 | Hybrid v3 serving replay | 已实现，待最终 Test 后运行 | 固定 bucket/batch/KV 规则的离线 replay；不等于生产测量 |
 
 当前 ALPS v1 的采集、最终 Ridge、Train/Test 分组分析、固定五折、输入长度 baseline 和
 Dynamic-Signal MLP v1 均已完成。ALPS 点预测泛化能力较强，但概率区间欠校准；输入 token
 baseline 很弱；Dynamic-Signal MLP 呈现早期低估、后期高估。Hidden-State PLP v2 显著优于
 旧动态 baseline，但存在 Train/Test 泛化差距和后期高估。v1 完整汇总见
-[`docs/results/v1/README.md`](docs/results/v1/README.md)，PLP v2 结果见
-[`docs/results/v2/plp_v2_results.md`](docs/results/v2/plp_v2_results.md)。
+[`docs/results/comparisons/stage1_alps_baselines_dynamic.md`](docs/results/comparisons/stage1_alps_baselines_dynamic.md)，PLP v2 结果见
+[`docs/results/plp/hidden_state_plp_v2_results.md`](docs/results/plp/hidden_state_plp_v2_results.md)。
 
 当前 Baseline、ALPS 和 PLP terminal-zero v3 的统一比较见
-[`docs/results/baseline_alps_plp_v3_comparison.md`](docs/results/baseline_alps_plp_v3_comparison.md)。
+[`docs/results/comparisons/baseline_alps_plp_v3_comparison.md`](docs/results/comparisons/baseline_alps_plp_v3_comparison.md)。
 
 ALPS+PLP 已拆成两个独立方法版本：`alps_plp_concat_v1` 和
 `alps_plp_residual_v2`。原理、数据防泄漏与运行入口见
-[`docs/methods/alps_plp_hybrid_v1_v2.md`](docs/methods/alps_plp_hybrid_v1_v2.md)。
+[`docs/methods/hybrid_concat_residual_gated.md`](docs/methods/hybrid_concat_residual_gated.md)。
 当前 OOF 选择 concat v1；失败的直接 residual v2 不覆盖，后续以
 `alps_plp_gated_residual_v2_1` 做保守门控增量实验。
 
 独立 **PLP-only terminal-zero v3** 已经完成并冻结。当前进入 ALPS+PLP 阶段；由于现有
 12-family holdout 已被 PLP-only Test 消耗，Hybrid 必须另建测试 family。PLP 最终结论见
-[`docs/results/v3/plp_terminal_zero_v3_results.md`](docs/results/v3/plp_terminal_zero_v3_results.md)。
+[`docs/results/plp/terminal_zero_v3_results.md`](docs/results/plp/terminal_zero_v3_results.md)。
 
 ## 系统架构
 
@@ -235,7 +235,7 @@ Dynamic-Signal MLP v1 的冻结合同位于
 它固定使用 step、entropy、entropy rolling mean/slope 和 EOS probability，每 5 token
 更新一次；不读取 ALPS prior 或任何 hidden state。其完整定义、9089 个参数的计算方式、
 冻结训练条件、实验结果和论文边界见
-[`docs/results/v1/dynamic_signal_mlp.md`](docs/results/v1/dynamic_signal_mlp.md)。
+[`docs/results/plp/dynamic_signal_mlp_v1_results.md`](docs/results/plp/dynamic_signal_mlp_v1_results.md)。
 
 现有 v1 Test 已经用于 ALPS 开发后的分析，因此新增比较方法在该 Test 上属于事后对照。
 不得根据这些 Test 指标继续调参；严格的最终结论需要下一轮新 holdout。
@@ -285,9 +285,9 @@ PLP v2 固定使用最终 Transformer 层。每个预测点输入为：
 确认性结论仍需要新的 family-level holdout。
 
 本轮 ALPS、baseline 与 Dynamic-Signal MLP 的统一结果见
-[`docs/results/v1/README.md`](docs/results/v1/README.md)。ALPS 的分组结果、五折
+[`docs/results/comparisons/stage1_alps_baselines_dynamic.md`](docs/results/comparisons/stage1_alps_baselines_dynamic.md)。ALPS 的分组结果、五折
 泛化判断和预测区间校准问题统一见
-[`docs/results/v1/alps.md`](docs/results/v1/alps.md)，后续校准实施步骤见
+[`docs/results/alps/alps_v1_results.md`](docs/results/alps/alps_v1_results.md)，后续校准实施步骤见
 [`docs/planning/alps_improvement_plan.md`](docs/planning/alps_improvement_plan.md)。
 
 ## 数据流与输出
