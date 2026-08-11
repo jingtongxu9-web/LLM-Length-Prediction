@@ -37,7 +37,7 @@ MAE。
 | Hidden-State PLP v2 | 已完成 | Test sequence-balanced MAE `60.03`、Raw R² `0.790`；论文对齐、非精确复现 |
 | PLP terminal-zero v3 | **已完成** | Test MAE `71.04`，相对 v2 改善约 `5.35%`；严格显著性未通过 |
 | 判别式 ALPS+PLP Hybrid baseline | concat v1 已选中并完成全量 Train | concat v1 OOF MAE 49.92；它是强 baseline，不是 Bayesian posterior update |
-| Bayesian Sequential v1 | **第三阶段已完成** | 真实 RTX 4090/Qwen 9-rollout Train-only pilot、terminal 审计和本地复验通过；尚无 Bayesian OOF 效果结果 |
+| Bayesian Sequential v1 | **第四阶段已就绪，待服务器采集** | 真实 RTX 4090/Qwen 9-rollout pilot 已通过；1,620-rollout full-Train 合同、预算、preflight、断点续跑 collector 与验收已冻结；尚无 Bayesian OOF 效果结果 |
 | Hybrid v3 serving replay | 已实现，待最终 Test 后运行 | 固定 bucket/batch/KV 规则的离线 replay；不等于生产测量 |
 
 当前 ALPS v1 的采集、最终 Ridge、Train/Test 分组分析、固定五折、输入长度 baseline 和

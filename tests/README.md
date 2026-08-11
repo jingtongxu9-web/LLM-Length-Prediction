@@ -32,6 +32,9 @@ Current coverage includes:
 - Bayesian unified trace NPZ round trip, per-token evidence preservation, scheduled hidden-state
   capture, fake causal-LM generation through EOS, Train-only 3x3 pilot selection, CUDA provenance
   contract, nominal 24 GB GPU preflight boundary and collector-to-sequence conversion.
+- Bayesian Stage 4 的 180 Prompt/60 family/1,620-job 确定性展开、temperature/seed/task-length
+  平衡、final-holdout 禁止、full provenance/CUDA trace 校验、坏文件不覆盖、完整报告 schema
+  和 censoring abort 阈值。
 
 The local suite only trains a tiny synthetic Bayesian scorer for two epochs as a wiring test. Real
 training and Qwen hidden-state collection are exercised on the server runtime; local tests do not

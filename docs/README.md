@@ -82,6 +82,7 @@ docs/
 - [`deployment/isolated_server.md`](deployment/isolated_server.md)：隔离服务器检查清单。
 - [`deployment/alps_plp_hybrid_v3_direct_server.md`](deployment/alps_plp_hybrid_v3_direct_server.md)：Hybrid 服务器逐步运行手册；
 - [`deployment/bayesian_sequential_stage3_pilot.md`](deployment/bayesian_sequential_stage3_pilot.md)：Bayesian 第三阶段 9-rollout GPU pilot；
+- [`deployment/bayesian_sequential_stage4_full_train.md`](deployment/bayesian_sequential_stage4_full_train.md)：Bayesian 第四阶段 1,620-rollout Train-only 分块采集与归档；
 - [`references/大模型输出长度预测.pdf`](references/大模型输出长度预测.pdf)：仓库早期背景版本，保留用于 provenance；
 - [`references/大模型输出长度预测_2026-07-09_authoritative.pdf`](references/大模型输出长度预测_2026-07-09_authoritative.pdf)：当前权威项目需求基线。
 
