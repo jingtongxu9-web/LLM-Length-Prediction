@@ -3,6 +3,22 @@
 Run commands from the repository root. Files in this directory are user-facing entry points; they
 call reusable implementation under `src/llm_length_prediction/`.
 
+## Bayesian Sequential stage-three pilot
+
+The Bayesian CPU core is complete. The next commands validate a GPU server and collect only the
+frozen nine-rollout Train-family pilot; they do not train a scorer or access a final holdout:
+
+```bash
+python scripts/preflight_bayesian_pilot.py
+python scripts/collect_bayesian_pilot.py --limit 1
+python scripts/collect_bayesian_pilot.py --limit 3
+python scripts/collect_bayesian_pilot.py
+```
+
+The collector stores every token ID, entropy, and EOS probability, while hidden states follow
+`1,5,10,...,+terminal`. Valid existing NPZ files are contract-checked and resumed. See
+[`docs/deployment/bayesian_sequential_stage3_pilot.md`](../docs/deployment/bayesian_sequential_stage3_pilot.md).
+
 ## Explicit Hybrid v1/v2 development workflow
 
 The historical ten-method Hybrid v3 protocol remains frozen. The following commands compare the
@@ -179,6 +195,8 @@ so the same command safely resumes an interrupted run.
 | `train_plp_v3_models.py` | Implemented | Reproduce the OOF choice and freeze only PLP v2 control + terminal-zero v3; can safely import matching Hybrid checkpoints |
 | `open_plp_v3_test_gate.py` | Implemented | Irreversibly assign the shared unopened holdout to PLP-only v3 after tests, hashes, and model freeze |
 | `evaluate_plp_v3_final.py` | Implemented | Final PLP-only comparison with overall, task, length, 3x3, seed, progress, and terminal breakdowns |
+| `preflight_bayesian_pilot.py` | Implemented, awaiting server run | Validate stage-three contract, model revision, CUDA/BF16, disk and output paths |
+| `collect_bayesian_pilot.py` | Implemented, awaiting server run | Resumable nine-rollout Train-only unified Bayesian trace pilot |
 
 ## Inputs and outputs
 

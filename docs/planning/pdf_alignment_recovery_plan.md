@@ -34,7 +34,7 @@ Bayesian sequential update
 
 ## 3. 阶段一：数学和实验合同
 
-状态：**已开始，核心合同已落地。**
+状态：**已完成并确认（2026-08-11）。**
 
 - [x] 保存用户指定的权威 PDF 副本与 SHA-256；
 - [x] 冻结 latent state `R_t = L - t`；
@@ -83,6 +83,20 @@ checkpoint 和 metrics。下一阶段是统一 collector pilot；本阶段测试
 
 ## 5. 阶段三：统一 trace collector 与小型 pilot
 
+状态：**本地实现完成，等待 GPU 服务器运行真实 9-rollout pilot。**
+
+- [x] 新建独立、pickle-free 的 unified trace v1；
+- [x] 保存 Layer-14、Prompt pooled、initial decode 与更新点 decode state；
+- [x] 保存逐 token ID、entropy 和 EOS probability；
+- [x] 冻结 3 task × 3 length、Train-only 的 9-rollout pilot；
+- [x] 实现原子写入、严格校验、断点续跑、index 和 acceptance report；
+- [x] 实现 CUDA/BF16/model revision/disk preflight；
+- [x] fake causal-LM 本地端到端测试；
+- [ ] 服务器执行 1-rollout smoke；
+- [ ] 服务器执行 3-rollout task smoke；
+- [ ] 服务器补齐 9 rollout 并通过 acceptance；
+- [ ] 人工抽查 short/medium/long 的 terminal、censoring、显存、磁盘与耗时。
+
 Collector 必须一次保存所有 frozen methods 所需信息：
 
 - Layer-14 `h_0`；
@@ -95,6 +109,9 @@ Collector 必须一次保存所有 frozen methods 所需信息：
 
 Pilot 覆盖 QA、Summarization、Code 与 Short、Medium、Long，先确认字段、对齐、磁盘、耗时、
 断点续跑和 terminal semantics，再允许全量 Train 采集。
+
+服务器命令和带回产物见
+[`../deployment/bayesian_sequential_stage3_pilot.md`](../deployment/bayesian_sequential_stage3_pilot.md)。
 
 ## 6. 阶段四：一次性完整 Train 采集
 

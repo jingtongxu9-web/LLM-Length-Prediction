@@ -62,7 +62,9 @@ ID. Do not edit the v1 manifest after viewing final-test results.
 | `experiments/alps_plp_hybrid_versions.json` | Development-only four-method comparison of concat v1 and residual-correction v2; forbids reuse of the old Test | Yes |
 | `experiments/alps_plp_gated_residual_v2_1.json` | Supplemental OOF contract for conservative progress-gated residual v2.1; reuses verified controls and identical folds | Yes |
 | `experiments/alps_plp_main_comparison.json` | Four-method main comparison: Prompt-token countdown, ALPS, selected PLP v3, and selected concat v1; reuses the frozen Hybrid folds | Yes |
-| `experiments/bayesian_sequential_v1.json` | PDF-aligned proposed method 的第一阶段科学合同；当前尚无可执行训练入口 | No，待第二阶段实现 |
+| `experiments/bayesian_sequential_v1.json` | PDF-aligned proposed method 的科学合同；CPU core 已完成，真实训练仍未开始 | No，科学合同本身不是运行入口 |
+| `experiments/bayesian_sequential_pilot_v1.json` | 第三阶段 3-task × 3-length、Train-only unified-trace GPU pilot | Yes，服务器执行 collector，不训练模型 |
+| `reports/bayesian_sequential_pilot_report_schema.json` | 第三阶段 pilot acceptance 的冻结 JSON Schema | Yes |
 | `reports/alps_plp_hybrid_v3_report_schema.json` | Minimum machine-readable final-report contract | Yes |
 
 For Hybrid v3, `alps_plp_hybrid_v3.json.progressive_head` defines the shared head settings and the

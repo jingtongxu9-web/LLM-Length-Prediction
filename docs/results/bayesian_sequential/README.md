@@ -3,6 +3,9 @@
 当前尚无 Bayesian Sequential 实验结果。数学合同已确认，第二阶段 CPU 核心已经完成；
 本目录仍只预留给统一 Qwen trace、OOF 和 final-Test gate 全部完成后的报告。
 
+第三阶段 collector 与 9-rollout Train-only pilot 已在本地通过 fake-model 测试，正在等待 GPU
+服务器执行。该 pilot 只验证数据与工程合同，不构成方法效果结果。
+
 在此之前：
 
 - 数学合同见 [`../../methods/bayesian_sequential_inference.md`](../../methods/bayesian_sequential_inference.md)；

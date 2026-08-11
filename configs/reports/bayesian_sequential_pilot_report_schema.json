@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bayesian-sequential-pilot-report-v1",
+  "title": "Bayesian Sequential unified-trace pilot acceptance report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "pilot_id",
+    "status",
+    "expected_trace_count",
+    "valid_trace_count",
+    "missing_selected_job_count",
+    "by_stop_reason",
+    "by_task_length",
+    "censoring_rate",
+    "total_observed_tokens",
+    "total_duration_ms",
+    "total_trace_bytes",
+    "total_trace_gib",
+    "peak_cuda_allocated_bytes",
+    "peak_cuda_reserved_bytes",
+    "warnings",
+    "failures",
+    "real_qwen_pilot_complete",
+    "final_holdout_accessed"
+  ],
+  "properties": {
+    "pilot_id": {"const": "bayesian-sequential-v1-unified-trace-pilot"},
+    "status": {"enum": ["pass", "incomplete_or_failed"]},
+    "expected_trace_count": {"const": 9},
+    "valid_trace_count": {"type": "integer", "minimum": 0, "maximum": 9},
+    "missing_selected_job_count": {"type": "integer", "minimum": 0, "maximum": 9},
+    "by_stop_reason": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    },
+    "by_task_length": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    },
+    "censoring_rate": {"type": "number", "minimum": 0, "maximum": 1},
+    "total_observed_tokens": {"type": "integer", "minimum": 0},
+    "total_duration_ms": {"type": "number", "minimum": 0},
+    "total_trace_bytes": {"type": "integer", "minimum": 0},
+    "total_trace_gib": {"type": "number", "minimum": 0},
+    "peak_cuda_allocated_bytes": {"type": "integer", "minimum": 0},
+    "peak_cuda_reserved_bytes": {"type": "integer", "minimum": 0},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "failures": {"type": "array", "items": {"type": "string"}},
+    "real_qwen_pilot_complete": {"type": "boolean"},
+    "final_holdout_accessed": {"const": false}
+  }
+}
