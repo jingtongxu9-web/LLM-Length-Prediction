@@ -3,6 +3,21 @@
 Run commands from the repository root. Files in this directory are user-facing entry points; they
 call reusable implementation under `src/llm_length_prediction/`.
 
+## Bayesian Sequential stage-four full-Train collection
+
+The real-Qwen nine-rollout stage-three pilot passed. Stage four expands only the opened Train
+manifest to 1,620 frozen jobs and still does not train a scorer or access a final holdout:
+
+```bash
+python scripts/preflight_bayesian_full_train.py --model "$MODEL_PATH"
+python scripts/collect_bayesian_full_train.py --model "$MODEL_PATH" --max-new-jobs 100
+python scripts/collect_bayesian_full_train.py --report-only
+```
+
+Repeat the 100-job command until the report reaches 1,620 valid traces. Existing files are skipped
+only after complete contract validation; invalid files abort without overwrite. See
+[`docs/deployment/bayesian_sequential_stage4_full_train.md`](../docs/deployment/bayesian_sequential_stage4_full_train.md).
+
 ## Bayesian Sequential stage-three pilot
 
 The Bayesian CPU core is complete. The next commands validate a GPU server and collect only the
@@ -195,8 +210,10 @@ so the same command safely resumes an interrupted run.
 | `train_plp_v3_models.py` | Implemented | Reproduce the OOF choice and freeze only PLP v2 control + terminal-zero v3; can safely import matching Hybrid checkpoints |
 | `open_plp_v3_test_gate.py` | Implemented | Irreversibly assign the shared unopened holdout to PLP-only v3 after tests, hashes, and model freeze |
 | `evaluate_plp_v3_final.py` | Implemented | Final PLP-only comparison with overall, task, length, 3x3, seed, progress, and terminal breakdowns |
-| `preflight_bayesian_pilot.py` | Implemented, awaiting server run | Validate stage-three contract, model revision, CUDA/BF16, disk and output paths |
-| `collect_bayesian_pilot.py` | Implemented, awaiting server run | Resumable nine-rollout Train-only unified Bayesian trace pilot |
+| `preflight_bayesian_pilot.py` | Implemented, server run passed | Validate stage-three contract, model revision, CUDA/BF16, disk and output paths |
+| `collect_bayesian_pilot.py` | Implemented, 9/9 server pilot passed | Resumable nine-rollout Train-only unified Bayesian trace pilot |
+| `preflight_bayesian_full_train.py` | Implemented, awaiting server run | Validate Stage 3 gate, 1,620 jobs, model/revision, CUDA/BF16, memory and dynamic disk budget |
+| `collect_bayesian_full_train.py` | Implemented, awaiting server run | Deterministic 100-job chunks, atomic trace writes, strict resume and full-Train acceptance report |
 
 ## Inputs and outputs
 

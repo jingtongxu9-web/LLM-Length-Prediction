@@ -117,10 +117,24 @@ Pilot 覆盖 QA、Summarization、Code 与 Short、Medium、Long，先确认字�
 
 ## 6. 阶段四：一次性完整 Train 采集
 
+状态：**本地实现与实验合同已冻结，等待服务器执行。**
+
+- [x] 冻结 180 Train Prompt、60 family、3 temperature、3 seed，共 1,620 rollout；
+- [x] 冻结 Stage 3 实测外推的 GPU 时间、磁盘和显存预算；
+- [x] 实现 100-job 默认分块、原子 NPZ、严格校验和断点续跑；
+- [x] 实现完整覆盖、censoring、CUDA provenance 和 final-holdout 边界验收；
+- [x] 实现 4090/BF16/revision/动态剩余磁盘 preflight；
+- [x] 冻结机器可读 full-Train report schema；
+- [ ] 在服务器通过 full-Train preflight；
+- [ ] 采集并复验全部 1,620 trace；
+- [ ] 将 archive 下载到本地并完成逐 trace 二次复验。
+
 主开发 temperature 为 `0.7`；robustness temperature 为 `0.3/1.0`。同一 family 的全部
 temperature、seed、长度版本和 timestep 保持在同一 fold。
 
 Full Train trace 冻结后，各方法只做离线训练和评价，不为每个模型重新运行 Qwen。
+服务器手册见
+[`../deployment/bayesian_sequential_stage4_full_train.md`](../deployment/bayesian_sequential_stage4_full_train.md)。
 
 ## 7. 阶段五：Train-family OOF 与方法选择
 
