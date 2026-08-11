@@ -37,7 +37,7 @@ MAE。
 | Hidden-State PLP v2 | 已完成 | Test sequence-balanced MAE `60.03`、Raw R² `0.790`；论文对齐、非精确复现 |
 | PLP terminal-zero v3 | **已完成** | Test MAE `71.04`，相对 v2 改善约 `5.35%`；严格显著性未通过 |
 | 判别式 ALPS+PLP Hybrid baseline | concat v1 已选中并完成全量 Train | concat v1 OOF MAE 49.92；它是强 baseline，不是 Bayesian posterior update |
-| Bayesian Sequential v1 | **第一阶段已确认；第二阶段 CPU 核心已完成** | prior/filter、incremental sequence、scorer、censoring loss、评估与 checkpoint 已通过合成测试；尚无真实 Qwen 实验 |
+| Bayesian Sequential v1 | **第二阶段已完成；第三阶段等待服务器 pilot** | unified collector、9-rollout Train-only pilot、preflight 与断点续跑已在本地通过；尚无真实 Qwen Bayesian 实验 |
 | Hybrid v3 serving replay | 已实现，待最终 Test 后运行 | 固定 bucket/batch/KV 规则的离线 replay；不等于生产测量 |
 
 当前 ALPS v1 的采集、最终 Ridge、Train/Test 分组分析、固定五折、输入长度 baseline 和

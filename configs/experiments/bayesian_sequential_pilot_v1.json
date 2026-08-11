@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "pilot_id": "bayesian-sequential-v1-unified-trace-pilot",
+  "method_id": "bayesian-sequential-v1",
+  "stage": "stage3_unified_collector_pilot",
+  "status": "ready_for_server_execution",
+  "scientific_contract": {
+    "path": "configs/experiments/bayesian_sequential_v1.json",
+    "sha256": "10187cda101bd364418d9b999568006dc75625c222eefee3c65e371c51e4dcb4"
+  },
+  "model": {
+    "id": "Qwen/Qwen2.5-7B-Instruct",
+    "revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "tokenizer_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "dtype": "bfloat16",
+    "prior_layer_zero_based": 14,
+    "decode_layer": "final_transformer_layer",
+    "hidden_size": 3584
+  },
+  "source_prompts": {
+    "path": "data/prompts/alps_plp_hybrid_v3_prompts.jsonl",
+    "sha256": "1b4c42acfbefe274d14777d1e42426488965d199a8f1289a836caa65a73c2038",
+    "allowed_split": "train",
+    "selected_families": [
+      "qa_001_gradient_descent",
+      "summarization_001_urban_transit",
+      "code_001_lru_cache"
+    ],
+    "required_tasks": ["qa", "summarization", "code"],
+    "required_intended_lengths": ["short", "medium", "long"],
+    "expected_prompt_count": 9,
+    "uses_previously_opened_design_families_only": true,
+    "new_final_holdout_access": "forbidden"
+  },
+  "generation": {
+    "temperatures": [0.7],
+    "top_p": 0.95,
+    "max_new_tokens": 4096,
+    "seeds": [42],
+    "expected_rollout_count": 9,
+    "chat_template": "tokenizer_default",
+    "output_length_includes_eos": true
+  },
+  "trace": {
+    "schema_name": "bayesian-sequential-unified-trace",
+    "schema_version": 1,
+    "stride": 5,
+    "include_first_point": true,
+    "include_terminal_point": true,
+    "include_censored_boundary_hidden": false,
+    "store_every_token_id": true,
+    "store_every_token_entropy": true,
+    "store_every_token_eos_probability": true,
+    "probability_source": "temperature_scaled_full_softmax_before_top_p",
+    "evidence_unit": "non_overlapping_new_token_block_since_previous_update",
+    "storage_dtype": "float32"
+  },
+  "prompt_representation": {
+    "pooling": "entropy_softmax_all_formatted_prompt_tokens",
+    "pooling_temperature": 1.0,
+    "entropy_chunk_tokens": 32,
+    "store_initial_final_layer_last_prompt_token": true
+  },
+  "resumability": {
+    "one_atomic_npz_per_prompt_temperature_seed": true,
+    "skip_only_after_full_contract_validation": true,
+    "write_collection_index": true,
+    "write_collection_summary": true
+  },
+  "acceptance": {
+    "expected_trace_count": 9,
+    "required_task_length_cells": 9,
+    "maximum_missing_trace_count": 0,
+    "warning_censoring_rate": 0.1,
+    "abort_censoring_rate": 0.34,
+    "require_all_arrays_finite": true,
+    "require_terminal_zero_for_eos": true,
+    "require_no_final_holdout_rows": true,
+    "require_model_and_tokenizer_revision_match": true,
+    "require_cuda_peak_memory_metadata": true
+  },
+  "acceptance_report_schema": {
+    "path": "configs/reports/bayesian_sequential_pilot_report_schema.json",
+    "sha256": "3d67159e735e7ef29a6e8a87378d9d5cef4738a43961408f756fde68b887dfce"
+  },
+  "outputs": {
+    "trace_root": "data/interim/bayesian_sequential_v1_pilot",
+    "run_root": "artifacts/runs/bayesian_sequential_v1/pilot"
+  }
+}
