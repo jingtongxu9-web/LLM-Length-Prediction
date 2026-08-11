@@ -31,7 +31,8 @@
 
 ## 3. 服务器要求
 
-- NVIDIA GPU，建议 32 GiB；最低合同为 24 GiB；
+- NVIDIA GPU，建议 32 GiB；最低合同为厂商标称 24 GB（RTX 4090 在 PyTorch 中可能
+  报告约 23.5 GiB，属于合格设备）；
 - BF16；
 - PyTorch `>=2.6`、Transformers `>=4.48`；
 - Blackwell GPU 使用 CUDA `>=12.8` 的 PyTorch build；
@@ -48,6 +49,7 @@
 ```bash
 python -m pip install -e '.[dev,model]'
 export MODEL_PATH=/absolute/path/to/Qwen2.5-7B-Instruct
+export OMP_NUM_THREADS=8
 
 python scripts/preflight_bayesian_pilot.py
 python scripts/collect_bayesian_pilot.py --limit 1
