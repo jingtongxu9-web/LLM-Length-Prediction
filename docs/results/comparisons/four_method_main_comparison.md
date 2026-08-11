@@ -1,5 +1,10 @@
 # 四方法主比较：Prompt-token Baseline、ALPS、PLP 与 Hybrid
 
+> **身份更新（2026-08-10）：**本文保留为 PDF 主线回归前的判别式四方法历史比较。
+> `alps_plp_concat_v1` 是强 discriminative-fusion baseline，不是项目最终 proposed method，
+> 也不构成 Bayesian posterior update。新的核心方法合同见
+> [`../../methods/bayesian_sequential_inference.md`](../../methods/bayesian_sequential_inference.md)。
+
 本文是跨方法的论文主比较报告，不是单独的 Hybrid 报告。各方法自身的完整结果分别位于：
 
 - [`../baseline/prompt_token_ridge_results.md`](../baseline/prompt_token_ridge_results.md)；

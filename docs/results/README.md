@@ -12,6 +12,7 @@ results/
 ├── alps/           # ALPS 各版本的完整结果
 ├── plp/            # Dynamic v1、Hidden-State v2、Terminal-Zero v3
 ├── hybrid/         # concat v1、residual v2、gated residual v2.1
+├── bayesian_sequential/ # PDF-aligned proposed method；当前仅预留，尚无结果
 └── comparisons/    # 跨方法综合比较与论文主表
 ```
 
@@ -52,7 +53,14 @@ results/
 |---|---|---|
 | concat v1 / residual v2 / gated v2.1 | [`hybrid/hybrid_v1_v2_v2_1_results.md`](hybrid/hybrid_v1_v2_v2_1_results.md) | concat v1 已选中并完成全量 Train；v2/v2.1 已淘汰 |
 
-## 6. 跨方法对比
+## 6. Bayesian Sequential
+
+入口：[`bayesian_sequential/README.md`](bayesian_sequential/README.md)
+
+当前仅完成数学与实验合同，不存在可报告的 Bayesian 实验数字。旧 PLP/Hybrid 结果不能复制到
+该目录或改名为 Bayesian posterior。
+
+## 7. 跨方法对比
 
 入口：[`comparisons/README.md`](comparisons/README.md)
 
@@ -60,13 +68,13 @@ results/
 |---|---|
 | [`comparisons/stage1_alps_baselines_dynamic.md`](comparisons/stage1_alps_baselines_dynamic.md) | 第一阶段 ALPS、静态 baseline 与旧 Dynamic-Signal MLP 的完整总结 |
 | [`comparisons/baseline_alps_plp_v3_comparison.md`](comparisons/baseline_alps_plp_v3_comparison.md) | Baseline、ALPS、PLP v3 的跨阶段对比 |
-| [`comparisons/four_method_main_comparison.md`](comparisons/four_method_main_comparison.md) | 论文主比较：Prompt-token baseline、ALPS、PLP v3、Hybrid concat v1 |
+| [`comparisons/four_method_main_comparison.md`](comparisons/four_method_main_comparison.md) | PDF 主线回归前的历史四方法比较；concat v1 是 discriminative baseline |
 
 四方法报告不属于 `hybrid/`：它横跨四个方法家族。当前 ALPS、PLP v3 和 concat v1 已有相同
 Hybrid Train trace 上的 OOF 数字；Prompt-token countdown 的同口径数字仍需在 AutoDL 现有
 trace 上补算。
 
-## 7. 论文写作建议
+## 8. 论文写作建议
 
 论文的 Methods 部分从 [`../methods/README.md`](../methods/README.md) 取技术原理；Experiments
 部分按本目录组织：
@@ -74,11 +82,12 @@ trace 上补算。
 1. Baseline 验证最小输入长度信息；
 2. ALPS 验证生成前静态语义先验；
 3. PLP 验证生成中动态 hidden state；
-4. Hybrid 比较不同融合结构；
-5. 四方法主表汇总最终代表版本；
-6. PLP 与 Hybrid 的其他版本作为消融，不进入主表。
+4. Hybrid 比较不同判别式融合结构；
+5. Bayesian Sequential 验证 prior + incremental evidence + posterior update；
+6. 最终主表加入 selected Bayesian method；
+7. PLP 与 Hybrid 的其他版本作为 baseline/消融。
 
-## 8. Test 边界
+## 9. Test 边界
 
 PLP-only v3 已使用原协议的 12-family Test，因此该 Test 不能再次称为未见的 Hybrid Test。
 Hybrid concat v1 的最终确认需要新建从未参与方法选择的 holdout。OOF 负责开发与选型，全量

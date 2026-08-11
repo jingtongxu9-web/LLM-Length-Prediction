@@ -3,6 +3,14 @@
 面向大模型推理服务的输出长度预测研究。项目使用 ALPS 在回答生成前预测最终输出长度，
 并使用 PLP 在回答生成过程中持续预测剩余长度。
 
+> **项目主线（2026-08-10 重新对齐）：**权威需求是“ALPS 静态概率先验 + 非重叠解码证据
+> + Bayesian sequential posterior update”。完整数学合同见
+> [`docs/methods/bayesian_sequential_inference.md`](docs/methods/bayesian_sequential_inference.md)，
+> 机器可读合同见
+> [`configs/experiments/bayesian_sequential_v1.json`](configs/experiments/bayesian_sequential_v1.json)。
+> 当前 Dynamic-Signal MLP、Hidden-State PLP、concat、residual 和 gated residual 均保留为
+> baseline/消融，不能替代或宣称已经实现贝叶斯序列推断。
+
 > **版本边界：**已跑完的 **Dynamic-Signal MLP v1** 只使用五个动态标量，是工程 baseline，
 > 不是论文 PLP。新实现的 **Hidden-State PLP v2** 使用 entropy-guided Prompt 表征、解码期
 > 最终层隐藏状态和 20-bin soft-label 预测头；它是 PLP-only，不读取 ALPS prior。v2 已在
@@ -28,7 +36,8 @@ MAE。
 | Dynamic-Signal MLP v1 | 已完成 | Test sequence-balanced MAE `136.66`、Raw R² `0.089`，仅中段有一定能力 |
 | Hidden-State PLP v2 | 已完成 | Test sequence-balanced MAE `60.03`、Raw R² `0.790`；论文对齐、非精确复现 |
 | PLP terminal-zero v3 | **已完成** | Test MAE `71.04`，相对 v2 改善约 `5.35%`；严格显著性未通过 |
-| ALPS+PLP Hybrid | concat v1 已选中并完成全量 Train | concat v1 OOF MAE 49.92；residual v2 与 gated v2.1 均淘汰；同口径 Prompt-token baseline 与新 holdout 待完成 |
+| 判别式 ALPS+PLP Hybrid baseline | concat v1 已选中并完成全量 Train | concat v1 OOF MAE 49.92；它是强 baseline，不是 Bayesian posterior update |
+| Bayesian Sequential v1 | **第一阶段合同已落地，尚未实现/实验** | 已冻结 prior、transition、incremental evidence、posterior、指标与 Test 边界 |
 | Hybrid v3 serving replay | 已实现，待最终 Test 后运行 | 固定 bucket/batch/KV 规则的离线 replay；不等于生产测量 |
 
 当前 ALPS v1 的采集、最终 Ridge、Train/Test 分组分析、固定五折、输入长度 baseline 和

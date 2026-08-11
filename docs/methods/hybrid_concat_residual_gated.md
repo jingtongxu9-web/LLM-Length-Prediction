@@ -1,5 +1,9 @@
 # ALPS + PLP Hybrid 技术原理：concat v1、residual v2 与 gated v2.1
 
+> **方法身份：**三个版本都是判别式融合 baseline/消融，不执行
+> `posterior proportional to prior times likelihood` 的序列更新。项目 proposed method 见
+> [`bayesian_sequential_inference.md`](bayesian_sequential_inference.md)。
+
 ## 1. 文档范围
 
 本文只解释三个 Hybrid 算法的技术结构，不报告实验结果：

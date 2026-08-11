@@ -9,6 +9,19 @@ live under [`docs/results/`](../docs/results/README.md).
 
 ## Which file is authoritative today?
 
+项目科学主线的 preimplementation 合同是：
+
+```text
+configs/experiments/bayesian_sequential_v1.json
+```
+
+它冻结 ALPS prior、剩余长度 latent state、非重叠 evidence、Bayesian posterior update、
+censoring、temperature robustness、OOF 选择和 final holdout 边界。当前状态为
+`phase1_frozen_preimplementation`，因此它暂时没有训练/评估命令；现有命令继续读取各自旧合同，
+但旧 PLP/Hybrid 只作为 baseline 或消融，不能替代 proposed method。
+
+对于已经完成的 ALPS v1 命令行流程，权威合同仍是：
+
 The current ALPS v1 command-line pipeline reads:
 
 ```text
@@ -48,6 +61,7 @@ ID. Do not edit the v1 manifest after viewing final-test results.
 | `experiments/alps_plp_hybrid_versions.json` | Development-only four-method comparison of concat v1 and residual-correction v2; forbids reuse of the old Test | Yes |
 | `experiments/alps_plp_gated_residual_v2_1.json` | Supplemental OOF contract for conservative progress-gated residual v2.1; reuses verified controls and identical folds | Yes |
 | `experiments/alps_plp_main_comparison.json` | Four-method main comparison: Prompt-token countdown, ALPS, selected PLP v3, and selected concat v1; reuses the frozen Hybrid folds | Yes |
+| `experiments/bayesian_sequential_v1.json` | PDF-aligned proposed method 的第一阶段科学合同；当前尚无可执行训练入口 | No，待第二阶段实现 |
 | `reports/alps_plp_hybrid_v3_report_schema.json` | Minimum machine-readable final-report contract | Yes |
 
 For Hybrid v3, `alps_plp_hybrid_v3.json.progressive_head` defines the shared head settings and the
