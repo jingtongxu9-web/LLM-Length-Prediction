@@ -6,11 +6,12 @@
 
 ## 1. 最推荐的阅读顺序
 
-1. [`methods/README.md`](methods/README.md)：理解 Baseline、ALPS、PLP 和 Hybrid 的技术关系；
-2. [`results/README.md`](results/README.md)：按方法家族找到每一个冻结实验报告；
-3. [`results/comparisons/four_method_main_comparison.md`](results/comparisons/four_method_main_comparison.md)：查看论文主比较结构；
-4. [`planning/research_plan.md`](planning/research_plan.md)：了解后续 holdout 与 serving 路线；
-5. [`deployment/autodl_5090.md`](deployment/autodl_5090.md)：在 AutoDL 运行。
+1. [`methods/bayesian_sequential_inference.md`](methods/bayesian_sequential_inference.md)：阅读项目核心 Bayesian Sequential 数学合同；
+2. [`methods/README.md`](methods/README.md)：理解 Baseline、ALPS、PLP、判别式 Hybrid 与 proposed method 的关系；
+3. [`results/README.md`](results/README.md)：按方法家族找到每一个冻结历史实验报告；
+4. [`planning/pdf_alignment_recovery_plan.md`](planning/pdf_alignment_recovery_plan.md)：查看回到 PDF 主线的实施阶段；
+5. [`planning/research_plan.md`](planning/research_plan.md)：了解后续 holdout 与 serving 路线；
+6. [`deployment/autodl_5090.md`](deployment/autodl_5090.md)：在 AutoDL 运行。
 
 ## 2. 目录结构
 
@@ -21,7 +22,8 @@ docs/
 │   ├── alps.md
 │   ├── plp_versions.md
 │   ├── plp_only_explained.md
-│   └── hybrid_concat_residual_gated.md
+│   ├── hybrid_concat_residual_gated.md
+│   └── bayesian_sequential_inference.md
 ├── results/                       # 已完成实验的人工可读报告
 │   ├── baseline/
 │   ├── alps/
@@ -42,6 +44,7 @@ docs/
 | [`methods/plp_versions.md`](methods/plp_versions.md) | PLP v1/v2/v3 版本关系 |
 | [`methods/plp_only_explained.md`](methods/plp_only_explained.md) | PLP 的 entropy pooling、decode state、20-bin 和 MLP 细节 |
 | [`methods/hybrid_concat_residual_gated.md`](methods/hybrid_concat_residual_gated.md) | Hybrid concat v1、residual v2 与 gated residual v2.1 |
+| [`methods/bayesian_sequential_inference.md`](methods/bayesian_sequential_inference.md) | **项目 proposed method**：ALPS prior、增量 evidence、posterior update 与 uncertainty |
 
 ## 4. 实验报告
 
@@ -66,6 +69,7 @@ docs/
 ## 5. 计划与部署
 
 - [`planning/alps_improvement_plan.md`](planning/alps_improvement_plan.md)：ALPS 概率区间校准；
+- [`planning/pdf_alignment_recovery_plan.md`](planning/pdf_alignment_recovery_plan.md)：PDF 主线回归阶段、保留资产与禁止事项；
 - [`planning/hidden_state_plp_v2.md`](planning/hidden_state_plp_v2.md)：PLP v2 实施边界；
 - [`planning/research_plan.md`](planning/research_plan.md)：整体研究路线；
 - [`planning/v2_experiment_plan.md`](planning/v2_experiment_plan.md)：新 holdout、校准和公平比较计划；
@@ -74,7 +78,8 @@ docs/
 - [`deployment/docker_4090.md`](deployment/docker_4090.md)：学校 RTX 4090 Docker；
 - [`deployment/isolated_server.md`](deployment/isolated_server.md)：隔离服务器检查清单。
 - [`deployment/alps_plp_hybrid_v3_direct_server.md`](deployment/alps_plp_hybrid_v3_direct_server.md)：Hybrid 服务器逐步运行手册；
-- [`references/大模型输出长度预测.pdf`](references/大模型输出长度预测.pdf)：项目最初背景材料。
+- [`references/大模型输出长度预测.pdf`](references/大模型输出长度预测.pdf)：仓库早期背景版本，保留用于 provenance；
+- [`references/大模型输出长度预测_2026-07-09_authoritative.pdf`](references/大模型输出长度预测_2026-07-09_authoritative.pdf)：当前权威项目需求基线。
 
 AutoDL 和学校 Docker 是两条并列部署路径。AutoDL 不替换已有的 `Dockerfile`、
 `docker-compose.yml`、`.env` 和 `requirements-docker.lock`。

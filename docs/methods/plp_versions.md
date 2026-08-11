@@ -1,5 +1,9 @@
 # PLP 版本谱系与技术逻辑
 
+> 本文记录三个历史 PLP baseline 的版本关系。它们均不接收上一时刻 posterior，因此不等同于
+> 项目权威 PDF 所要求的 Bayesian sequential inference。项目 proposed method 见
+> [`bayesian_sequential_inference.md`](bayesian_sequential_inference.md)。
+
 ## 1. 为什么有三个版本
 
 项目历史上出现过三个都带“PLP”含义的版本，但它们不是同一个模型反复改名。必须在论文中明确

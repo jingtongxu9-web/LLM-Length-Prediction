@@ -1,6 +1,12 @@
 defaults: ../base.yaml
 stage: dynamic_correction
 
+# Historical design note only. The PDF-aligned executable scientific contract is now
+# configs/experiments/bayesian_sequential_v1.json. This file is retained to document why
+# static_prior=true was originally intended; Dynamic-Signal MLP v1 later omitted that prior and
+# is therefore a baseline rather than the proposed Bayesian sequential method.
+superseded_by: bayesian_sequential_v1.json
+
 # Design note for the future ALPS+dynamic hybrid. The executable Dynamic-Signal
 # MLP v1 comparator is frozen separately in plp_v1_manifest.json and sets static_prior=false.
 
