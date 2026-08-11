@@ -1,10 +1,13 @@
 # Bayesian Sequential 实验结果
 
-当前尚无 Bayesian Sequential 实验结果。数学合同已确认，第二阶段 CPU 核心已经完成；
-本目录仍只预留给统一 Qwen trace、OOF 和 final-Test gate 全部完成后的报告。
+当前尚无 Bayesian Sequential **方法效果结果**。数学合同、第二阶段 CPU 核心，以及第三阶段
+真实 Qwen 9-rollout Train-only pilot 均已完成。第三阶段只验证数据与工程合同，不构成 Bayesian
+预测效果、OOF 方法选择或最终 Test 结果。
 
-第三阶段 collector 与 9-rollout Train-only pilot 已在本地通过 fake-model 测试，正在等待 GPU
-服务器执行。该 pilot 只验证数据与工程合同，不构成方法效果结果。
+第三阶段可提交证据：
+
+- 人工可读报告：[`stage3_pilot_20260811.md`](stage3_pilot_20260811.md)；
+- 脱敏机器摘要：[`stage3_pilot_20260811_summary.json`](stage3_pilot_20260811_summary.json)。
 
 在此之前：
 
@@ -15,3 +18,7 @@
 - 旧 ALPS、PLP 和 Hybrid 数字仍位于各自历史结果目录，不迁移、不改写。
 
 禁止在实现前填入模拟或预期结果，也禁止把 concat/residual 的旧指标复制为 Bayesian 结果。
+
+阶段门：真实 RTX 4090/Qwen2.5-7B-Instruct pilot 已通过 9/9 trace、9 个 task-length cell、
+terminal/EOS 语义、provenance、显存和本地归档复验。下一阶段是冻结并采集完整 Train trace；
+在 OOF 方法选择完成前不得访问 final holdout。

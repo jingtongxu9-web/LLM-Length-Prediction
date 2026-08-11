@@ -12,7 +12,7 @@ results/
 ├── alps/           # ALPS 各版本的完整结果
 ├── plp/            # Dynamic v1、Hidden-State v2、Terminal-Zero v3
 ├── hybrid/         # concat v1、residual v2、gated residual v2.1
-├── bayesian_sequential/ # PDF-aligned proposed method；当前仅预留，尚无结果
+├── bayesian_sequential/ # PDF-aligned proposed method；Stage 3 工程 pilot 已通过，尚无效果结果
 └── comparisons/    # 跨方法综合比较与论文主表
 ```
 
@@ -57,8 +57,10 @@ results/
 
 入口：[`bayesian_sequential/README.md`](bayesian_sequential/README.md)
 
-当前仅完成数学与实验合同，不存在可报告的 Bayesian 实验数字。旧 PLP/Hybrid 结果不能复制到
-该目录或改名为 Bayesian posterior。
+数学与实验合同、CPU 核心和真实 Qwen Stage 3 工程 pilot 已完成；当前可报告内容仅限采集与
+数据合同验收，不含 Bayesian OOF 或 final-Test 效果数字。见
+[`bayesian_sequential/stage3_pilot_20260811.md`](bayesian_sequential/stage3_pilot_20260811.md)。
+旧 PLP/Hybrid 结果不能复制到该目录或改名为 Bayesian posterior。
 
 ## 7. 跨方法对比
 

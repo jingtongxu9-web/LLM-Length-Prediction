@@ -12,6 +12,7 @@ from llm_length_prediction.bayesian_pilot import load_bayesian_pilot
 from llm_length_prediction.runtime.model_paths import resolve_model_source
 
 DEFAULT_CONFIG = Path("configs/experiments/bayesian_sequential_pilot_v1.json")
+MINIMUM_GPU_MEMORY_GB = 24
 
 
 def _version_tuple(value: str) -> tuple[int, ...]:
@@ -22,6 +23,11 @@ def _version_tuple(value: str) -> tuple[int, ...]:
             break
         parts.append(int(digits))
     return tuple(parts)
+
+
+def _has_minimum_gpu_memory(total_memory_bytes: int) -> bool:
+    """Apply the vendor-advertised decimal-GB threshold used for GPU models."""
+    return total_memory_bytes >= MINIMUM_GPU_MEMORY_GB * 1000**3
 
 
 def main() -> None:
@@ -115,6 +121,7 @@ def main() -> None:
             report.update(
                 {
                     "gpu_name": torch.cuda.get_device_name(index),
+                    "gpu_memory_gb": round(properties.total_memory / 1000**3, 2),
                     "gpu_memory_gib": round(properties.total_memory / 1024**3, 2),
                     "gpu_compute_capability": f"{capability[0]}.{capability[1]}",
                     "bf16_supported": torch.cuda.is_bf16_supported(),
@@ -122,8 +129,8 @@ def main() -> None:
             )
             if not torch.cuda.is_bf16_supported():
                 failures.append("GPU does not support BF16")
-            if properties.total_memory < 24 * 1024**3:
-                failures.append("GPU has less than 24 GiB memory")
+            if not _has_minimum_gpu_memory(properties.total_memory):
+                failures.append("GPU has less than nominal 24 GB memory")
             if capability[0] >= 10 and _version_tuple(str(torch.version.cuda)) < (12, 8):
                 failures.append("Blackwell GPU requires a CUDA 12.8 or newer PyTorch build")
 

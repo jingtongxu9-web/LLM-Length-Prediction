@@ -31,7 +31,7 @@ Current coverage includes:
   coverage and stable-time metrics.
 - Bayesian unified trace NPZ round trip, per-token evidence preservation, scheduled hidden-state
   capture, fake causal-LM generation through EOS, Train-only 3x3 pilot selection, CUDA provenance
-  contract and collector-to-sequence conversion.
+  contract, nominal 24 GB GPU preflight boundary and collector-to-sequence conversion.
 
 The local suite only trains a tiny synthetic Bayesian scorer for two epochs as a wiring test. Real
 training and Qwen hidden-state collection are exercised on the server runtime; local tests do not
