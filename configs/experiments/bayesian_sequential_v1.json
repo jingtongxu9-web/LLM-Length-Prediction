@@ -3,7 +3,7 @@
   "contract_kind": "preimplementation_scientific_contract",
   "method_family": "bayesian-sequential-length-inference",
   "method_id": "bayesian-sequential-v1",
-  "status": "phase1_frozen_preimplementation",
+  "status": "phase1_approved_for_implementation",
   "authoritative_reference": {
     "path": "docs/references/大模型输出长度预测_2026-07-09_authoritative.pdf",
     "sha256": "b3c39e785a4a9217fd5d3c580b127c5a25093314f82bacb86f64f98feed02e62",
@@ -17,6 +17,13 @@
     "updates_request_posterior_online": true,
     "qwen_weights_frozen": true
   },
+  "implementation": {
+    "phase2_cpu_core_status": "complete",
+    "completed_on": "2026-08-11",
+    "real_qwen_trace_collected": false,
+    "bayesian_experiments_started": false,
+    "final_holdout_opened": false
+  },
   "latent_state": {
     "name": "remaining_tokens_including_eos",
     "symbol": "R_t",
@@ -24,6 +31,7 @@
     "support": "integer_tokens",
     "minimum": 0,
     "maximum_source": "generation.max_new_tokens - step",
+    "overflow_state": "one_explicit_tail_state_for_total_length_greater_than_generation.max_new_tokens",
     "output_length_includes_eos": true,
     "terminal_state": 0
   },
@@ -43,6 +51,7 @@
       "support_max_total_tokens": 4096,
       "method": "cdf_half_integer_mass",
       "renormalize_after_truncation": true,
+      "preserve_upper_tail_as_overflow_state": true,
       "silent_tail_mass_drop_forbidden": true
     },
     "training_features": "inner_family_grouped_cross_fitted",
@@ -87,7 +96,8 @@
       "remaining_tokens",
       "log1p_remaining_tokens",
       "remaining_fraction_of_max_new_tokens",
-      "candidate_total_tokens"
+      "candidate_total_tokens",
+      "overflow_indicator"
     ]
   },
   "candidate_models": {

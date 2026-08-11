@@ -17,8 +17,9 @@ configs/experiments/bayesian_sequential_v1.json
 
 它冻结 ALPS prior、剩余长度 latent state、非重叠 evidence、Bayesian posterior update、
 censoring、temperature robustness、OOF 选择和 final holdout 边界。当前状态为
-`phase1_frozen_preimplementation`，因此它暂时没有训练/评估命令；现有命令继续读取各自旧合同，
-但旧 PLP/Hybrid 只作为 baseline 或消融，不能替代 proposed method。
+`phase1_approved_for_implementation`。第二阶段 CPU 核心模块已经完成，但尚无真实 Qwen
+trace 或 Bayesian 实验结果；现有命令继续读取各自旧合同，旧 PLP/Hybrid 只作为 baseline 或
+消融，不能替代 proposed method。
 
 对于已经完成的 ALPS v1 命令行流程，权威合同仍是：
 

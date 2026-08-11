@@ -59,12 +59,34 @@ def validate_bayesian_contract(
         "request posterior must update online",
     )
 
+    implementation = contract["implementation"]
+    _require(
+        implementation["phase2_cpu_core_status"] == "complete",
+        "phase-two CPU core status is inconsistent",
+    )
+    _require(
+        implementation["real_qwen_trace_collected"] is False,
+        "phase two must not claim a real Qwen trace",
+    )
+    _require(
+        implementation["bayesian_experiments_started"] is False,
+        "phase two must not claim Bayesian experiments",
+    )
+    _require(
+        implementation["final_holdout_opened"] is False,
+        "final holdout must remain unopened",
+    )
+
     latent = contract["latent_state"]
     _require(latent["definition"] == "R_t = output_tokens - step", "latent definition changed")
     _require(latent["support"] == "integer_tokens", "latent support must be integer tokens")
     _require(latent["minimum"] == 0, "remaining length cannot be negative")
     _require(latent["terminal_state"] == 0, "terminal remaining length must be zero")
     _require(latent["output_length_includes_eos"] is True, "length must include EOS")
+    _require(
+        latent["overflow_state"].startswith("one_explicit_tail_state"),
+        "right-censored inference requires one explicit overflow state",
+    )
 
     prior = contract["prior"]
     _require(prior["target"] == "log1p_output_tokens", "prior target must be log1p length")
@@ -82,6 +104,10 @@ def validate_bayesian_contract(
     _require(
         prior["validation_features"] == "fit_on_outer_train_families_only",
         "validation prior leaked outside outer train",
+    )
+    _require(
+        prior["discretization"]["preserve_upper_tail_as_overflow_state"] is True,
+        "the shifted-lognormal upper tail must remain explicit",
     )
 
     updates = contract["updates"]
@@ -103,6 +129,10 @@ def validate_bayesian_contract(
     _require(
         evidence["full_causal_hidden_state_repeated_multiplication_forbidden"] is True,
         "repeated cumulative hidden-state multiplication is forbidden",
+    )
+    _require(
+        "overflow_indicator" in evidence["candidate_features"],
+        "candidate features must identify the overflow state",
     )
 
     _require(

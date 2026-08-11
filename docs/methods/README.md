@@ -13,6 +13,7 @@
 | 4 | [`plp_only_explained.md`](plp_only_explained.md) | 面向初学者完整解释 entropy pooling、`h_prompt`、`h'_t`、7168 维输入、20-bin 和 MLP |
 | 5 | [`hybrid_concat_residual_gated.md`](hybrid_concat_residual_gated.md) | concat v1、residual v2、gated v2.1 的融合结构、训练和 OOF |
 | 6 | [`bayesian_sequential_inference.md`](bayesian_sequential_inference.md) | **项目核心主线**：ALPS prior、增量 evidence、Bayes update、hazard、uncertainty 与实验边界 |
+| 7 | [`bayesian_sequential_implementation.md`](bayesian_sequential_implementation.md) | 第二阶段 CPU 核心模块、接口、不变量与测试门 |
 
 ## 项目核心方法与历史 baseline
 

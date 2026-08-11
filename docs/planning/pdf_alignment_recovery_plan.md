@@ -47,12 +47,14 @@ Bayesian sequential update
 - [x] 冻结 baseline、主指标、收敛指标和选择规则；
 - [x] 新增机器可读 JSON 合同；
 - [x] 新增合同自动测试；
-- [ ] 导师/项目负责人确认合同后，将状态从 `phase1_frozen_preimplementation` 改为
+- [x] 导师/项目负责人已于 2026-08-11 确认合同，状态已改为
   `phase1_approved_for_implementation`。此状态变化只表示批准实现，不允许改变科学内容。
 
 阶段门：在合同确认前，不采集新的 Bayesian full Train 或 final holdout。
 
 ## 4. 阶段二：无 GPU 的核心实现
+
+状态：**已完成（2026-08-11）。**
 
 新增模块：
 
@@ -65,18 +67,19 @@ src/llm_length_prediction/evaluation/sequential.py
 
 最低实现顺序：
 
-1. shifted-lognormal integer mass；
-2. posterior shift/condition transition；
-3. log-space likelihood update；
-4. posterior summaries、credible intervals 和 derived hazard；
-5. synthetic sequence builder；
-6. right-censoring likelihood；
-7. scalar evidence scorer；
-8. hidden-delta scorer；
-9. rollout-balanced sequence NLL；
-10. checkpoint schema 与数值稳定性测试。
+1. [x] shifted-lognormal integer mass 与 overflow；
+2. [x] posterior shift/condition transition；
+3. [x] log-space likelihood update；
+4. [x] posterior summaries、credible intervals 和 derived hazard；
+5. [x] synthetic sequence builder；
+6. [x] right-censoring likelihood；
+7. [x] scalar evidence scorer；
+8. [x] hidden-delta scorer；
+9. [x] rollout-balanced sequence NLL；
+10. [x] checkpoint schema 与数值稳定性测试。
 
-阶段门：合成数据必须证明 prior、transition、evidence 和 posterior 的方向全部正确。
+阶段门：已通过 36 个专项测试，覆盖 prior、transition、evidence、posterior、censoring、scorer、
+checkpoint 和 metrics。下一阶段是统一 collector pilot；本阶段测试不构成真实模型效果证据。
 
 ## 5. 阶段三：统一 trace collector 与小型 pilot
 

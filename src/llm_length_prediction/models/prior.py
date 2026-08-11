@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Sequence
+from collections.abc import Hashable, Sequence
 from dataclasses import dataclass
 
 import numpy as np
@@ -47,6 +47,7 @@ class StandardizedRidgeLogNormalPrior:
     residual_variance: float
     ridge_alpha: float = 1.0
     target: str = "log1p_output_tokens"
+    residual_variance_estimator: str = "maximum_likelihood"
 
     def predict_mu(self, hidden_state: Sequence[float]) -> float:
         if len(hidden_state) != len(self.weights):
@@ -72,7 +73,7 @@ class StandardizedRidgeLogNormalPrior:
             "feature_mean": list(self.feature_mean),
             "feature_scale": list(self.feature_scale),
             "residual_variance": self.residual_variance,
-            "residual_variance_estimator": "maximum_likelihood",
+            "residual_variance_estimator": self.residual_variance_estimator,
             "ridge_alpha": self.ridge_alpha,
         }
 
@@ -87,6 +88,9 @@ class StandardizedRidgeLogNormalPrior:
             feature_scale=tuple(float(value) for value in payload["feature_scale"]),  # type: ignore[arg-type]
             residual_variance=float(payload["residual_variance"]),
             ridge_alpha=float(payload.get("ridge_alpha", 1.0)),
+            residual_variance_estimator=str(
+                payload.get("residual_variance_estimator", "maximum_likelihood")
+            ),
         )
 
 
@@ -138,3 +142,99 @@ def fit_log1p_ridge_prior(
         residual_variance=residual_variance,
         ridge_alpha=alpha,
     )
+
+
+def grouped_fold_ids(
+    groups: Sequence[Hashable],
+    *,
+    folds: int,
+    seed: int,
+) -> np.ndarray:
+    """Assign every member of a family/group to one deterministic fold."""
+
+    if folds < 2:
+        raise ValueError("folds must be at least two")
+    if len(groups) == 0:
+        raise ValueError("at least one group is required")
+    unique_groups = sorted(set(groups), key=str)
+    if len(unique_groups) < folds:
+        raise ValueError("the number of unique groups must be at least the fold count")
+    generator = np.random.default_rng(seed)
+    shuffled = list(unique_groups)
+    generator.shuffle(shuffled)
+    group_to_fold = {group: index % folds for index, group in enumerate(shuffled)}
+    return np.asarray([group_to_fold[group] for group in groups], dtype=np.int32)
+
+
+def fit_grouped_oof_log1p_prior(
+    hidden_states: Sequence[Sequence[float]],
+    output_tokens: Sequence[int],
+    groups: Sequence[Hashable],
+    *,
+    folds: int = 5,
+    alpha: float = 1.0,
+    seed: int = 42,
+    fold_ids: Sequence[int] | None = None,
+) -> tuple[StandardizedRidgeLogNormalPrior, np.ndarray, np.ndarray]:
+    """Fit the final Ridge while calibrating variance from grouped OOF residuals.
+
+    Returns ``(full_train_prior, oof_mu, resolved_fold_ids)``. The fitted Ridge weights
+    use all supplied training rows, while ``residual_variance`` is replaced by the MLE
+    over predictions made without each row's family.
+    """
+
+    features = np.asarray(hidden_states, dtype=np.float64)
+    lengths = np.asarray(output_tokens, dtype=np.float64)
+    if features.ndim != 2 or features.shape[0] == 0:
+        raise ValueError("hidden_states must be a non-empty matrix")
+    if lengths.shape != (len(features),) or len(groups) != len(features):
+        raise ValueError("lengths and groups must align with hidden_states")
+    if np.any(~np.isfinite(features)) or np.any(~np.isfinite(lengths)):
+        raise ValueError("training inputs must be finite")
+    if np.any(lengths < 1):
+        raise ValueError("Bayesian ALPS output lengths must include at least EOS")
+    if fold_ids is None:
+        resolved_folds = grouped_fold_ids(groups, folds=folds, seed=seed)
+    else:
+        resolved_folds = np.asarray(fold_ids, dtype=np.int32)
+        if resolved_folds.shape != (len(features),):
+            raise ValueError("fold_ids must align with hidden_states")
+        unique_folds = sorted(set(int(value) for value in resolved_folds))
+        if unique_folds != list(range(folds)):
+            raise ValueError("fold_ids must cover contiguous values 0..folds-1")
+        group_folds: dict[Hashable, int] = {}
+        for group, fold in zip(groups, resolved_folds, strict=True):
+            previous = group_folds.setdefault(group, int(fold))
+            if previous != int(fold):
+                raise ValueError("one group cannot appear in multiple folds")
+
+    oof_mu = np.full(len(features), np.nan, dtype=np.float64)
+    for fold in range(folds):
+        validation_mask = resolved_folds == fold
+        training_mask = ~validation_mask
+        if not np.any(validation_mask) or not np.any(training_mask):
+            raise ValueError("each fold needs both training and validation rows")
+        fold_prior = fit_log1p_ridge_prior(
+            features[training_mask],
+            lengths[training_mask].astype(np.int64),
+            alpha=alpha,
+        )
+        oof_mu[validation_mask] = np.asarray(
+            [fold_prior.predict_mu(row) for row in features[validation_mask]],
+            dtype=np.float64,
+        )
+    if np.any(~np.isfinite(oof_mu)):
+        raise RuntimeError("grouped OOF prior predictions are incomplete")
+    residuals = np.log1p(lengths) - oof_mu
+    oof_variance = float(np.mean(np.square(residuals)))
+    full_prior = fit_log1p_ridge_prior(features, lengths.astype(np.int64), alpha=alpha)
+    calibrated = StandardizedRidgeLogNormalPrior(
+        weights=full_prior.weights,
+        bias=full_prior.bias,
+        feature_mean=full_prior.feature_mean,
+        feature_scale=full_prior.feature_scale,
+        residual_variance=oof_variance,
+        ridge_alpha=full_prior.ridge_alpha,
+        residual_variance_estimator="family_grouped_oof_log1p_residual_mle",
+    )
+    return calibrated, oof_mu, resolved_folds
