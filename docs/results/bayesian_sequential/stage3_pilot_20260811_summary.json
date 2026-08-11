@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "pilot_id": "bayesian-sequential-v1-unified-trace-pilot",
+  "stage": "stage3_unified_collector_pilot",
+  "status": "pass",
+  "claim_scope": "engineering_and_data_contract_only_not_method_effectiveness",
+  "frozen_scope": {
+    "split": "train",
+    "tasks": ["qa", "summarization", "code"],
+    "intended_lengths": ["short", "medium", "long"],
+    "temperature": 0.7,
+    "top_p": 0.95,
+    "seed": 42,
+    "max_new_tokens": 4096,
+    "expected_trace_count": 9,
+    "final_holdout_accessed": false
+  },
+  "model": {
+    "id": "Qwen/Qwen2.5-7B-Instruct",
+    "revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "tokenizer_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "dtype": "bfloat16"
+  },
+  "environment": {
+    "python_version": "3.12.3",
+    "torch_version": "2.8.0+cu128",
+    "transformers_version": "4.48.3",
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA GeForce RTX 4090",
+    "gpu_memory_gb": 25.26,
+    "gpu_memory_gib": 23.53,
+    "gpu_compute_capability": "8.9",
+    "bf16_supported": true
+  },
+  "acceptance": {
+    "valid_trace_count": 9,
+    "missing_selected_job_count": 0,
+    "task_length_cell_count": 9,
+    "eos_trace_count": 9,
+    "censored_trace_count": 0,
+    "censoring_rate": 0.0,
+    "total_observed_tokens": 3843,
+    "total_duration_ms": 77237.04602569342,
+    "total_trace_bytes": 5652103,
+    "peak_cuda_allocated_bytes": 15488000000,
+    "peak_cuda_reserved_bytes": 15758000128,
+    "warnings": [],
+    "failures": [],
+    "real_qwen_pilot_complete": true,
+    "manual_trace_audit": "pass",
+    "local_archive_and_trace_revalidation": "pass"
+  },
+  "trace_index": [
+    {
+      "prompt_id": "qa_001_gradient_descent_short",
+      "cell": "qa:short",
+      "observed_tokens": 41,
+      "saved_point_count": 10,
+      "duration_ms": 1297.554463148117,
+      "trace_bytes": 100571,
+      "generated_token_ids_sha256": "6ed9fd01cbc1488529d7d82f24b46d55728bba64ba86f6a272f70d867d415c5c",
+      "trace_sha256": "a0b8fe6a07878fd85d37a54245f5d8b8f18780d1979accc5343ef4c7d9caef0b"
+    },
+    {
+      "prompt_id": "qa_001_gradient_descent_medium",
+      "cell": "qa:medium",
+      "observed_tokens": 487,
+      "saved_point_count": 99,
+      "duration_ms": 9712.377518415451,
+      "trace_bytes": 711093,
+      "generated_token_ids_sha256": "6fa85088dfe123ba6b00257cca391e274ed3d5e5b03d05334044b8e2372b0678",
+      "trace_sha256": "7779df5bc329dc3a7704611325ece8f91f3f6ee7d8f3f35aec9b32c9b96b3939"
+    },
+    {
+      "prompt_id": "qa_001_gradient_descent_long",
+      "cell": "qa:long",
+      "observed_tokens": 711,
+      "saved_point_count": 144,
+      "duration_ms": 13552.046336233616,
+      "trace_bytes": 1019955,
+      "generated_token_ids_sha256": "1ecadc89c12890d19f93274fa8af85bd45081cdf287363d207afa386a0e06340",
+      "trace_sha256": "feaa729bfb8950318d3edd0b36c1d1fe6d707a6fbedf68d15ac6c7c80e9015f5"
+    },
+    {
+      "prompt_id": "summarization_001_urban_transit_short",
+      "cell": "summarization:short",
+      "observed_tokens": 48,
+      "saved_point_count": 11,
+      "duration_ms": 1486.2874299287796,
+      "trace_bytes": 107662,
+      "generated_token_ids_sha256": "2e65733791bcea735f05d3fdf4a0e93728b04d33d87184796d5e4bdee243a56b",
+      "trace_sha256": "8e808831e20978e6cbbc465d318243cc28daf89c5f3d89773a413b2ee4885cd2"
+    },
+    {
+      "prompt_id": "summarization_001_urban_transit_medium",
+      "cell": "summarization:medium",
+      "observed_tokens": 217,
+      "saved_point_count": 45,
+      "duration_ms": 4171.064421534538,
+      "trace_bytes": 341339,
+      "generated_token_ids_sha256": "27507a11573610a932b4ce593238ac6a19413139d05ef4198a3e2ba58b63de05",
+      "trace_sha256": "9cccc18ea72740caab85be48f388085d313f6f33bd18558878305eebe4cf52e7"
+    },
+    {
+      "prompt_id": "summarization_001_urban_transit_long",
+      "cell": "summarization:long",
+      "observed_tokens": 385,
+      "saved_point_count": 78,
+      "duration_ms": 7480.766102671623,
+      "trace_bytes": 567772,
+      "generated_token_ids_sha256": "eb0fe8930cc9923d26d37863c06292febe71695f3fc197ed4ee2d2c9925825b5",
+      "trace_sha256": "ecab8791d0a542b479be8fa9f88706871456c336fd88e6b363d46c1adaae722b"
+    },
+    {
+      "prompt_id": "code_001_lru_cache_short",
+      "cell": "code:short",
+      "observed_tokens": 157,
+      "saved_point_count": 33,
+      "duration_ms": 3017.173357307911,
+      "trace_bytes": 258069,
+      "generated_token_ids_sha256": "052668f0594be5243fb5ae9fc67beafab7d0e304f986c6b7ce307ca5f82d79c8",
+      "trace_sha256": "4ed293b86acef329bbd4e09d75109c0c7a3446f2766e9fab46fa5b4f459ca599"
+    },
+    {
+      "prompt_id": "code_001_lru_cache_medium",
+      "cell": "code:medium",
+      "observed_tokens": 849,
+      "saved_point_count": 171,
+      "duration_ms": 16290.417447686195,
+      "trace_bytes": 1204698,
+      "generated_token_ids_sha256": "f89c8a3f7d7e6856582fa1f3276f238917daf5557c5d03fdcc8190c7505bcc9c",
+      "trace_sha256": "0b648fa7404fc49600e8d2045387885d272c3684085c2657dcf79709c9c0d24f"
+    },
+    {
+      "prompt_id": "code_001_lru_cache_long",
+      "cell": "code:long",
+      "observed_tokens": 948,
+      "saved_point_count": 191,
+      "duration_ms": 20229.358948767185,
+      "trace_bytes": 1340944,
+      "generated_token_ids_sha256": "b1aa9e486930e2147be361fb16eefbbe86fd46aca838bd44faf0b0b15d41a2c6",
+      "trace_sha256": "5e8b90ad79496eccaac7e0824ab5e2c24dd7173a429bd636483468ef3988d143"
+    }
+  ],
+  "provenance": {
+    "scientific_contract_sha256": "10187cda101bd364418d9b999568006dc75625c222eefee3c65e371c51e4dcb4",
+    "source_prompt_manifest_sha256": "1b4c42acfbefe274d14777d1e42426488965d199a8f1289a836caa65a73c2038",
+    "acceptance_schema_sha256": "3d67159e735e7ef29a6e8a87378d9d5cef4738a43961408f756fde68b887dfce",
+    "collector_server_head": "64fe01de7319edb1dc7868bae86eff506c18d2e6",
+    "nominal_memory_preflight_fix_commit": "cedccb6b6890181aa57c504b0d067f407282c2cd",
+    "runtime_preflight_sha256": "84069031f29aac02c5847533351e2f9060e6656c75b3e26e052df79cafe278f1",
+    "archive_filename": "bayesian_stage3_pilot_20260811.tar.gz",
+    "archive_sha256": "fce730b46d8dd8f860ea7dcbdcadb95d91b663eb83a1031b03999ff6316e2c79",
+    "raw_traces_committed_to_git": false,
+    "archive_committed_to_git": false
+  }
+}
