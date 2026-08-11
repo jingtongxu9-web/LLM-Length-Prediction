@@ -48,6 +48,11 @@ R_t in {0, 1, ..., max_new_tokens - t}
 max_new_tokens = 4096
 ```
 
+实现中另保留一个不参与整数点预测伪装的 `overflow` 状态，表示真实总长度大于 4096。它用于
+保存 shifted-lognormal 的上尾质量，并使 `max_new_tokens` 停止的 rollout 能贡献正确的
+右删失生存概率。摘要必须单独报告 overflow probability；若所求 quantile 落入 overflow，区间
+上界报告为无穷而不是 4096。
+
 不使用 Test 长度分位数确定支持集或 bins。被 `max_new_tokens` 截断的 rollout 属于右删失数据，
 不能把未知剩余长度标为 0。
 
@@ -192,6 +197,7 @@ r
 log1p(r)
 r / max_new_tokens
 candidate_total = t + r
+overflow indicator
 ```
 
 使用共享 scorer，而不是为 4097 个长度各自训练完全独立的参数。Posterior 更新为：

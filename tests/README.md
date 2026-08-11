@@ -25,10 +25,14 @@ Current coverage includes:
 - Hybrid v3 216-prompt manifest checksum and new-family holdout isolation;
 - unified pickle-free trace provenance, family-stratified folds, shifted log-normal prior;
 - exact terminal zero bin, censoring warning/abort policy, family-macro metrics and paired-family CI.
+- Bayesian Sequential contract pinning, family-grouped OOF ALPS variance, integer prior/overflow,
+  countdown transition, log-space update, hazard round trip, non-overlapping sequence construction,
+  exact/right-censored loss, scalar/hidden-delta shared scorers, safe checkpoint round trip, CRPS,
+  coverage and stable-time metrics.
 
-The local suite does not train either PyTorch MLP. Real training and Qwen hidden-state collection are
-exercised on the server runtime that provides PyTorch; local tests cover storage, contracts and
-framework-independent NumPy mathematics.
+The local suite only trains a tiny synthetic Bayesian scorer for two epochs as a wiring test. Real
+training and Qwen hidden-state collection are exercised on the server runtime; local tests do not
+claim model quality or GPU feasibility.
 
 After installing the project, run from the repository root:
 

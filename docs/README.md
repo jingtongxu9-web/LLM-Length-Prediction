@@ -7,11 +7,12 @@
 ## 1. 最推荐的阅读顺序
 
 1. [`methods/bayesian_sequential_inference.md`](methods/bayesian_sequential_inference.md)：阅读项目核心 Bayesian Sequential 数学合同；
-2. [`methods/README.md`](methods/README.md)：理解 Baseline、ALPS、PLP、判别式 Hybrid 与 proposed method 的关系；
-3. [`results/README.md`](results/README.md)：按方法家族找到每一个冻结历史实验报告；
-4. [`planning/pdf_alignment_recovery_plan.md`](planning/pdf_alignment_recovery_plan.md)：查看回到 PDF 主线的实施阶段；
-5. [`planning/research_plan.md`](planning/research_plan.md)：了解后续 holdout 与 serving 路线；
-6. [`deployment/autodl_5090.md`](deployment/autodl_5090.md)：在 AutoDL 运行。
+2. [`methods/bayesian_sequential_implementation.md`](methods/bayesian_sequential_implementation.md)：查看第二阶段 CPU 核心实现；
+3. [`methods/README.md`](methods/README.md)：理解 Baseline、ALPS、PLP、判别式 Hybrid 与 proposed method 的关系；
+4. [`results/README.md`](results/README.md)：按方法家族找到每一个冻结历史实验报告；
+5. [`planning/pdf_alignment_recovery_plan.md`](planning/pdf_alignment_recovery_plan.md)：查看回到 PDF 主线的实施阶段；
+6. [`planning/research_plan.md`](planning/research_plan.md)：了解后续 holdout 与 serving 路线；
+7. [`deployment/autodl_5090.md`](deployment/autodl_5090.md)：在 AutoDL 运行。
 
 ## 2. 目录结构
 
@@ -23,7 +24,8 @@ docs/
 │   ├── plp_versions.md
 │   ├── plp_only_explained.md
 │   ├── hybrid_concat_residual_gated.md
-│   └── bayesian_sequential_inference.md
+│   ├── bayesian_sequential_inference.md
+│   └── bayesian_sequential_implementation.md
 ├── results/                       # 已完成实验的人工可读报告
 │   ├── baseline/
 │   ├── alps/
@@ -45,6 +47,7 @@ docs/
 | [`methods/plp_only_explained.md`](methods/plp_only_explained.md) | PLP 的 entropy pooling、decode state、20-bin 和 MLP 细节 |
 | [`methods/hybrid_concat_residual_gated.md`](methods/hybrid_concat_residual_gated.md) | Hybrid concat v1、residual v2 与 gated residual v2.1 |
 | [`methods/bayesian_sequential_inference.md`](methods/bayesian_sequential_inference.md) | **项目 proposed method**：ALPS prior、增量 evidence、posterior update 与 uncertainty |
+| [`methods/bayesian_sequential_implementation.md`](methods/bayesian_sequential_implementation.md) | Bayesian Sequential v1 的第二阶段 CPU 核心实现说明 |
 
 ## 4. 实验报告
 

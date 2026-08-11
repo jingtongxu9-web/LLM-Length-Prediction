@@ -94,6 +94,15 @@ def test_contract_distinguishes_parameters_from_request_posterior() -> None:
     assert contract["posterior_update"]["derive_discrete_hazard_from_posterior"] is True
 
 
+def test_phase_two_status_does_not_claim_real_experiments() -> None:
+    implementation = _load_contract()["implementation"]
+    assert implementation["phase2_cpu_core_status"] == "complete"
+    assert implementation["completed_on"] == "2026-08-11"
+    assert implementation["real_qwen_trace_collected"] is False
+    assert implementation["bayesian_experiments_started"] is False
+    assert implementation["final_holdout_opened"] is False
+
+
 def test_only_two_predeclared_bayesian_candidates_can_be_selected() -> None:
     contract = _load_contract()
     assert set(contract["candidate_models"]) == {
@@ -109,7 +118,7 @@ def test_only_two_predeclared_bayesian_candidates_can_be_selected() -> None:
 def test_final_holdout_is_still_forbidden() -> None:
     contract = _load_contract()
     data_policy = contract["data_policy"]
-    assert contract["status"] == "phase1_frozen_preimplementation"
+    assert contract["status"] == "phase1_approved_for_implementation"
     assert data_policy["new_final_holdout_required"] is True
     assert data_policy["new_final_holdout_status"] == "not_authored_not_opened"
     assert data_policy["old_alps_plp_test_role"] == "historical_evidence_only"
@@ -142,3 +151,10 @@ def test_censored_rollouts_cannot_become_terminal_zero() -> None:
     assert censoring["impute_unknown_remaining_as_zero"] is False
     assert censoring["silent_drop_forbidden"] is True
     assert censoring["primary_likelihood"] == "right_censored_survival_contribution"
+
+
+def test_upper_tail_is_an_explicit_overflow_state() -> None:
+    contract = _load_contract()
+    assert contract["latent_state"]["overflow_state"].startswith("one_explicit_tail_state")
+    assert contract["prior"]["discretization"]["preserve_upper_tail_as_overflow_state"]
+    assert "overflow_indicator" in contract["evidence"]["candidate_features"]
