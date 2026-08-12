@@ -117,7 +117,7 @@ Pilot 覆盖 QA、Summarization、Code 与 Short、Medium、Long，先确认字�
 
 ## 6. 阶段四：一次性完整 Train 采集
 
-状态：**本地实现与实验合同已冻结，等待服务器执行。**
+状态：**已完成（2026-08-12）。**
 
 - [x] 冻结 180 Train Prompt、60 family、3 temperature、3 seed，共 1,620 rollout；
 - [x] 冻结 Stage 3 实测外推的 GPU 时间、磁盘和显存预算；
@@ -125,9 +125,9 @@ Pilot 覆盖 QA、Summarization、Code 与 Short、Medium、Long，先确认字�
 - [x] 实现完整覆盖、censoring、CUDA provenance 和 final-holdout 边界验收；
 - [x] 实现 4090/BF16/revision/动态剩余磁盘 preflight；
 - [x] 冻结机器可读 full-Train report schema；
-- [ ] 在服务器通过 full-Train preflight；
-- [ ] 采集并复验全部 1,620 trace；
-- [ ] 将 archive 下载到本地并完成逐 trace 二次复验。
+- [x] 在服务器通过 full-Train preflight；
+- [x] 采集并复验全部 1,620 trace；
+- [x] 将 archive 下载到本地并完成逐 trace SHA-256 二次复验。
 
 主开发 temperature 为 `0.7`；robustness temperature 为 `0.3/1.0`。同一 family 的全部
 temperature、seed、长度版本和 timestep 保持在同一 fold。
@@ -137,6 +137,8 @@ Full Train trace 冻结后，各方法只做离线训练和评价，不为每个
 [`../deployment/bayesian_sequential_stage4_full_train.md`](../deployment/bayesian_sequential_stage4_full_train.md)。
 
 ## 7. 阶段五：Train-family OOF 与方法选择
+
+状态：**代码、真实数据 preflight 和五折合同已实现；等待完整模型训练。**
 
 统一比较：
 
@@ -150,6 +152,12 @@ Full Train trace 冻结后，各方法只做离线训练和评价，不为每个
 
 所有 scaler、ALPS prior、variance calibration 和 neural model 都在折内拟合。按预注册 paired
 NLL 规则选择 Bayesian scalar 或 hidden-delta，不允许在同一 OOF 上继续增加候选。
+
+冻结实现见
+[`../../configs/experiments/bayesian_sequential_stage5_oof_v1.json`](../../configs/experiments/bayesian_sequential_stage5_oof_v1.json)，
+运行手册见
+[`../deployment/bayesian_sequential_stage5_oof.md`](../deployment/bayesian_sequential_stage5_oof.md)。
+主训练严格只使用 `temperature=0.7`；`0.3/1.0` 只由每折冻结模型评价，禁止 robustness refit。
 
 ## 8. 阶段六：不确定性、收敛与 serving
 

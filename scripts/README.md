@@ -3,6 +3,30 @@
 Run commands from the repository root. Files in this directory are user-facing entry points; they
 call reusable implementation under `src/llm_length_prediction/`.
 
+## Bayesian Sequential stage-five family OOF
+
+Stage four completed 1,620/1,620 traces and the downloaded archive passed both archive-level and
+per-file SHA-256 verification. Stage five reads that extracted directory outside Git, fits only on
+temperature 0.7, and evaluates each frozen fold model at 0.3/0.7/1.0 without robustness refitting:
+
+```bash
+python scripts/preflight_bayesian_stage5_oof.py \
+  --dataset-root "$STAGE4_DATA_ROOT" \
+  --verify-trace-hashes
+
+for FOLD in 0 1 2 3 4; do
+  python scripts/run_bayesian_stage5_fold.py \
+    --dataset-root "$STAGE4_DATA_ROOT" --fold "$FOLD" --device auto
+done
+
+python scripts/finalize_bayesian_stage5_oof.py \
+  --dataset-root "$STAGE4_DATA_ROOT"
+```
+
+The finalizer applies the frozen paired-family NLL rule to scalar versus hidden-delta. These
+commands never access or author a final holdout. See
+[`docs/deployment/bayesian_sequential_stage5_oof.md`](../docs/deployment/bayesian_sequential_stage5_oof.md).
+
 ## Bayesian Sequential stage-four full-Train collection
 
 The real-Qwen nine-rollout stage-three pilot passed. Stage four expands only the opened Train
@@ -212,8 +236,11 @@ so the same command safely resumes an interrupted run.
 | `evaluate_plp_v3_final.py` | Implemented | Final PLP-only comparison with overall, task, length, 3x3, seed, progress, and terminal breakdowns |
 | `preflight_bayesian_pilot.py` | Implemented, server run passed | Validate stage-three contract, model revision, CUDA/BF16, disk and output paths |
 | `collect_bayesian_pilot.py` | Implemented, 9/9 server pilot passed | Resumable nine-rollout Train-only unified Bayesian trace pilot |
-| `preflight_bayesian_full_train.py` | Implemented, awaiting server run | Validate Stage 3 gate, 1,620 jobs, model/revision, CUDA/BF16, memory and dynamic disk budget |
-| `collect_bayesian_full_train.py` | Implemented, awaiting server run | Deterministic 100-job chunks, atomic trace writes, strict resume and full-Train acceptance report |
+| `preflight_bayesian_full_train.py` | Implemented, server run passed | Validate Stage 3 gate, 1,620 jobs, model/revision, CUDA/BF16, memory and dynamic disk budget |
+| `collect_bayesian_full_train.py` | Implemented, 1,620/1,620 passed | Deterministic 100-job chunks, atomic trace writes, strict resume and full-Train acceptance report |
+| `preflight_bayesian_stage5_oof.py` | Implemented, local real-data preflight passed | Pin Stage-4 report/index/dataset SHA, verify the grid and optionally rehash all 1,620 NPZ files |
+| `run_bayesian_stage5_fold.py` | Implemented, awaiting full training | One resumable outer fold with nested ALPS prior, frozen baselines and two Bayesian candidates |
+| `finalize_bayesian_stage5_oof.py` | Implemented, awaiting five folds | Combine OOF predictions, report robustness, and apply the paired-family NLL selection rule |
 
 ## Inputs and outputs
 

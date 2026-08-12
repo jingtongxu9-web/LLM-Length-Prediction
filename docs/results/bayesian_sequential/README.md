@@ -1,9 +1,9 @@
 # Bayesian Sequential 实验结果
 
-当前尚无 Bayesian Sequential **方法效果结果**。数学合同、第二阶段 CPU 核心，以及第三阶段
-真实 Qwen 9-rollout Train-only pilot 均已完成。第四阶段的 1,620-rollout full-Train 配置、
-预算、preflight、collector 和验收 schema 已冻结，等待服务器执行。第三阶段与第四阶段采集
-都只验证数据与工程合同，不构成 Bayesian 预测效果、OOF 方法选择或最终 Test 结果。
+当前尚无 Bayesian Sequential **方法效果结果**。数学合同、第二阶段 CPU 核心、第三阶段真实
+Qwen 9-rollout Train-only pilot，以及第四阶段 1,620-rollout full-Train 采集和本地逐文件复验
+均已完成。第五阶段 Train-family OOF 的配置、数据接入、五折训练、概率评价和预注册选择代码
+已经实现，等待完整模型训练。第三与第四阶段采集仍不构成 Bayesian 预测效果或最终 Test 结果。
 
 第三阶段可提交证据：
 
@@ -20,7 +20,7 @@
 
 禁止在实现前填入模拟或预期结果，也禁止把 concat/residual 的旧指标复制为 Bayesian 结果。
 
-阶段门：真实 RTX 4090/Qwen2.5-7B-Instruct pilot 已通过 9/9 trace、9 个 task-length cell、
-terminal/EOS 语义、provenance、显存和本地归档复验。下一步按
-[`../../deployment/bayesian_sequential_stage4_full_train.md`](../../deployment/bayesian_sequential_stage4_full_train.md)
-采集并本地复验完整 Train trace；在 OOF 方法选择完成前不得访问 final holdout。
+阶段门：第四阶段已通过 1,620/1,620 trace、60 family、9 个 task-length cell、三个 temperature、
+三个 seed、terminal/EOS、provenance、archive 和本地文件级 SHA-256 复验。下一步按
+[`../../deployment/bayesian_sequential_stage5_oof.md`](../../deployment/bayesian_sequential_stage5_oof.md)
+运行五折 OOF；在方法选择完成前不得访问 final holdout。

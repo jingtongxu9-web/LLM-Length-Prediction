@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import os
+from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -90,11 +91,11 @@ def fit_scorer_standardization(
             evidence_sum += step_weight * evidence
             evidence_square_sum += step_weight * np.square(evidence)
             evidence_weight += step_weight
-            candidates = np.asarray(step.candidate_features, dtype=np.float64)
-            row_weight = step_weight / len(candidates)
-            candidate_sum += row_weight * candidates.sum(axis=0)
-            candidate_square_sum += row_weight * np.square(candidates).sum(axis=0)
-            candidate_weight += row_weight * len(candidates)
+            step_sum, step_square_sum = candidate_feature_moments(step)
+            row_weight = step_weight / step.candidate_count
+            candidate_sum += row_weight * step_sum
+            candidate_square_sum += row_weight * step_square_sum
+            candidate_weight += row_weight * step.candidate_count
     evidence_mean = evidence_sum / evidence_weight
     candidate_mean = candidate_sum / candidate_weight
     evidence_variance = evidence_square_sum / evidence_weight - np.square(evidence_mean)
@@ -112,6 +113,27 @@ def fit_scorer_standardization(
     )
     standardization.validate()
     return standardization
+
+
+def candidate_feature_moments(step: Any) -> tuple[np.ndarray, np.ndarray]:
+    """Return candidate column moments without retaining a support matrix."""
+
+    remaining = np.arange(step.exact_max_remaining + 1, dtype=np.float64)
+    overflow = np.zeros_like(remaining)
+    if step.has_overflow:
+        remaining = np.concatenate((remaining, [step.exact_max_remaining + 1.0]))
+        overflow = np.concatenate((overflow, [1.0]))
+    columns = (
+        remaining,
+        np.log1p(remaining),
+        remaining / step.max_new_tokens,
+        step.step + remaining,
+        overflow,
+    )
+    return (
+        np.asarray([values.sum() for values in columns], dtype=np.float64),
+        np.asarray([np.square(values).sum() for values in columns], dtype=np.float64),
+    )
 
 
 def _torch_modules() -> tuple[Any, Any]:
@@ -269,81 +291,111 @@ def bayesian_sequence_loss(
     stability_weight: float = 0.01,
     device: str = "cpu",
 ) -> tuple[Any, dict[str, Any]]:
-    """Differentiate through every posterior update and balance rollouts equally."""
+    """Differentiate through every update with rollout-balanced sequence batching.
+
+    Sequences at the same saved step share one scorer call. This is mathematically
+    identical to processing rollouts independently, but it avoids millions of tiny
+    GPU launches during the full Stage-5 OOF run.
+    """
 
     if not sequences:
         raise ValueError("at least one Bayesian sequence is required")
     if terminal_bce_weight < 0 or stability_weight < 0:
         raise ValueError("loss weights cannot be negative")
     torch, _ = _torch_modules()
-    sequence_totals = []
-    sequence_nlls = []
-    sequence_terminals = []
-    sequence_stabilities = []
     for sequence in sequences:
         sequence.validate()
-        log_posterior = torch.as_tensor(
+    method_id = getattr(scorer, "bayesian_spec", {}).get("method_id")
+    if method_id not in BAYESIAN_METHOD_IDS:
+        raise ValueError("scorer is missing a recognized Bayesian method_id")
+    uses_hidden = method_id == HIDDEN_DELTA_METHOD_ID
+    log_posteriors = [
+        torch.as_tensor(
             sequence.initial_log_probabilities,
             dtype=torch.float32,
             device=device,
         )
-        nll_terms = []
-        terminal_terms = []
-        stability_terms = []
-        for step in sequence.steps:
-            log_predictive = _torch_transition(
-                log_posterior,
-                step.delta,
-                has_overflow=sequence.has_overflow,
+        for sequence in sequences
+    ]
+    zero = log_posteriors[0].new_zeros(())
+    nll_sums = [zero for _ in sequences]
+    terminal_sums = [zero for _ in sequences]
+    stability_sums = [zero for _ in sequences]
+    positions = [0 for _ in sequences]
+    while True:
+        groups: dict[tuple[int, int, int, bool], list[int]] = defaultdict(list)
+        for index, sequence in enumerate(sequences):
+            if positions[index] < len(sequence.steps):
+                step = sequence.steps[positions[index]]
+                groups[
+                    (step.step, step.delta, step.candidate_count, sequence.has_overflow)
+                ].append(index)
+        if not groups:
+            break
+        for (_, delta, _, has_overflow), indices in groups.items():
+            previous = torch.stack([log_posteriors[index] for index in indices])
+            finite_size = previous.shape[1] - int(has_overflow)
+            exact = previous[:, delta:finite_size]
+            shifted = (
+                torch.cat((exact, previous[:, -1:]), dim=1)
+                if has_overflow
+                else exact
             )
+            log_predictive = shifted - torch.logsumexp(shifted, dim=1, keepdim=True)
+            steps = [sequences[index].steps[positions[index]] for index in indices]
             evidence = torch.as_tensor(
-                step.scalar_features[None, :],
+                np.stack([step.scalar_features for step in steps]),
                 dtype=torch.float32,
                 device=device,
             )
-            candidates = torch.as_tensor(
-                step.candidate_features[None, :, :],
+            one_candidate_matrix = torch.as_tensor(
+                steps[0].candidate_features[None, :, :],
                 dtype=torch.float32,
                 device=device,
             )
-            hidden = (
-                None
-                if step.hidden_delta is None
-                else torch.as_tensor(
-                    step.hidden_delta[None, :],
+            candidates = one_candidate_matrix.expand(len(indices), -1, -1)
+            hidden = None
+            if uses_hidden:
+                if any(step.hidden_delta is None for step in steps):
+                    raise ValueError("hidden-delta scorer requires hidden evidence")
+                hidden = torch.as_tensor(
+                    np.stack([step.hidden_delta for step in steps]),
                     dtype=torch.float32,
                     device=device,
                 )
-            )
-            scores = scorer(evidence, candidates, hidden).squeeze(0)
-            log_posterior = torch.log_softmax(log_predictive + scores, dim=0)
-            nll_terms.append(
-                _step_nll(log_posterior, step, has_overflow=sequence.has_overflow)
-            )
-            probability_zero = torch.exp(log_posterior[0]).clamp(1e-7, 1.0 - 1e-7)
-            terminal_target = torch.as_tensor(
-                float(step.terminal_observed),
-                dtype=torch.float32,
-                device=device,
-            )
-            terminal_terms.append(
-                -terminal_target * torch.log(probability_zero)
-                - (1.0 - terminal_target) * torch.log1p(-probability_zero)
-            )
-            predictive = torch.exp(log_predictive)
-            posterior = torch.exp(log_posterior)
-            stability_terms.append(0.5 * torch.abs(posterior - predictive).sum())
-        mean_nll = torch.stack(nll_terms).mean()
-        mean_terminal = torch.stack(terminal_terms).mean()
-        mean_stability = torch.stack(stability_terms).mean()
-        sequence_nlls.append(mean_nll)
-        sequence_terminals.append(mean_terminal)
-        sequence_stabilities.append(mean_stability)
-        sequence_totals.append(
-            mean_nll
-            + terminal_bce_weight * mean_terminal
-            + stability_weight * mean_stability
+            scores = scorer(evidence, candidates, hidden)
+            posterior = torch.log_softmax(log_predictive + scores, dim=1)
+            for row, (index, step) in enumerate(zip(indices, steps, strict=True)):
+                log_posteriors[index] = posterior[row]
+                nll_sums[index] = nll_sums[index] + _step_nll(
+                    posterior[row], step, has_overflow=has_overflow
+                )
+                probability_zero = torch.exp(posterior[row, 0]).clamp(
+                    1e-7, 1.0 - 1e-7
+                )
+                terminal_target = posterior.new_tensor(float(step.terminal_observed))
+                terminal_sums[index] = terminal_sums[index] + (
+                    -terminal_target * torch.log(probability_zero)
+                    - (1.0 - terminal_target) * torch.log1p(-probability_zero)
+                )
+                stability_sums[index] = stability_sums[index] + 0.5 * torch.abs(
+                    torch.exp(posterior[row]) - torch.exp(log_predictive[row])
+                ).sum()
+                positions[index] += 1
+    counts = [len(sequence.steps) for sequence in sequences]
+    sequence_nlls = [value / count for value, count in zip(nll_sums, counts, strict=True)]
+    sequence_terminals = [
+        value / count for value, count in zip(terminal_sums, counts, strict=True)
+    ]
+    sequence_stabilities = [
+        value / count for value, count in zip(stability_sums, counts, strict=True)
+    ]
+    sequence_totals = [
+        nll + terminal_bce_weight * terminal + stability_weight * stability
+        for nll, terminal, stability in zip(
+            sequence_nlls, sequence_terminals, sequence_stabilities, strict=True
         )
+    ]
     components = {
         "posterior_nll": torch.stack(sequence_nlls).mean(),
         "terminal_bce": torch.stack(sequence_terminals).mean(),
@@ -372,6 +424,7 @@ def fit_bayesian_scorer(
     weight_decay: float = 1e-4,
     terminal_bce_weight: float = 0.1,
     stability_weight: float = 0.01,
+    sequence_batch_size: int | None = None,
     seed: int = 42,
     device: str = "auto",
 ) -> tuple[Any, dict[str, Any]]:
@@ -379,6 +432,8 @@ def fit_bayesian_scorer(
 
     if not sequences or epochs <= 0 or learning_rate <= 0 or weight_decay < 0:
         raise ValueError("invalid Bayesian scorer training inputs")
+    if sequence_batch_size is not None and sequence_batch_size <= 0:
+        raise ValueError("sequence_batch_size must be positive when provided")
     for sequence in sequences:
         sequence.validate()
     hidden_input_dim = None
@@ -394,34 +449,9 @@ def fit_bayesian_scorer(
         ):
             raise ValueError("all hidden deltas must share one dimension")
     elif method_id == SCALAR_METHOD_ID:
-        if any(step.hidden_delta is not None for sequence in sequences for step in sequence.steps):
-            # Hidden values may be present in a unified trace, but scalar v1 must not consume them.
-            sequences = tuple(
-                BayesianSequence(
-                    prompt_id=sequence.prompt_id,
-                    prompt_family_id=sequence.prompt_family_id,
-                    seed=sequence.seed,
-                    max_new_tokens=sequence.max_new_tokens,
-                    initial_log_probabilities=sequence.initial_log_probabilities,
-                    steps=tuple(
-                        type(step)(
-                            step=step.step,
-                            delta=step.delta,
-                            scalar_features=step.scalar_features,
-                            candidate_features=step.candidate_features,
-                            true_remaining=step.true_remaining,
-                            censored_after_remaining=step.censored_after_remaining,
-                            terminal_observed=step.terminal_observed,
-                            hidden_delta=None,
-                        )
-                        for step in sequence.steps
-                    ),
-                    prior_lower_tail_mass=sequence.prior_lower_tail_mass,
-                    prior_upper_tail_mass=sequence.prior_upper_tail_mass,
-                    has_overflow=sequence.has_overflow,
-                )
-                for sequence in sequences
-            )
+        # Unified traces retain hidden deltas for both candidates. The scalar
+        # scorer ignores them explicitly rather than copying every long sequence.
+        pass
     else:
         raise ValueError(f"unsupported Bayesian method_id: {method_id}")
 
@@ -450,28 +480,50 @@ def fit_bayesian_scorer(
         foreach=False,
     )
     epoch_losses = []
-    for _ in range(epochs):
+    effective_batch_size = min(sequence_batch_size or len(sequences), len(sequences))
+    for epoch in range(epochs):
         scorer.train()
+        generator = np.random.default_rng(seed + epoch)
+        order = generator.permutation(len(sequences))
+        weighted_loss = 0.0
         optimizer.zero_grad(set_to_none=True)
-        loss, _ = bayesian_sequence_loss(
-            scorer,
-            sequences,
-            terminal_bce_weight=terminal_bce_weight,
-            stability_weight=stability_weight,
-            device=resolved_device,
-        )
-        loss.backward()
+        for start in range(0, len(order), effective_batch_size):
+            indices = order[start : start + effective_batch_size]
+            batch = [sequences[int(index)] for index in indices]
+            loss, _ = bayesian_sequence_loss(
+                scorer,
+                batch,
+                terminal_bce_weight=terminal_bce_weight,
+                stability_weight=stability_weight,
+                device=resolved_device,
+            )
+            # Accumulating rollout-weighted gradients preserves the original
+            # full-training-set objective and one AdamW update per epoch while
+            # releasing each mini-batch computation graph immediately.
+            (loss * (len(batch) / len(sequences))).backward()
+            weighted_loss += float(loss.detach().cpu().item()) * len(batch)
         optimizer.step()
-        epoch_losses.append(float(loss.detach().cpu().item()))
+        epoch_losses.append(weighted_loss / len(sequences))
     scorer.eval()
+    component_sums = {
+        "posterior_nll": 0.0,
+        "terminal_bce": 0.0,
+        "posterior_total_variation": 0.0,
+    }
+    final_loss_sum = 0.0
     with torch.no_grad():
-        final_loss, components = bayesian_sequence_loss(
-            scorer,
-            sequences,
-            terminal_bce_weight=terminal_bce_weight,
-            stability_weight=stability_weight,
-            device=resolved_device,
-        )
+        for start in range(0, len(sequences), effective_batch_size):
+            batch = sequences[start : start + effective_batch_size]
+            batch_loss, batch_components = bayesian_sequence_loss(
+                scorer,
+                batch,
+                terminal_bce_weight=terminal_bce_weight,
+                stability_weight=stability_weight,
+                device=resolved_device,
+            )
+            final_loss_sum += float(batch_loss.cpu().item()) * len(batch)
+            for name, value in batch_components.items():
+                component_sums[name] += float(value.cpu().item()) * len(batch)
     report = {
         "framework": "pytorch",
         "torch_version": str(torch.__version__),
@@ -479,10 +531,13 @@ def fit_bayesian_scorer(
         "device": resolved_device,
         "seed": seed,
         "epochs": epochs,
+        "optimizer_steps": epochs,
+        "gradient_accumulation": "rollout_weighted_full_dataset_per_epoch",
+        "sequence_batch_size": effective_batch_size,
         "rollout_count": len(sequences),
         "epoch_losses": epoch_losses,
-        "final_loss": float(final_loss.cpu().item()),
-        **{name: float(value.cpu().item()) for name, value in components.items()},
+        "final_loss": final_loss_sum / len(sequences),
+        **{name: value / len(sequences) for name, value in component_sums.items()},
     }
     return scorer, report
 

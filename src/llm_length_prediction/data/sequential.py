@@ -155,23 +155,49 @@ class SequentialEvidenceStep:
     step: int
     delta: int
     scalar_features: np.ndarray
-    candidate_features: np.ndarray
+    max_new_tokens: int
     true_remaining: int | None
     censored_after_remaining: int | None
     terminal_observed: bool
     hidden_delta: np.ndarray | None = None
+    has_overflow: bool = True
+
+    @property
+    def exact_max_remaining(self) -> int:
+        return self.max_new_tokens - self.step
+
+    @property
+    def candidate_count(self) -> int:
+        return self.exact_max_remaining + 1 + int(self.has_overflow)
+
+    @property
+    def candidate_features(self) -> np.ndarray:
+        """Materialize candidate features only while one update is processed.
+
+        A full 4,096-token trace contains hundreds of saved points. Persisting an
+        almost identical candidate matrix at every point makes the 1,620-rollout
+        Stage-5 data set require tens of GiB of RAM. The matrix is deterministic
+        from ``step`` and ``max_new_tokens``, so generating it on demand preserves
+        the scientific representation without retaining duplicate arrays.
+        """
+
+        return candidate_feature_matrix(
+            step=self.step,
+            exact_max_remaining=self.exact_max_remaining,
+            max_new_tokens=self.max_new_tokens,
+            include_overflow=self.has_overflow,
+        )
 
     def validate(self) -> None:
         scalar = np.asarray(self.scalar_features)
-        candidates = np.asarray(self.candidate_features)
         if self.step <= 0 or self.delta <= 0:
             raise ValueError("step and delta must be positive")
+        if self.max_new_tokens <= 0 or self.step > self.max_new_tokens:
+            raise ValueError("step must lie inside max_new_tokens")
         if scalar.shape != (len(SCALAR_EVIDENCE_FEATURE_NAMES),):
             raise ValueError("scalar evidence has the wrong dimension")
-        if candidates.ndim != 2 or candidates.shape[1] != len(CANDIDATE_FEATURE_NAMES):
-            raise ValueError("candidate features have the wrong shape")
-        if np.any(~np.isfinite(scalar)) or np.any(~np.isfinite(candidates)):
-            raise ValueError("evidence and candidate features must be finite")
+        if np.any(~np.isfinite(scalar)):
+            raise ValueError("evidence features must be finite")
         if (self.true_remaining is None) == (self.censored_after_remaining is None):
             raise ValueError("each step needs exactly one exact or right-censored target")
         if self.true_remaining is not None and self.true_remaining < 0:
@@ -188,6 +214,9 @@ class SequentialEvidenceStep:
 class BayesianSequence:
     prompt_id: str
     prompt_family_id: str
+    task: str
+    intended_length: str
+    temperature: float
     seed: int
     max_new_tokens: int
     initial_log_probabilities: np.ndarray
@@ -197,14 +226,18 @@ class BayesianSequence:
     has_overflow: bool = True
 
     @property
-    def sequence_id(self) -> tuple[str, int]:
-        return self.prompt_id, self.seed
+    def sequence_id(self) -> tuple[str, float, int]:
+        return self.prompt_id, self.temperature, self.seed
 
     def validate(self) -> None:
         initial = np.asarray(self.initial_log_probabilities)
         expected = self.max_new_tokens + 2
         if initial.shape != (expected,) or np.any(np.isnan(initial)):
             raise ValueError("initial posterior must contain exact states plus overflow")
+        if not self.task or not self.intended_length:
+            raise ValueError("task and intended_length are required")
+        if not math.isfinite(self.temperature) or self.temperature <= 0:
+            raise ValueError("temperature must be positive and finite")
         if not self.steps:
             raise ValueError("a Bayesian sequence needs at least one evidence step")
         previous = 0
@@ -212,10 +245,14 @@ class BayesianSequence:
         hidden_size: int | None = None
         for evidence_step in self.steps:
             evidence_step.validate()
+            if evidence_step.max_new_tokens != self.max_new_tokens:
+                raise ValueError("all evidence steps must use the sequence token cap")
+            if evidence_step.has_overflow != self.has_overflow:
+                raise ValueError("all evidence steps must use the sequence overflow policy")
             if evidence_step.step - previous != evidence_step.delta:
                 raise ValueError("step deltas must connect adjacent updates")
             expected_candidate_count -= evidence_step.delta
-            if len(evidence_step.candidate_features) != expected_candidate_count:
+            if evidence_step.candidate_count != expected_candidate_count:
                 raise ValueError("candidate support does not match the countdown transition")
             if evidence_step.hidden_delta is not None:
                 current_size = len(evidence_step.hidden_delta)
@@ -235,13 +272,13 @@ def candidate_feature_matrix(
 ) -> np.ndarray:
     if step < 0 or exact_max_remaining < 0 or max_new_tokens <= 0:
         raise ValueError("invalid candidate-support bounds")
-    remaining = np.arange(exact_max_remaining + 1, dtype=np.float64)
+    remaining = np.arange(exact_max_remaining + 1, dtype=np.float32)
     overflow = np.zeros_like(remaining)
     if include_overflow:
         remaining = np.concatenate(
-            (remaining, np.asarray([exact_max_remaining + 1.0], dtype=np.float64))
+            (remaining, np.asarray([exact_max_remaining + 1.0], dtype=np.float32))
         )
-        overflow = np.concatenate((overflow, np.asarray([1.0], dtype=np.float64)))
+        overflow = np.concatenate((overflow, np.asarray([1.0], dtype=np.float32)))
     return np.column_stack(
         (
             remaining,
@@ -301,27 +338,22 @@ def build_bayesian_sequence(
                 0.0 if previous_eos is None else last_eos - previous_eos,
                 float(terminal),
             ),
-            dtype=np.float64,
+            dtype=np.float32,
         )
         hidden_delta = None
         if trace.decode_hidden_states is not None:
             current_hidden = np.asarray(
                 trace.decode_hidden_states[point_index],
-                dtype=np.float64,
+                dtype=np.float32,
             )
-            hidden_delta = current_hidden - np.asarray(previous_hidden, dtype=np.float64)
+            hidden_delta = current_hidden - np.asarray(previous_hidden, dtype=np.float32)
             previous_hidden = current_hidden
-        exact_max_remaining = trace.max_new_tokens - step
         evidence_steps.append(
             SequentialEvidenceStep(
                 step=step,
                 delta=step - previous_step,
+                max_new_tokens=trace.max_new_tokens,
                 scalar_features=scalar_features,
-                candidate_features=candidate_feature_matrix(
-                    step=step,
-                    exact_max_remaining=exact_max_remaining,
-                    max_new_tokens=trace.max_new_tokens,
-                ),
                 true_remaining=(trace.observed_tokens - step if not trace.is_censored else None),
                 censored_after_remaining=(
                     trace.observed_tokens - step if trace.is_censored else None
@@ -337,6 +369,9 @@ def build_bayesian_sequence(
     sequence = BayesianSequence(
         prompt_id=trace.prompt_id,
         prompt_family_id=trace.prompt_family_id,
+        task=trace.task,
+        intended_length=trace.intended_length,
+        temperature=trace.temperature,
         seed=trace.seed,
         max_new_tokens=trace.max_new_tokens,
         initial_log_probabilities=prior.log_probabilities,
