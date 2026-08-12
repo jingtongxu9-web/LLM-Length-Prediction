@@ -37,7 +37,7 @@ MAE。
 | Hidden-State PLP v2 | 已完成 | Test sequence-balanced MAE `60.03`、Raw R² `0.790`；论文对齐、非精确复现 |
 | PLP terminal-zero v3 | **已完成** | Test MAE `71.04`，相对 v2 改善约 `5.35%`；严格显著性未通过 |
 | 判别式 ALPS+PLP Hybrid baseline | concat v1 已选中并完成全量 Train | concat v1 OOF MAE 49.92；它是强 baseline，不是 Bayesian posterior update |
-| Bayesian Sequential v1 | **第五阶段 OOF 已完成** | 五折 family-grouped OOF 全部通过；预注册 NLL 规则选择 `bayesian_entropy_scalar_v1`；相对静态 ALPS prior 改善 NLL/CRPS/MAE，但 coverage 仍需第六阶段诊断；final holdout 未访问 |
+| Bayesian Sequential v1 | **第六阶段分析已完成** | 五折 OOF 选择 scalar；方差下降但后段欠覆盖、严格 5% 稳定收敛率低、长尾早期低估明显；serving replay 已冻结并执行；final holdout 未访问 |
 | Hybrid v3 serving replay | 已实现，待最终 Test 后运行 | 固定 bucket/batch/KV 规则的离线 replay；不等于生产测量 |
 
 当前 ALPS v1 的采集、最终 Ridge、Train/Test 分组分析、固定五折、输入长度 baseline 和
@@ -54,6 +54,8 @@ Bayesian Sequential 第五阶段已在 60 个 Train family、1,620 条真实 Qwe
 scalar/hidden-delta 的 paired family NLL 选择保留 scalar；完整证据边界、概率指标、robustness 和
 归档哈希见
 [`docs/results/bayesian_sequential/stage5_oof_20260812.md`](docs/results/bayesian_sequential/stage5_oof_20260812.md)。
+第六阶段 uncertainty、收敛、长尾和 serving replay 结果见
+[`docs/results/bayesian_sequential/stage6_analysis_20260812.md`](docs/results/bayesian_sequential/stage6_analysis_20260812.md)。
 
 ALPS+PLP 已拆成两个独立方法版本：`alps_plp_concat_v1` 和
 `alps_plp_residual_v2`。原理、数据防泄漏与运行入口见

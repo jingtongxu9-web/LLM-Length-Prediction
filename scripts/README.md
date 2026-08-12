@@ -3,6 +3,25 @@
 Run commands from the repository root. Files in this directory are user-facing entry points; they
 call reusable implementation under `src/llm_length_prediction/`.
 
+## Bayesian Sequential stage-six analysis
+
+Stage six consumes the verified Stage-4 traces and Stage-5 OOF archive without refitting:
+
+```bash
+python scripts/preflight_bayesian_stage6.py \
+  --stage4-root "$STAGE4_ROOT" --stage5-root "$STAGE5_ROOT" \
+  --verify-stage5-files
+
+python scripts/run_bayesian_stage6_analysis.py \
+  --stage4-root "$STAGE4_ROOT" --stage5-root "$STAGE5_ROOT" \
+  --verify-stage5-files
+```
+
+It generates sequence-balanced uncertainty curves, an exact-checkpoint uncertainty cone, strict
+stable-5% convergence, long-tail underestimation, recorded update overhead, and deterministic
+batch/KV replay. It never accesses a final holdout. See
+[`docs/deployment/bayesian_sequential_stage6_analysis.md`](../docs/deployment/bayesian_sequential_stage6_analysis.md).
+
 ## Bayesian Sequential stage-five family OOF
 
 Stage four completed 1,620/1,620 traces and the downloaded archive passed both archive-level and

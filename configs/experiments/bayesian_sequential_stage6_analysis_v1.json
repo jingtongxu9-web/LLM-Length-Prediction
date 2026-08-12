@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "stage6_id": "bayesian-sequential-v1-stage6-uncertainty-serving",
+  "status": "frozen_before_stage6_analysis",
+  "claim_scope": "train_family_oof_diagnostic_not_final_holdout",
+  "scientific_contract": {
+    "path": "configs/experiments/bayesian_sequential_v1.json",
+    "sha256": "10187cda101bd364418d9b999568006dc75625c222eefee3c65e371c51e4dcb4"
+  },
+  "stage5": {
+    "config": "configs/experiments/bayesian_sequential_stage5_oof_v1.json",
+    "config_sha256": "ab656c437b70c2feb295fab05aeab14e0d60f44facd04d9c0e934fb8cd511633",
+    "dataset_digest": "636b48c6fc3a94fcf0aac60696ad938b328beed568cf281ffd1834d1fdb3d328",
+    "oof_report_sha256": "51e4545a7a154b3af29885093a20bf649240fefa97b438d54bee0955c2358559",
+    "selection_sha256": "776b07c31643383dfeff29b97b7e54176c57b8dcff4c5cad28e4c7e5a430b7b4",
+    "file_manifest_sha256": "fc53dc2a693b114b1db71cd19fb89b49d2927dcca3b7203d14fdbf1e1111381c",
+    "selected_method": "bayesian_entropy_scalar_v1",
+    "required_fold_count": 5,
+    "required_sequence_count": 1620,
+    "required_observation_count": 137957,
+    "final_holdout_accessed": false
+  },
+  "stage4": {
+    "collection_report_sha256": "950e80b04758aec9c42b19d0acd3718bc3b1dbeeadb4f4f17656e39751630e6c",
+    "collection_index_sha256": "644895d72d2c433f5be618cf9ea8e94206a51d6e845987f0266a9b6e3c7f4276",
+    "required_trace_count": 1620,
+    "duration_source": "real_qwen_trace_duration_ms"
+  },
+  "data_policy": {
+    "split": "train_family_grouped_oof",
+    "selected_checkpoint_replay_only": true,
+    "model_refit": false,
+    "threshold_tuning": false,
+    "robustness_refit": false,
+    "old_test_access": "forbidden_historical_evidence_only",
+    "new_final_holdout_access": "forbidden_not_authored_not_opened"
+  },
+  "analysis": {
+    "primary_temperature": 0.7,
+    "evaluation_temperatures": [0.3, 0.7, 1.0],
+    "progress_bin_edges": [0.0, 0.1, 0.25, 0.5, 0.75, 1.0000001],
+    "progress_bin_labels": ["0-10%", "10-25%", "25-50%", "50-75%", "75-100%"],
+    "sequence_balanced_before_group_aggregation": true,
+    "uncertainty_methods": ["alps_countdown", "bayesian_entropy_scalar_v1"],
+    "uncertainty_cone": {
+      "method": "bayesian_entropy_scalar_v1",
+      "quantiles": [0.025, 0.5, 0.975],
+      "source": "exact_checkpoint_replay",
+      "overflow_quantile_policy": "use_frozen_max_new_tokens_boundary_and_count_occurrences"
+    },
+    "coverage_tolerance_absolute": 0.02,
+    "convergence": {
+      "threshold": 0.05,
+      "requires_all_later_saved_points_within_threshold": true,
+      "never_reached": "failure",
+      "report_success_time_quantiles": [0.5, 0.9]
+    },
+    "long_tail": {
+      "definition": "empirical_true_total_top_decile",
+      "quantile": 0.9,
+      "quantile_method": "higher",
+      "early_progress_maximum": 0.25,
+      "severe_underestimation_tokens": 100.0,
+      "also_report_intended_length_long": true
+    },
+    "runtime": {
+      "wall_time_source": "stage5_rtx4090_recorded_update_wall_time_ms",
+      "duration_source": "stage4_real_qwen_duration_ms",
+      "percentiles": [0.5, 0.95, 0.99],
+      "do_not_mix_checkpoint_replay_timing_with_stage5_timing": true
+    }
+  },
+  "serving_replay": {
+    "type": "deterministic_offline_post_first_update_replay",
+    "scope": "output_token_kv_allocation_and_length_bucket_scheduling_not_production_measurement",
+    "prediction_step": 1,
+    "batch_size": 8,
+    "length_bucket_boundaries": [32, 64, 128, 256, 512, 1024, 2048, 4096],
+    "kv_allocation_quantum_tokens": 16,
+    "request_order": "bucket_then_prompt_id_temperature_seed",
+    "batch_duration": "maximum_real_qwen_generation_duration_ms_in_batch",
+    "kv_model_contract": {
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+      "num_hidden_layers": 28,
+      "num_attention_heads": 28,
+      "num_key_value_heads": 4,
+      "hidden_size": 3584,
+      "head_dim": 128,
+      "key_value_tensors": 2,
+      "dtype_bytes": 2,
+      "bytes_per_output_token": 57344,
+      "incremental_output_kv_only": true,
+      "source": "frozen_official_model_config",
+      "source_url": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/blob/a09a35458c702b33eeacc393d103063234e8bc28/config.json"
+    },
+    "incremental_kv_budget_gib": 8.0,
+    "strategies": [
+      "oracle_observed_length",
+      "max_new_tokens_4096",
+      "alps_countdown_mean",
+      "plp_terminal_zero_v3",
+      "alps_plp_concat_v1",
+      "bayesian_entropy_scalar_v1_mean",
+      "bayesian_entropy_scalar_v1_q975"
+    ],
+    "metrics": [
+      "mean_completion_time_ms",
+      "p95_completion_time_ms",
+      "throughput_tokens_per_second",
+      "kv_overreservation_tokens_and_bytes",
+      "underallocation_rate",
+      "peak_batch_incremental_kv_bytes",
+      "incremental_kv_budget_exceedance_count"
+    ]
+  },
+  "outputs": {
+    "run_root": "artifacts/runs/bayesian_sequential_v1/stage6_analysis",
+    "preflight": "environment/preflight.json",
+    "report": "stage6_report.json",
+    "uncertainty_curves": "uncertainty_curves.csv",
+    "uncertainty_cone": "uncertainty_cone.csv",
+    "serving_report": "serving_replay.json",
+    "summary": "stage6_summary.json"
+  },
+  "report_schema": {
+    "path": "configs/reports/bayesian_sequential_stage6_report_schema.json",
+    "sha256": "031f89834a1b67333b9267ca4c709ccc5342518acc83c944baaf0722900c0b5f"
+  }
+}

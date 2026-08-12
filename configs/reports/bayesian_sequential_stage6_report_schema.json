@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bayesian-sequential-stage6-report-v1",
+  "title": "Bayesian Sequential Stage-6 uncertainty, convergence, and serving report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "stage6_id",
+    "status",
+    "claim_scope",
+    "config_sha256",
+    "dataset_digest",
+    "source_validation",
+    "uncertainty",
+    "convergence",
+    "long_tail_underestimation",
+    "runtime",
+    "serving_replay",
+    "scientific_findings",
+    "model_refit_performed",
+    "robustness_refit_performed",
+    "final_holdout_accessed"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "stage6_id": {"const": "bayesian-sequential-v1-stage6-uncertainty-serving"},
+    "status": {"enum": ["pass", "failed"]},
+    "claim_scope": {"const": "train_family_oof_diagnostic_not_final_holdout"},
+    "config_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "dataset_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_validation": {"type": "object"},
+    "uncertainty": {"type": "object"},
+    "convergence": {"type": "object"},
+    "long_tail_underestimation": {"type": "object"},
+    "runtime": {"type": "object"},
+    "serving_replay": {"type": "object"},
+    "scientific_findings": {"type": "object"},
+    "model_refit_performed": {"const": false},
+    "robustness_refit_performed": {"const": false},
+    "final_holdout_accessed": {"const": false}
+  }
+}
