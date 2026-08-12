@@ -27,10 +27,11 @@ class HybridSample:
     decode_feature: np.ndarray
     dynamic_features: tuple[float, float, float, float, float]
     sequence_weight: float
+    temperature: float = 0.7
 
     @property
-    def trace_key(self) -> tuple[str, int]:
-        return self.prompt_id, self.seed
+    def trace_key(self) -> tuple[str, float, int]:
+        return self.prompt_id, self.temperature, self.seed
 
     @property
     def plp_features(self) -> np.ndarray:
@@ -68,6 +69,7 @@ def build_hybrid_samples(
                 float(trace.eos_probabilities[index]),
             ),
             sequence_weight=weight,
+            temperature=trace.temperature,
         )
         for index, (step, remaining, decode) in enumerate(
             zip(

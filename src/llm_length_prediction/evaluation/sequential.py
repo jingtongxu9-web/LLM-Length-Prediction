@@ -77,6 +77,9 @@ def discrete_crps(
 class PosteriorObservation:
     prompt_id: str
     prompt_family_id: str
+    task: str
+    intended_length: str
+    temperature: float
     seed: int
     step: int
     probabilities: np.ndarray
@@ -89,8 +92,8 @@ class PosteriorObservation:
     has_overflow: bool = True
 
     @property
-    def sequence_id(self) -> tuple[str, int]:
-        return self.prompt_id, self.seed
+    def sequence_id(self) -> tuple[str, float, int]:
+        return self.prompt_id, self.temperature, self.seed
 
     @property
     def true_total_tokens(self) -> int | None:
@@ -164,6 +167,9 @@ def run_bayesian_sequence(
                 PosteriorObservation(
                     prompt_id=sequence.prompt_id,
                     prompt_family_id=sequence.prompt_family_id,
+                    task=sequence.task,
+                    intended_length=sequence.intended_length,
+                    temperature=sequence.temperature,
                     seed=sequence.seed,
                     step=evidence_step.step,
                     probabilities=state.probabilities,

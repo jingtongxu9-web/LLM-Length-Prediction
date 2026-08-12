@@ -17,9 +17,10 @@ configs/experiments/bayesian_sequential_v1.json
 
 它冻结 ALPS prior、剩余长度 latent state、非重叠 evidence、Bayesian posterior update、
 censoring、temperature robustness、OOF 选择和 final holdout 边界。当前状态为
-`phase1_approved_for_implementation`。第二阶段 CPU 核心与第三阶段真实 Qwen pilot 已完成；
-第四阶段 full-Train 运行合同也已冻结，但尚未完成 1,620 条服务器采集或 Bayesian OOF 效果
-实验。现有旧 PLP/Hybrid 只作为 baseline 或消融，不能替代 proposed method。
+`phase1_approved_for_implementation`。第二阶段 CPU 核心、第三阶段真实 Qwen pilot 和第四阶段
+1,620 条 full-Train 采集与本地逐文件复验均已完成；第五阶段 OOF 运行合同和训练代码已冻结，
+但尚未产生完整 Bayesian OOF 效果结果。现有旧 PLP/Hybrid 只作为 baseline 或消融，不能替代
+proposed method。
 
 对于已经完成的 ALPS v1 命令行流程，权威合同仍是：
 
@@ -65,6 +66,7 @@ ID. Do not edit the v1 manifest after viewing final-test results.
 | `experiments/bayesian_sequential_v1.json` | PDF-aligned proposed method 的科学合同；CPU core 已完成，真实训练仍未开始 | No，科学合同本身不是运行入口 |
 | `experiments/bayesian_sequential_pilot_v1.json` | 第三阶段 3-task × 3-length、Train-only unified-trace GPU pilot；已通过 | Yes，服务器 collector，不训练模型 |
 | `experiments/bayesian_sequential_full_train_v1.json` | 第四阶段 180 Prompt × 3 temperature × 3 seed 的 1,620-rollout Train-only 采集合同 | Yes，服务器 collector，不训练模型 |
+| `experiments/bayesian_sequential_stage5_oof_v1.json` | 第五阶段五折、内层 ALPS cross-fit、baseline、两个 Bayesian 候选、robustness 与选择规则 | Yes，离线训练与评价入口 |
 | `reports/bayesian_sequential_pilot_report_schema.json` | 第三阶段 pilot acceptance 的冻结 JSON Schema | Yes |
 | `reports/bayesian_sequential_full_train_report_schema.json` | 第四阶段 full-Train 进度与最终验收 JSON Schema | Yes |
 | `reports/alps_plp_hybrid_v3_report_schema.json` | Minimum machine-readable final-report contract | Yes |

@@ -27,6 +27,9 @@ def _observation(step: int, true_total: int, predicted_remaining: int) -> Poster
     return PosteriorObservation(
         prompt_id="p",
         prompt_family_id="f",
+        task="qa",
+        intended_length="short",
+        temperature=0.7,
         seed=42,
         step=step,
         probabilities=probabilities,
