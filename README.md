@@ -37,7 +37,7 @@ MAE。
 | Hidden-State PLP v2 | 已完成 | Test sequence-balanced MAE `60.03`、Raw R² `0.790`；论文对齐、非精确复现 |
 | PLP terminal-zero v3 | **已完成** | Test MAE `71.04`，相对 v2 改善约 `5.35%`；严格显著性未通过 |
 | 判别式 ALPS+PLP Hybrid baseline | concat v1 已选中并完成全量 Train | concat v1 OOF MAE 49.92；它是强 baseline，不是 Bayesian posterior update |
-| Bayesian Sequential v1 | **第五阶段 OOF 代码已实现，待完整训练** | 真实 RTX 4090/Qwen 1,620-rollout full-Train 已采集并在本地逐文件复验；五折、内层 prior cross-fit、scalar/hidden-delta 训练与选择管线已冻结；尚无 Bayesian OOF 效果结果 |
+| Bayesian Sequential v1 | **第五阶段 OOF 已完成** | 五折 family-grouped OOF 全部通过；预注册 NLL 规则选择 `bayesian_entropy_scalar_v1`；相对静态 ALPS prior 改善 NLL/CRPS/MAE，但 coverage 仍需第六阶段诊断；final holdout 未访问 |
 | Hybrid v3 serving replay | 已实现，待最终 Test 后运行 | 固定 bucket/batch/KV 规则的离线 replay；不等于生产测量 |
 
 当前 ALPS v1 的采集、最终 Ridge、Train/Test 分组分析、固定五折、输入长度 baseline 和
@@ -49,6 +49,11 @@ baseline 很弱；Dynamic-Signal MLP 呈现早期低估、后期高估。Hidden-
 
 当前 Baseline、ALPS 和 PLP terminal-zero v3 的统一比较见
 [`docs/results/comparisons/baseline_alps_plp_v3_comparison.md`](docs/results/comparisons/baseline_alps_plp_v3_comparison.md)。
+
+Bayesian Sequential 第五阶段已在 60 个 Train family、1,620 条真实 Qwen trace 上完成五折 OOF。
+scalar/hidden-delta 的 paired family NLL 选择保留 scalar；完整证据边界、概率指标、robustness 和
+归档哈希见
+[`docs/results/bayesian_sequential/stage5_oof_20260812.md`](docs/results/bayesian_sequential/stage5_oof_20260812.md)。
 
 ALPS+PLP 已拆成两个独立方法版本：`alps_plp_concat_v1` 和
 `alps_plp_residual_v2`。原理、数据防泄漏与运行入口见

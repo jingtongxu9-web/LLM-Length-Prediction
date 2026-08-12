@@ -138,7 +138,7 @@ Full Train trace 冻结后，各方法只做离线训练和评价，不为每个
 
 ## 7. 阶段五：Train-family OOF 与方法选择
 
-状态：**代码、真实数据 preflight 和五折合同已实现；等待完整模型训练。**
+状态：**已完成（2026-08-12）。**
 
 统一比较：
 
@@ -159,7 +159,15 @@ NLL 规则选择 Bayesian scalar 或 hidden-delta，不允许在同一 OOF 上�
 [`../deployment/bayesian_sequential_stage5_oof.md`](../deployment/bayesian_sequential_stage5_oof.md)。
 主训练严格只使用 `temperature=0.7`；`0.3/1.0` 只由每折冻结模型评价，禁止 robustness refit。
 
+实际五折全部通过，覆盖 60 family 和 1,620 条 trace。hidden-delta 减 scalar 的 paired family
+NLL 95% CI 为 `[-0.021742, +0.039801]`，未满足“区间完全低于 0”的预注册门槛，因此冻结选择
+`bayesian_entropy_scalar_v1`。完整报告见
+[`../results/bayesian_sequential/stage5_oof_20260812.md`](../results/bayesian_sequential/stage5_oof_20260812.md)。
+Final holdout 未访问。
+
 ## 8. 阶段六：不确定性、收敛与 serving
+
+状态：**待基于已冻结 Stage-5 OOF 证据实现。**
 
 生成：
 

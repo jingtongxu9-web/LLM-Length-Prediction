@@ -59,6 +59,7 @@ docs/
 | ALPS | [`results/alps/README.md`](results/alps/README.md) |
 | PLP | [`results/plp/README.md`](results/plp/README.md) |
 | Hybrid | [`results/hybrid/README.md`](results/hybrid/README.md) |
+| Bayesian Sequential | [`results/bayesian_sequential/README.md`](results/bayesian_sequential/README.md) |
 | 跨方法比较 | [`results/comparisons/README.md`](results/comparisons/README.md) |
 
 这里保留了此前生成的全部实质性报告。旧的 `results/v1`、`v2`、`v3` 只是重新按方法语义移动：
