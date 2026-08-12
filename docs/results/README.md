@@ -12,7 +12,7 @@ results/
 ├── alps/           # ALPS 各版本的完整结果
 ├── plp/            # Dynamic v1、Hidden-State v2、Terminal-Zero v3
 ├── hybrid/         # concat v1、residual v2、gated residual v2.1
-├── bayesian_sequential/ # Proposed method；Stage 3 pilot 通过，Stage 4 采集实现已冻结
+├── bayesian_sequential/ # Proposed method；Stage 5 family-grouped OOF 已完成
 └── comparisons/    # 跨方法综合比较与论文主表
 ```
 
@@ -57,11 +57,11 @@ results/
 
 入口：[`bayesian_sequential/README.md`](bayesian_sequential/README.md)
 
-数学与实验合同、CPU 核心和真实 Qwen Stage 3 工程 pilot 已完成；Stage 4 full-Train 采集实现
-已冻结、等待服务器执行。当前可报告内容仅限采集与数据合同验收，不含 Bayesian OOF 或
-final-Test 效果数字。见
-[`bayesian_sequential/stage3_pilot_20260811.md`](bayesian_sequential/stage3_pilot_20260811.md)。
-旧 PLP/Hybrid 结果不能复制到该目录或改名为 Bayesian posterior。
+数学与实验合同、CPU 核心、真实 Qwen Stage 3 工程 pilot、Stage 4 full-Train 采集和 Stage 5
+family-grouped OOF 均已完成。预注册规则选择 Bayesian scalar；结果见
+[`bayesian_sequential/stage5_oof_20260812.md`](bayesian_sequential/stage5_oof_20260812.md)。该结果
+仍是 Train-family OOF 方法选择，不是 final-Test。旧 PLP/Hybrid 结果不能复制到该目录或改名
+为 Bayesian posterior。
 
 ## 7. 跨方法对比
 

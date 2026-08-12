@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "stage5_id": "bayesian-sequential-v1-stage5-family-oof",
+  "stage": "stage5_train_family_grouped_oof_selection",
+  "status": "pass",
+  "claim_scope": "train_family_oof_method_selection_not_final_holdout",
+  "data": {
+    "dataset_digest": "636b48c6fc3a94fcf0aac60696ad938b328beed568cf281ffd1834d1fdb3d328",
+    "trace_count": 1620,
+    "family_count": 60,
+    "outer_fold_count": 5,
+    "validation_families_per_fold": 12,
+    "training_temperature": 0.7,
+    "evaluation_temperatures": [0.3, 0.7, 1.0],
+    "primary_sequence_count": 540,
+    "primary_observation_count": 45886,
+    "all_temperature_sequence_count": 1620,
+    "all_temperature_observation_count": 137957,
+    "trace_hashes_verified": true,
+    "robustness_refit_performed": false,
+    "final_holdout_accessed": false
+  },
+  "acceptance": {
+    "completed_fold_count": 5,
+    "expected_fold_count": 5,
+    "fold_statuses": ["pass", "pass", "pass", "pass", "pass"],
+    "training_trace_count_per_fold": 432,
+    "validation_trace_count_per_fold": 324,
+    "training_family_count_per_fold": 48,
+    "validation_family_count_per_fold": 12,
+    "warnings": [],
+    "failures": []
+  },
+  "selection": {
+    "selected_method": "bayesian_entropy_scalar_v1",
+    "primary_metric": "family_macro_sequence_balanced_posterior_nll",
+    "hidden_delta_minus_scalar": {
+      "estimate": 0.013298270196724537,
+      "lower": -0.0217419940083388,
+      "upper": 0.03980126866703915,
+      "confidence_level": 0.95,
+      "replicates": 2000,
+      "family_count": 60,
+      "unit": "prompt_family_id"
+    },
+    "rule": "select hidden-delta only if the paired family-bootstrap NLL interval is entirely below zero; otherwise select scalar",
+    "final_holdout_selects_nothing": true
+  },
+  "primary_temperature_metrics": {
+    "alps_countdown": {
+      "family_macro_sequence_balanced_posterior_nll": 5.595885619037932,
+      "sequence_balanced_crps": 54.987353468809204,
+      "sequence_balanced_mae_tokens": 86.58096416129082,
+      "sequence_balanced_rmse_tokens": 123.14486503585046,
+      "sequence_balanced_bias_tokens": 49.94299897587377,
+      "interval_90_coverage": 0.9052669566444133,
+      "interval_90_width": 447.53009022053243,
+      "interval_95_coverage": 0.9477828721284023,
+      "interval_95_width": 543.4262780339743
+    },
+    "bayesian_entropy_scalar_v1": {
+      "family_macro_sequence_balanced_posterior_nll": 5.528481037967556,
+      "sequence_balanced_crps": 48.19370247311178,
+      "sequence_balanced_mae_tokens": 67.85655953904697,
+      "sequence_balanced_rmse_tokens": 99.4950752114149,
+      "sequence_balanced_bias_tokens": -3.532911309778814,
+      "interval_90_coverage": 0.8888715968020567,
+      "interval_90_width": 312.2959469731894,
+      "interval_95_coverage": 0.9368981275977831,
+      "interval_95_width": 373.18617265311644,
+      "mean_update_wall_time_ms": 0.9911377644296435,
+      "peak_predictor_state_bytes": 93864
+    },
+    "bayesian_entropy_hidden_delta_v1": {
+      "family_macro_sequence_balanced_posterior_nll": 5.541779308164282,
+      "sequence_balanced_crps": 48.457144477711985,
+      "sequence_balanced_mae_tokens": 70.16854397477275,
+      "sequence_balanced_rmse_tokens": 98.59131588560219,
+      "sequence_balanced_bias_tokens": 15.531513964202562,
+      "interval_90_coverage": 0.9084471545290043,
+      "interval_90_width": 363.6624100918706,
+      "interval_95_coverage": 0.9479236893428754,
+      "interval_95_width": 438.6649666936471,
+      "mean_update_wall_time_ms": 1.1256882459144284,
+      "peak_predictor_state_bytes": 1044136
+    }
+  },
+  "primary_point_baselines": {
+    "prompt_token_ridge_countdown": {"mae_tokens": 250.30412181316362, "rmse_tokens": 308.5173446721742},
+    "alps_countdown": {"mae_tokens": 78.22690387283974, "rmse_tokens": 112.4280725726353},
+    "dynamic_signal_mlp_v1": {"mae_tokens": 76674.87496411057, "rmse_tokens": 918625.2710629061},
+    "plp_terminal_zero_v3": {"mae_tokens": 62.72414355729647, "rmse_tokens": 101.5666685788592},
+    "alps_plp_concat_v1": {"mae_tokens": 56.316147598551645, "rmse_tokens": 87.41459091760275}
+  },
+  "selected_method_temperature_robustness": {
+    "0.3": {"nll": 5.5211109335781545, "crps": 47.7707903405472, "mae_tokens": 70.67540793277252, "rmse_tokens": 98.55989830953314, "bias_tokens": 20.003978665912886, "interval_90_coverage": 0.899041273615013, "interval_95_coverage": 0.9438692701171327},
+    "0.7": {"nll": 5.528481037967556, "crps": 48.19370247311178, "mae_tokens": 67.85655953904697, "rmse_tokens": 99.4950752114149, "bias_tokens": -3.532911309778814, "interval_90_coverage": 0.8888715968020567, "interval_95_coverage": 0.9368981275977831},
+    "1.0": {"nll": 5.58390382984738, "crps": 52.420070384555764, "mae_tokens": 71.78790458741439, "rmse_tokens": 108.36629709527499, "bias_tokens": -26.601919380964468, "interval_90_coverage": 0.8818112231854786, "interval_95_coverage": 0.932017420824668}
+  },
+  "environment": {
+    "gpu_name": "NVIDIA GeForce RTX 4090 D",
+    "python_version": "3.12.3",
+    "torch_version": "2.8.0+cu128",
+    "numpy_version": "2.2.2",
+    "scikit_learn_version": "1.6.1"
+  },
+  "provenance": {
+    "server_git_commit": "3298485f9fdf5c4fc105a12af81d1aa154432356",
+    "scientific_contract_sha256": "10187cda101bd364418d9b999568006dc75625c222eefee3c65e371c51e4dcb4",
+    "stage5_config_sha256": "ab656c437b70c2feb295fab05aeab14e0d60f44facd04d9c0e934fb8cd511633",
+    "oof_report_sha256": "51e4545a7a154b3af29885093a20bf649240fefa97b438d54bee0955c2358559",
+    "selection_sha256": "776b07c31643383dfeff29b97b7e54176c57b8dcff4c5cad28e4c7e5a430b7b4",
+    "archive_filename": "bayesian_stage5_oof.tar.gz",
+    "archive_sha256": "6bb7acf1f5ee8c4d77b08ee08a9a8f627d8871d15392fe5f198468c333828124",
+    "local_archive_verified": true,
+    "local_file_level_verification": "pass",
+    "raw_predictions_committed_to_git": false,
+    "checkpoints_committed_to_git": false,
+    "archive_committed_to_git": false
+  }
+}
