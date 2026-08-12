@@ -189,10 +189,17 @@ Final holdout 未访问。
 
 ## 9. 阶段七：OOF error feedback
 
+状态：**自动 OOF 审计已完成（2026-08-12）；语义标签保留人工 unresolved。**
+
 只在 Train-family OOF 上分析绝对误差大于 100 token 和最差 5%。分类 entropy rebound、
 oscillation、open-endedness、sampling divergence、repetition、hallucination、early stop 和
 posterior failure。任何理论修正形成新的 method ID，并重新执行完整 OOF；不得查看 final
 holdout 后再修补。
+
+冻结配置见
+[`../../configs/experiments/bayesian_sequential_stage7_error_feedback_v1.json`](../../configs/experiments/bayesian_sequential_stage7_error_feedback_v1.json)，
+结果见
+[`../results/bayesian_sequential/stage7_error_feedback_20260812.md`](../results/bayesian_sequential/stage7_error_feedback_20260812.md)。
 
 ## 10. 阶段八：一次性 final benchmark
 
