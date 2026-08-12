@@ -167,7 +167,7 @@ Final holdout 未访问。
 
 ## 8. 阶段六：不确定性、收敛与 serving
 
-状态：**待基于已冻结 Stage-5 OOF 证据实现。**
+状态：**代码与真实 OOF 分析已完成（2026-08-12）；等待提交结果摘要。**
 
 生成：
 
@@ -180,6 +180,12 @@ Final holdout 未访问。
 - batching/KV-cache serving replay。
 
 方差下降不是单独成功标准，必须与 coverage 一起解释。
+
+冻结配置见
+[`../../configs/experiments/bayesian_sequential_stage6_analysis_v1.json`](../../configs/experiments/bayesian_sequential_stage6_analysis_v1.json)，
+运行手册见
+[`../deployment/bayesian_sequential_stage6_analysis.md`](../deployment/bayesian_sequential_stage6_analysis.md)。
+分析没有训练或修改模型，没有访问 final holdout。
 
 ## 9. 阶段七：OOF error feedback
 

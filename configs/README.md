@@ -68,8 +68,10 @@ ID. Do not edit the v1 manifest after viewing final-test results.
 | `experiments/bayesian_sequential_pilot_v1.json` | 第三阶段 3-task × 3-length、Train-only unified-trace GPU pilot；已通过 | Yes，服务器 collector，不训练模型 |
 | `experiments/bayesian_sequential_full_train_v1.json` | 第四阶段 180 Prompt × 3 temperature × 3 seed 的 1,620-rollout Train-only 采集合同 | Yes，服务器 collector，不训练模型 |
 | `experiments/bayesian_sequential_stage5_oof_v1.json` | 第五阶段五折、内层 ALPS cross-fit、baseline、两个 Bayesian 候选、robustness 与选择规则 | Yes，离线训练与评价入口 |
+| `experiments/bayesian_sequential_stage6_analysis_v1.json` | 第六阶段 uncertainty、严格收敛、长尾低估、runtime 与确定性 KV/batching replay | Yes，只读 Stage 4/5，不 refit |
 | `reports/bayesian_sequential_pilot_report_schema.json` | 第三阶段 pilot acceptance 的冻结 JSON Schema | Yes |
 | `reports/bayesian_sequential_full_train_report_schema.json` | 第四阶段 full-Train 进度与最终验收 JSON Schema | Yes |
+| `reports/bayesian_sequential_stage6_report_schema.json` | 第六阶段派生报告的冻结边界与 final-holdout 禁止项 | Yes |
 | `reports/alps_plp_hybrid_v3_report_schema.json` | Minimum machine-readable final-report contract | Yes |
 
 For Hybrid v3, `alps_plp_hybrid_v3.json.progressive_head` defines the shared head settings and the

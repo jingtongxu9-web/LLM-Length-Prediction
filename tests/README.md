@@ -29,6 +29,9 @@ Current coverage includes:
   countdown transition, log-space update, hazard round trip, non-overlapping sequence construction,
   exact/right-censored loss, scalar/hidden-delta shared scorers, safe checkpoint round trip, CRPS,
   coverage and stable-time metrics.
+- `test_bayesian_stage6.py` freezes Stage-6 no-refit/final-holdout boundaries, sequence-balanced
+  progress curves, strict stable-5% convergence, joint coverage interpretation, and deterministic
+  real-duration KV/batching replay.
 - Bayesian unified trace NPZ round trip, per-token evidence preservation, scheduled hidden-state
   capture, fake causal-LM generation through EOS, Train-only 3x3 pilot selection, CUDA provenance
   contract, nominal 24 GB GPU preflight boundary and collector-to-sequence conversion.

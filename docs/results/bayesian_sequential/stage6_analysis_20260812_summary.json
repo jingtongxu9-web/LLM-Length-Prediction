@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "stage6_id": "bayesian-sequential-v1-stage6-uncertainty-serving",
+  "status": "pass",
+  "claim_scope": "train_family_oof_diagnostic_not_final_holdout",
+  "selected_method": "bayesian_entropy_scalar_v1",
+  "data": {
+    "family_count": 60,
+    "sequence_count": 1620,
+    "observation_count": 137957,
+    "stage5_manifest_file_count_verified": 51,
+    "checkpoint_replay_maximum_mean_difference_tokens": 0.00010389357942131028
+  },
+  "primary_temperature_uncertainty": {
+    "temperature": 0.7,
+    "variance_first_progress_bin": 27882.488800882013,
+    "variance_last_progress_bin": 6665.014443470939,
+    "variance_last_to_first_ratio": 0.23903943765809396,
+    "entropy_last_to_first_ratio": 0.8835048011017873,
+    "last_progress_interval_90_coverage": 0.8497056863945655,
+    "last_progress_interval_95_coverage": 0.9148884385098225,
+    "all_progress_bins_within_2pp_coverage_tolerance": false
+  },
+  "stable_time_to_relative_error_5pct": {
+    "sequence_count": 1620,
+    "success_count": 30,
+    "success_rate": 0.018518518518518517,
+    "median_step_on_success": 980.0,
+    "median_progress_on_success": 0.8971112551657078
+  },
+  "primary_temperature_long_tail_early": {
+    "empirical_top_decile_threshold_tokens": 869,
+    "bayesian_scalar_positive_underestimation_tokens": 194.3298516288896,
+    "alps_positive_underestimation_tokens": 96.19811808069997,
+    "bayesian_minus_alps_tokens": 98.13173354818963,
+    "bayesian_improves_over_alps": false
+  },
+  "runtime": {
+    "mean_update_wall_time_ms": 0.9620515125160546,
+    "p95_update_wall_time_ms": 1.0685637593269348,
+    "mean_cumulative_update_wall_time_ms_per_sequence": 81.92700031615885,
+    "mean_predictor_to_real_qwen_duration_ratio": 0.010873692200824778,
+    "peak_predictor_state_bytes": 93864
+  },
+  "serving_tradeoff": {
+    "bayesian_mean_underallocation_rate": 0.36790123456790125,
+    "bayesian_mean_kv_overreservation_rate": 0.12459553365970727,
+    "bayesian_q975_underallocation_rate": 0.013580246913580247,
+    "bayesian_q975_kv_overreservation_rate": 0.8933299723009657,
+    "serving_superiority_claimed": false,
+    "scope": "deterministic offline output-token KV and batching replay"
+  },
+  "boundaries": {
+    "model_refit_performed": false,
+    "robustness_refit_performed": false,
+    "final_holdout_accessed": false
+  },
+  "provenance": {
+    "stage6_config_sha256": "700cf2c944eb886cb90c6ff8a8279c948fde941e68f04c4c12c13ff4357d42ee",
+    "stage6_report_sha256": "aa9b1ed93fccb46bad3ad2efd2517fbccf0d4aa2926470b00ecfae25be497cff",
+    "uncertainty_curves_sha256": "b60f1baf66d60c46b87e6fb0eef6a02c104dfb13a5eedbbd6f1ee34f14c3cece",
+    "uncertainty_cone_sha256": "7e4ce114cfe39bf2c4ebd6db4cf6e7f58a5450e3a4c3f120d87ab755ea3388f2",
+    "serving_replay_sha256": "654c7b1d902f8119ed743099300a39214487480c22c22aea4bffea5879b75e21",
+    "raw_stage6_artifacts_committed_to_git": false
+  }
+}

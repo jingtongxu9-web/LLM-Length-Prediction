@@ -14,6 +14,9 @@
 6. [`planning/research_plan.md`](planning/research_plan.md)：了解后续 holdout 与 serving 路线；
 7. [`deployment/autodl_5090.md`](deployment/autodl_5090.md)：在 AutoDL 运行。
 
+Stage 6 只读分析运行手册见
+[`deployment/bayesian_sequential_stage6_analysis.md`](deployment/bayesian_sequential_stage6_analysis.md)。
+
 ## 2. 目录结构
 
 ```text
