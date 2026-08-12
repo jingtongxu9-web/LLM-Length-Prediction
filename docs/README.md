@@ -16,6 +16,8 @@
 
 Stage 6 只读分析运行手册见
 [`deployment/bayesian_sequential_stage6_analysis.md`](deployment/bayesian_sequential_stage6_analysis.md)。
+Stage 7 OOF error-feedback 运行手册见
+[`deployment/bayesian_sequential_stage7_error_feedback.md`](deployment/bayesian_sequential_stage7_error_feedback.md)。
 
 ## 2. 目录结构
 

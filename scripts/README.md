@@ -3,6 +3,24 @@
 Run commands from the repository root. Files in this directory are user-facing entry points; they
 call reusable implementation under `src/llm_length_prediction/`.
 
+## Bayesian Sequential stage-seven OOF error feedback
+
+Stage seven audits the frozen selected Stage-5 OOF predictions; it does not need a GPU or refit:
+
+```bash
+python scripts/preflight_bayesian_stage7_error_feedback.py \
+  --stage4-root "$STAGE4_ROOT" --stage5-root "$STAGE5_ROOT" \
+  --verify-stage5-files
+
+python scripts/run_bayesian_stage7_error_feedback.py \
+  --stage4-root "$STAGE4_ROOT" --stage5-root "$STAGE5_ROOT" \
+  --verify-stage5-files --verify-trace-hashes
+```
+
+The automatic labels remain trace-level review cues. Open-endedness and hallucination are emitted
+as unresolved manual-review items, not automatic negatives. See
+[`docs/deployment/bayesian_sequential_stage7_error_feedback.md`](../docs/deployment/bayesian_sequential_stage7_error_feedback.md).
+
 ## Bayesian Sequential stage-six analysis
 
 Stage six consumes the verified Stage-4 traces and Stage-5 OOF archive without refitting:

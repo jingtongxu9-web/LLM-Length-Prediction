@@ -19,7 +19,8 @@ configs/experiments/bayesian_sequential_v1.json
 censoring、temperature robustness、OOF 选择和 final holdout 边界。当前状态为
 `phase1_approved_for_implementation`。第二阶段 CPU 核心、第三阶段真实 Qwen pilot 和第四阶段
 1,620 条 full-Train 采集与本地逐文件复验均已完成；第五阶段五折 family-grouped OOF 已按冻结
-合同完成，预注册规则选择 `bayesian_entropy_scalar_v1`。结果见
+合同完成，预注册规则选择 `bayesian_entropy_scalar_v1`；第六阶段分析与第七阶段 OOF error
+feedback 也已完成。结果见
 [`../docs/results/bayesian_sequential/stage5_oof_20260812.md`](../docs/results/bayesian_sequential/stage5_oof_20260812.md)。
 现有旧 PLP/Hybrid 只作为 baseline 或消融，不能替代 proposed method。
 
@@ -69,9 +70,11 @@ ID. Do not edit the v1 manifest after viewing final-test results.
 | `experiments/bayesian_sequential_full_train_v1.json` | 第四阶段 180 Prompt × 3 temperature × 3 seed 的 1,620-rollout Train-only 采集合同 | Yes，服务器 collector，不训练模型 |
 | `experiments/bayesian_sequential_stage5_oof_v1.json` | 第五阶段五折、内层 ALPS cross-fit、baseline、两个 Bayesian 候选、robustness 与选择规则 | Yes，离线训练与评价入口 |
 | `experiments/bayesian_sequential_stage6_analysis_v1.json` | 第六阶段 uncertainty、严格收敛、长尾低估、runtime 与确定性 KV/batching replay | Yes，只读 Stage 4/5，不 refit |
+| `experiments/bayesian_sequential_stage7_error_feedback_v1.json` | 第七阶段 `>100 token`、最差 5% 与冻结 trace 标签；语义标签进入人工复核 | Yes，只读 Train-family OOF，不 refit |
 | `reports/bayesian_sequential_pilot_report_schema.json` | 第三阶段 pilot acceptance 的冻结 JSON Schema | Yes |
 | `reports/bayesian_sequential_full_train_report_schema.json` | 第四阶段 full-Train 进度与最终验收 JSON Schema | Yes |
 | `reports/bayesian_sequential_stage6_report_schema.json` | 第六阶段派生报告的冻结边界与 final-holdout 禁止项 | Yes |
+| `reports/bayesian_sequential_stage7_report_schema.json` | 第七阶段 error-feedback 报告边界、语义 unresolved 与不 refit 保证 | Yes |
 | `reports/alps_plp_hybrid_v3_report_schema.json` | Minimum machine-readable final-report contract | Yes |
 
 For Hybrid v3, `alps_plp_hybrid_v3.json.progressive_head` defines the shared head settings and the

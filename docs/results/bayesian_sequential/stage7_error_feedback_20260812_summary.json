@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "stage7_id": "bayesian-sequential-v1-stage7-oof-error-feedback",
+  "status": "pass",
+  "selected_method": "bayesian_entropy_scalar_v1",
+  "sequence_count": 1620,
+  "observation_count": 137957,
+  "absolute_error_cohort_sequence_count": 839,
+  "worst_fraction_cohort_sequence_count": 81,
+  "worst_fraction_sequence_mae_threshold_tokens": 191.90355732494993,
+  "review_queue_sequence_count": 839,
+  "worst_fraction_mean_sequence_mae_tokens": 245.44195998440702,
+  "worst_fraction_mean_sequence_bias_tokens": -113.8705006311079,
+  "worst_fraction_negative_bias_sequence_rate": 0.7283950617283951,
+  "review_queue_automatic_label_counts": {
+    "entropy_rebound": 349,
+    "entropy_oscillation": 831,
+    "sampling_divergence": 15,
+    "repetition": 163,
+    "early_stop": 0,
+    "posterior_variance_increase": 0,
+    "posterior_premature_collapse": 9,
+    "posterior_oscillation": 659
+  },
+  "semantic_label_status": {
+    "open_ended_prompt": "unresolved_manual_review_required",
+    "hallucination": "unresolved_manual_review_required"
+  },
+  "provenance": {
+    "config_sha256": "168906452bddce9725a822e575d8130d9360878002820e2bc7e28466c8b08f51",
+    "report_schema_sha256": "09c10c0d5c7d0bdc8ef918179106d3e77119f339f559d71b01fa60f5a3b33a6a",
+    "full_report_sha256": "c0e144af839bcb234dda7c2ed88d790c3f390432b5c1618492ccc876ea40df75",
+    "sequence_audit_sha256": "88b009dcf3774a5767625a6d41b898840186ff4a902398b3b1d17c7bcd56f32b",
+    "manual_review_queue_sha256": "456197fc57cd85b6c3128395ca8c1b0a6d14db53948af40c8746d0f023f21d71"
+  },
+  "model_refit_performed": false,
+  "method_reselection_performed": false,
+  "threshold_tuning_performed": false,
+  "changes_require_new_method_id": true,
+  "final_holdout_accessed": false
+}

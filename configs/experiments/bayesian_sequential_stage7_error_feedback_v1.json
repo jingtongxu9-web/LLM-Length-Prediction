@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "stage7_id": "bayesian-sequential-v1-stage7-oof-error-feedback",
+  "status": "frozen_before_stage7_analysis",
+  "claim_scope": "train_family_grouped_oof_failure_audit_not_final_holdout",
+  "scientific_contract": {
+    "path": "configs/experiments/bayesian_sequential_v1.json",
+    "sha256": "10187cda101bd364418d9b999568006dc75625c222eefee3c65e371c51e4dcb4"
+  },
+  "stage6_source": {
+    "config": "configs/experiments/bayesian_sequential_stage6_analysis_v1.json",
+    "config_sha256": "700cf2c944eb886cb90c6ff8a8279c948fde941e68f04c4c12c13ff4357d42ee"
+  },
+  "stage5": {
+    "selected_method": "bayesian_entropy_scalar_v1",
+    "dataset_digest": "636b48c6fc3a94fcf0aac60696ad938b328beed568cf281ffd1834d1fdb3d328",
+    "required_sequence_count": 1620,
+    "required_observation_count": 137957
+  },
+  "data_policy": {
+    "split": "train_family_grouped_oof_only",
+    "model_refit": false,
+    "method_reselection": false,
+    "threshold_tuning": false,
+    "old_test_access": "forbidden_historical_evidence_only",
+    "new_final_holdout_access": "forbidden_not_authored_not_opened",
+    "changes_require_new_method_id": true
+  },
+  "cohorts": {
+    "primary_unit": "generation_sequence_prompt_temperature_seed",
+    "absolute_error_threshold_tokens": 100.0,
+    "absolute_error_rule": "sequence_has_any_saved_point_strictly_above_threshold",
+    "worst_fraction": 0.05,
+    "worst_score": "sequence_balanced_mean_absolute_error_across_saved_points",
+    "worst_quantile_method": "higher",
+    "review_queue": "union_of_absolute_error_and_worst_fraction_sequences"
+  },
+  "automatic_labels": {
+    "entropy_rebound": {
+      "late_fraction": 0.25,
+      "prefix_partition_count": 4,
+      "minimum_increase_nats": 0.25
+    },
+    "entropy_oscillation": {
+      "minimum_direction_changes": 3,
+      "minimum_range_nats": 0.5
+    },
+    "sampling_divergence": {
+      "group": "prompt_id_temperature_across_seeds",
+      "minimum_output_length_range_tokens": 100,
+      "minimum_coefficient_of_variation": 0.25
+    },
+    "repetition": {
+      "ngram_size": 4,
+      "minimum_repeated_ngram_fraction": 0.15,
+      "minimum_consecutive_identical_tokens": 8
+    },
+    "early_stop": {
+      "peer_group": "prompt_id_temperature_across_seeds",
+      "maximum_peer_median_ratio": 0.5,
+      "minimum_peer_median_shortfall_tokens": 50
+    },
+    "posterior_variance_increase": {
+      "progress_bin_edges": [0.0, 0.1, 0.25, 0.5, 0.75, 1.0000001],
+      "minimum_adjacent_relative_increase": 0.25
+    },
+    "posterior_premature_collapse": {
+      "early_progress_maximum": 0.25,
+      "maximum_interval95_width_to_true_total": 0.5,
+      "minimum_uncovered_saved_points": 2
+    },
+    "posterior_oscillation": {
+      "minimum_direction_changes": 3,
+      "minimum_total_prediction_range_tokens": 100.0
+    }
+  },
+  "manual_labels": {
+    "open_ended_prompt": {
+      "automatic_status": "not_observable_from_frozen_numeric_trace",
+      "required_evidence": "human_review_of_prompt_semantics"
+    },
+    "hallucination": {
+      "automatic_status": "not_observable_from_frozen_numeric_trace",
+      "required_evidence": "decoded_output_and_task_specific_reference_or_human_review"
+    }
+  },
+  "labels": [
+    "entropy_rebound",
+    "entropy_oscillation",
+    "open_ended_prompt",
+    "sampling_divergence",
+    "repetition",
+    "hallucination",
+    "early_stop",
+    "posterior_variance_increase",
+    "posterior_premature_collapse",
+    "posterior_oscillation"
+  ],
+  "outputs": {
+    "run_root": "artifacts/runs/bayesian_sequential_v1/stage7_error_feedback",
+    "preflight": "environment/preflight.json",
+    "report": "stage7_report.json",
+    "sequence_audit": "sequence_audit.jsonl",
+    "review_queue": "manual_review_queue.jsonl",
+    "summary": "stage7_summary.json"
+  },
+  "report_schema": {
+    "path": "configs/reports/bayesian_sequential_stage7_report_schema.json",
+    "sha256": "09c10c0d5c7d0bdc8ef918179106d3e77119f339f559d71b01fa60f5a3b33a6a"
+  }
+}
