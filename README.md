@@ -37,7 +37,7 @@ MAE。
 | Hidden-State PLP v2 | 已完成 | Test sequence-balanced MAE `60.03`、Raw R² `0.790`；论文对齐、非精确复现 |
 | PLP terminal-zero v3 | **已完成** | Test MAE `71.04`，相对 v2 改善约 `5.35%`；严格显著性未通过 |
 | 判别式 ALPS+PLP Hybrid baseline | concat v1 已选中并完成全量 Train | concat v1 OOF MAE 49.92；它是强 baseline，不是 Bayesian posterior update |
-| Bayesian Sequential v1 | **第七阶段 OOF error feedback 已完成** | 五折 OOF 选择 scalar；不确定性/serving 与错误审计已完成；最差 5% 主要偏低估；final holdout 未访问 |
+| Bayesian Sequential v1 | **第八阶段 Stage-8A 代码已完成** | 五折 OOF 已选择 scalar；最终 Train 拟合、七方法 registry 和失败关闭盲测门禁已实现；等待 4090 训练，final holdout 未创建或访问 |
 | Hybrid v3 serving replay | 已实现，待最终 Test 后运行 | 固定 bucket/batch/KV 规则的离线 replay；不等于生产测量 |
 
 当前 ALPS v1 的采集、最终 Ridge、Train/Test 分组分析、固定五折、输入长度 baseline 和
@@ -58,6 +58,8 @@ scalar/hidden-delta 的 paired family NLL 选择保留 scalar；完整证据边�
 [`docs/results/bayesian_sequential/stage6_analysis_20260812.md`](docs/results/bayesian_sequential/stage6_analysis_20260812.md)。
 第七阶段 Train-family OOF error feedback 结果见
 [`docs/results/bayesian_sequential/stage7_error_feedback_20260812.md`](docs/results/bayesian_sequential/stage7_error_feedback_20260812.md)。
+第八阶段最终模型冻结与一次性盲测顺序见
+[`docs/deployment/bayesian_sequential_stage8_final_benchmark.md`](docs/deployment/bayesian_sequential_stage8_final_benchmark.md)。
 
 ALPS+PLP 已拆成两个独立方法版本：`alps_plp_concat_v1` 和
 `alps_plp_residual_v2`。原理、数据防泄漏与运行入口见

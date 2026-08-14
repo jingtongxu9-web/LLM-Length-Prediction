@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "stage8a_id": "bayesian-sequential-v1-stage8a-final-freeze",
+  "status": "training_and_benchmark_code_freeze_before_final_holdout",
+  "implementation": {
+    "required_source_sha256": {
+      "src/llm_length_prediction/stage8_freeze.py": "f0c5c51fbf3fbfc2d949f2df3396e3a96dbc5d1ff8dff63ff2b6a260ce03fe92",
+      "src/llm_length_prediction/stage8_holdout.py": "60f993d90548ada85369b6e8f80d926e76438433c970747e20ee8c6078dd7955",
+      "src/llm_length_prediction/stage8_benchmark.py": "ec2fcff90061a913cced761da9ddd4ca55258cb3da785184eb1f1a323599fd90",
+      "scripts/preflight_bayesian_stage8a.py": "b726a0219c242ff51cc4e8bc9eef2483c568fa547b770c66ff864972ce33c1eb",
+      "scripts/train_bayesian_final_models.py": "684f105ddb5f98ff969a524fde87e6cc011a05797d40f8c0b0ad465fe924ef8c",
+      "scripts/preflight_bayesian_final_models.py": "c9227e154717c4ee78286a2d3c54165489f9c8f989f33d22be31d3424e2759a5",
+      "scripts/preflight_bayesian_final_holdout_gate.py": "e865b00d051e6e73d46003e7626992e982f0de7b7bc092cbe33288797d9d8e5f",
+      "scripts/collect_bayesian_final_holdout.py": "929df5cda280ca16163a3ba913d3d7d8bf17c5de8eb797157186dd4de68f405b",
+      "scripts/run_bayesian_final_benchmark.py": "b12aec4ebd7e20388b71ef6d95951358a3b1890f265cb7706e8b81244dafaadc"
+    }
+  },
+  "scientific_contract": {
+    "path": "configs/experiments/bayesian_sequential_v1.json",
+    "sha256": "10187cda101bd364418d9b999568006dc75625c222eefee3c65e371c51e4dcb4"
+  },
+  "stage5": {
+    "config": "configs/experiments/bayesian_sequential_stage5_oof_v1.json",
+    "config_sha256": "ab656c437b70c2feb295fab05aeab14e0d60f44facd04d9c0e934fb8cd511633",
+    "selection_summary": "docs/results/bayesian_sequential/stage5_oof_20260812_summary.json",
+    "selection_summary_sha256": "ad1e1f36ebf2fe853e717c0d86fa6130f68242ad51595e2fc498ab36e1d025f6",
+    "dataset_digest": "636b48c6fc3a94fcf0aac60696ad938b328beed568cf281ffd1834d1fdb3d328",
+    "selected_method": "bayesian_entropy_scalar_v1"
+  },
+  "stage7": {
+    "summary": "docs/results/bayesian_sequential/stage7_error_feedback_20260812_summary.json",
+    "summary_sha256": "a23e86219032b8ad7be6027afe8064ca0d50185a016096da685c691644860b78",
+    "new_method_added": false
+  },
+  "final_training": {
+    "data": "all_60_opened_train_families_primary_temperature_only",
+    "trace_count": 540,
+    "family_count": 60,
+    "temperature": 0.7,
+    "reuse_stage5_hyperparameters_without_change": true,
+    "alps_variance": "five_fold_family_grouped_oof_log1p_residual_mle",
+    "train_primary_and_frozen_ablation": [
+      "bayesian_entropy_scalar_v1",
+      "bayesian_entropy_hidden_delta_v1"
+    ],
+    "train_point_baselines": [
+      "prompt_token_ridge_countdown",
+      "dynamic_signal_mlp_v1",
+      "plp_terminal_zero_v3",
+      "alps_plp_concat_v1"
+    ],
+    "online_parameter_updates": false,
+    "final_holdout_access": "forbidden"
+  },
+  "training_environment": {
+    "python_version": "3.12.3",
+    "torch_version": "2.8.0+cu128",
+    "numpy_version": "2.2.2",
+    "scikit_learn_version": "1.6.1",
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA GeForce RTX 4090 D",
+    "bf16_required": true
+  },
+  "comparison_list": [
+    "prompt_token_ridge_countdown",
+    "alps_countdown",
+    "dynamic_signal_mlp_v1",
+    "plp_terminal_zero_v3",
+    "alps_plp_concat_v1",
+    "bayesian_entropy_scalar_v1",
+    "bayesian_entropy_hidden_delta_v1"
+  ],
+  "final_holdout_plan": {
+    "status": "not_authored_not_opened",
+    "new_family_count": 12,
+    "tasks": ["qa", "summarization", "code"],
+    "families_per_task": 4,
+    "intended_lengths": ["short", "medium", "long"],
+    "prompt_count": 36,
+    "temperatures": [0.3, 0.7, 1.0],
+    "seeds": [42, 43, 44],
+    "top_p": 0.95,
+    "max_new_tokens": 4096,
+    "expected_rollout_count": 324,
+    "censoring_warning_rate": 0.1,
+    "censoring_abort_rate": 0.34,
+    "censoring_minimum_trace_count": 90,
+    "family_overlap_with_any_existing_manifest": "forbidden",
+    "prompt_semantic_overlap_review": "required_before_manifest_freeze",
+    "access_gate": "benchmark_lock_status_ready_and_all_hashes_valid"
+  },
+  "benchmark": {
+    "primary_temperature": 0.7,
+    "robustness_temperatures": [0.3, 1.0],
+    "primary_method": "bayesian_entropy_scalar_v1",
+    "ablation_method": "bayesian_entropy_hidden_delta_v1",
+    "final_holdout_selects_nothing": true,
+    "probabilistic_metrics": [
+      "posterior_nll",
+      "crps",
+      "interval_50_coverage",
+      "interval_90_coverage",
+      "interval_95_coverage",
+      "interval_mean_width",
+      "posterior_variance",
+      "posterior_entropy"
+    ],
+    "point_metrics": [
+      "mae_tokens",
+      "rmse_tokens",
+      "bias_tokens",
+      "r_squared_tokens",
+      "long_output_underestimation"
+    ],
+    "breakdowns": [
+      "task",
+      "intended_length",
+      "task_by_intended_length",
+      "temperature",
+      "seed",
+      "decode_progress",
+      "terminal_vs_nonterminal"
+    ],
+    "uncertainty_cone_quantiles": [0.025, 0.5, 0.975],
+    "convergence": {
+      "threshold": 0.05,
+      "requires_all_later_saved_points_within_threshold": true,
+      "never_reached": "failure"
+    },
+    "serving_replay_config": "configs/experiments/bayesian_sequential_stage6_analysis_v1.json",
+    "serving_replay_config_sha256": "700cf2c944eb886cb90c6ff8a8279c948fde941e68f04c4c12c13ff4357d42ee",
+    "paired_bootstrap": {
+      "unit": "prompt_family_id",
+      "replicates": 2000,
+      "confidence_level": 0.95,
+      "seed": 20260810,
+      "comparisons_are_descriptive_not_selection": true
+    }
+  },
+  "holdout_gate": {
+    "benchmark_lock": "configs/experiments/bayesian_sequential_stage8b_lock_v1.json",
+    "required_lock_status": "ready_for_one_time_final_holdout",
+    "required_checkpoint_registry": "artifacts/runs/bayesian_sequential_v1/final_models/checkpoint_registry.json",
+    "required_git_clean": true,
+    "required_git_commit_on_remote_main": true,
+    "final_holdout_opened_before_lock": false
+  },
+  "outputs": {
+    "model_root": "artifacts/runs/bayesian_sequential_v1/final_models",
+    "training_report": "training_report.json",
+    "checkpoint_registry": "checkpoint_registry.json",
+    "final_trace_root": "data/interim/bayesian_sequential_v1_final_holdout",
+    "collection_run_root": "artifacts/runs/bayesian_sequential_v1/final_holdout_collection",
+    "benchmark_run_root": "artifacts/runs/bayesian_sequential_v1/final_benchmark"
+  },
+  "report_schema": {
+    "path": "configs/reports/bayesian_sequential_stage8_final_report_schema.json",
+    "sha256": "227dbb204b18dd832a852c8a4f652377bfb8e1d039955515fbb029977c4a2c58"
+  }
+}
