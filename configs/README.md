@@ -71,10 +71,13 @@ ID. Do not edit the v1 manifest after viewing final-test results.
 | `experiments/bayesian_sequential_stage5_oof_v1.json` | 第五阶段五折、内层 ALPS cross-fit、baseline、两个 Bayesian 候选、robustness 与选择规则 | Yes，离线训练与评价入口 |
 | `experiments/bayesian_sequential_stage6_analysis_v1.json` | 第六阶段 uncertainty、严格收敛、长尾低估、runtime 与确定性 KV/batching replay | Yes，只读 Stage 4/5，不 refit |
 | `experiments/bayesian_sequential_stage7_error_feedback_v1.json` | 第七阶段 `>100 token`、最差 5% 与冻结 trace 标签；语义标签进入人工复核 | Yes，只读 Train-family OOF，不 refit |
+| `experiments/bayesian_sequential_stage8a_freeze_v1.json` | 第八阶段最终 Train 拟合、七方法 registry、final benchmark 指标和失败关闭门禁 | Yes；Stage-8A 不读取 holdout |
+| `experiments/bayesian_sequential_stage8b_lock_v1.template.json` | 故意不可执行的盲测锁模板；需在模型、提交和新 manifest 全部冻结后另建 ready lock | No；模板不能解锁 |
 | `reports/bayesian_sequential_pilot_report_schema.json` | 第三阶段 pilot acceptance 的冻结 JSON Schema | Yes |
 | `reports/bayesian_sequential_full_train_report_schema.json` | 第四阶段 full-Train 进度与最终验收 JSON Schema | Yes |
 | `reports/bayesian_sequential_stage6_report_schema.json` | 第六阶段派生报告的冻结边界与 final-holdout 禁止项 | Yes |
 | `reports/bayesian_sequential_stage7_report_schema.json` | 第七阶段 error-feedback 报告边界、语义 unresolved 与不 refit 保证 | Yes |
+| `reports/bayesian_sequential_stage8_final_report_schema.json` | 第八阶段一次性 final benchmark，强制不选型、不调阈值 | Yes |
 | `reports/alps_plp_hybrid_v3_report_schema.json` | Minimum machine-readable final-report contract | Yes |
 
 For Hybrid v3, `alps_plp_hybrid_v3.json.progressive_head` defines the shared head settings and the

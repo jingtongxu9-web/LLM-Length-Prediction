@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "lock_id": "bayesian-sequential-v1-stage8b-final-lock",
+  "status": "template_not_ready_do_not_open_holdout",
+  "stage8a_config_sha256": "FILL_AFTER_STAGE8A_MERGE",
+  "git_commit": "FILL_AFTER_STAGE8A_MERGE_AND_FINAL_TRAINING",
+  "checkpoint_registry_sha256": "FILL_AFTER_FINAL_TRAINING",
+  "checkpoint_sha256": {
+    "alps_prior.json": "FILL_AFTER_FINAL_TRAINING",
+    "prompt_token_ridge_countdown.json": "FILL_AFTER_FINAL_TRAINING",
+    "dynamic_signal_mlp_v1.json": "FILL_AFTER_FINAL_TRAINING",
+    "plp_terminal_zero_v3.pt": "FILL_AFTER_FINAL_TRAINING",
+    "alps_plp_concat_v1.pt": "FILL_AFTER_FINAL_TRAINING",
+    "bayesian_entropy_scalar_v1.pt": "FILL_AFTER_FINAL_TRAINING",
+    "bayesian_entropy_hidden_delta_v1.pt": "FILL_AFTER_FINAL_TRAINING"
+  },
+  "final_holdout_manifest": "data/prompts/bayesian_sequential_v1_final_holdout.jsonl",
+  "final_holdout_manifest_sha256": "FILL_ONLY_AFTER_NEW_FAMILIES_ARE_AUTHORED_AND_BLIND_REVIEWED",
+  "prompt_semantic_overlap_review_complete": false,
+  "final_holdout_opened": false,
+  "final_holdout_selects_nothing": true
+}

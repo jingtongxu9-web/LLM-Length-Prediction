@@ -18,6 +18,8 @@ Stage 6 只读分析运行手册见
 [`deployment/bayesian_sequential_stage6_analysis.md`](deployment/bayesian_sequential_stage6_analysis.md)。
 Stage 7 OOF error-feedback 运行手册见
 [`deployment/bayesian_sequential_stage7_error_feedback.md`](deployment/bayesian_sequential_stage7_error_feedback.md)。
+Stage 8 最终模型冻结和一次性盲测手册见
+[`deployment/bayesian_sequential_stage8_final_benchmark.md`](deployment/bayesian_sequential_stage8_final_benchmark.md)。
 
 ## 2. 目录结构
 
@@ -90,6 +92,7 @@ docs/
 - [`deployment/bayesian_sequential_stage3_pilot.md`](deployment/bayesian_sequential_stage3_pilot.md)：Bayesian 第三阶段 9-rollout GPU pilot；
 - [`deployment/bayesian_sequential_stage4_full_train.md`](deployment/bayesian_sequential_stage4_full_train.md)：Bayesian 第四阶段 1,620-rollout Train-only 分块采集与归档；
 - [`deployment/bayesian_sequential_stage5_oof.md`](deployment/bayesian_sequential_stage5_oof.md)：Bayesian 第五阶段 family-grouped OOF、robustness 和预注册方法选择；
+- [`deployment/bayesian_sequential_stage8_final_benchmark.md`](deployment/bayesian_sequential_stage8_final_benchmark.md)：Bayesian 第八阶段最终 checkpoint 冻结、失败关闭门禁与一次性 final benchmark；
 - [`references/大模型输出长度预测.pdf`](references/大模型输出长度预测.pdf)：仓库早期背景版本，保留用于 provenance；
 - [`references/大模型输出长度预测_2026-07-09_authoritative.pdf`](references/大模型输出长度预测_2026-07-09_authoritative.pdf)：当前权威项目需求基线。
 

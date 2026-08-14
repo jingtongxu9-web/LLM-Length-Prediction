@@ -3,6 +3,26 @@
 Run commands from the repository root. Files in this directory are user-facing entry points; they
 call reusable implementation under `src/llm_length_prediction/`.
 
+## Bayesian Sequential stage-eight final freeze and one-time benchmark
+
+Stage-8A first fits every frozen comparator on all 60 opened Train families at temperature 0.7;
+it still does not author or read a final holdout:
+
+```bash
+python scripts/preflight_bayesian_stage8a.py \
+  --dataset-root "$STAGE4_DATA_ROOT" --verify-trace-hashes \
+  --verify-training-environment
+python scripts/train_bayesian_final_models.py \
+  --dataset-root "$STAGE4_DATA_ROOT" --device auto --verify-trace-hashes
+python scripts/preflight_bayesian_final_models.py
+python scripts/preflight_bayesian_final_holdout_gate.py
+```
+
+The last command must remain blocked until a later Stage-8B lock pins the merged commit, registry,
+all seven model hashes, the new manifest hash, and the completed semantic-overlap review. Only then
+may `collect_bayesian_final_holdout.py` and `run_bayesian_final_benchmark.py` run. See
+[`docs/deployment/bayesian_sequential_stage8_final_benchmark.md`](../docs/deployment/bayesian_sequential_stage8_final_benchmark.md).
+
 ## Bayesian Sequential stage-seven OOF error feedback
 
 Stage seven audits the frozen selected Stage-5 OOF predictions; it does not need a GPU or refit:
