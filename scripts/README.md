@@ -18,9 +18,19 @@ python scripts/preflight_bayesian_final_models.py
 python scripts/preflight_bayesian_final_holdout_gate.py
 ```
 
-The last command must remain blocked until a later Stage-8B lock pins the merged commit, registry,
-all seven model hashes, the new manifest hash, and the completed semantic-overlap review. Only then
-may `collect_bayesian_final_holdout.py` and `run_bayesian_final_benchmark.py` run. See
+The last command remains blocked until the Stage-8B ready lock is merged. Candidate preparation is
+deterministic and pins the merged commit, registry, all seven model hashes, new manifest, and
+semantic-overlap review:
+
+```bash
+python scripts/audit_bayesian_stage8b_candidate.py
+python scripts/finalize_bayesian_stage8b_lock.py
+```
+
+Before merge, collection still fails because the checkout is not clean current `origin/main`.
+After merge, the 4090 server runs `preflight_bayesian_stage8b_ready.py --verify-model-loading`;
+only then may
+`collect_bayesian_final_holdout.py` and `run_bayesian_final_benchmark.py` run. See
 [`docs/deployment/bayesian_sequential_stage8_final_benchmark.md`](../docs/deployment/bayesian_sequential_stage8_final_benchmark.md).
 
 ## Bayesian Sequential stage-seven OOF error feedback

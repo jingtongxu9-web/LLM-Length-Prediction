@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "lock_id": "bayesian-sequential-v1-stage8b-final-lock",
+  "status": "ready_for_one_time_final_holdout",
+  "stage8a_config_sha256": "3bd35b8c823b43f38c2fb7ee02ac42f003313ee75f9954dc9fdc965254f090d4",
+  "git_commit": "1a96a48775d4ac898575d400504b661117cdff00",
+  "checkpoint_registry_sha256": "c58a1d3d00b024da4c7db1a53ea6c3a19827992a2f0547c40a26cadb6ed0dd4a",
+  "checkpoint_sha256": {
+    "alps_prior.json": "7a2d703fa4779590b150ff38e54ad4afea3aa0a10e73411aee1664a8e931c998",
+    "prompt_token_ridge_countdown.json": "f8f24a4567187ff084761bdbe897db6429bb66f1f69eeef46ecaa3c27a803220",
+    "dynamic_signal_mlp_v1.json": "6d3e42643ff43505296d3d947c69ad58734061476479cd7c78c04b8846484734",
+    "plp_terminal_zero_v3.pt": "6b2e25de12e11da5eefa95a85ffc1756525bc9c5c7e73e00a1870e995215a9e9",
+    "alps_plp_concat_v1.pt": "74bae636fa9388d2aff129f6ebaf3003fa8c40f2a262ff802da1038233ce5e23",
+    "bayesian_entropy_scalar_v1.pt": "97f192584bd5525ffaad54de19aa4b358a7e8e690454436676ff12f4d3ee784d",
+    "bayesian_entropy_hidden_delta_v1.pt": "2b3f266c2577899405f7bd1f26f3b2f8f33a993b1c68d36e3cbed2e898bdffdf"
+  },
+  "final_holdout_manifest": "data/prompts/bayesian_sequential_v1_final_holdout.jsonl",
+  "final_holdout_manifest_sha256": "748e9c2225586a02165c2b65b127fd223bfc23170e0f45d5f6f40a356a249278",
+  "semantic_overlap_review": {
+    "path": "docs/results/bayesian_sequential/stage8b_final_holdout_overlap_review.json",
+    "sha256": "92a9572b1f5e83efb5db733623bda00732fea633f143ccbf98e87d7811c11266",
+    "status": "pass",
+    "opened_manifest_count": 2,
+    "opened_unique_family_count": 72,
+    "candidate_family_count": 12
+  },
+  "stage8b_gate_preflight": {
+    "path": "scripts/preflight_bayesian_stage8b_ready.py",
+    "sha256": "3c3ad72a7cc07e63290ec0306d2cc0ef4bddea2941866ac27b727dafa1cb8e47"
+  },
+  "prompt_semantic_overlap_review_complete": true,
+  "final_holdout_opened": false,
+  "final_holdout_selects_nothing": true
+}
