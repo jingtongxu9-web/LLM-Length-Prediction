@@ -37,7 +37,7 @@ MAE。
 | Hidden-State PLP v2 | 已完成 | Test sequence-balanced MAE `60.03`、Raw R² `0.790`；论文对齐、非精确复现 |
 | PLP terminal-zero v3 | **已完成** | Test MAE `71.04`，相对 v2 改善约 `5.35%`；严格显著性未通过 |
 | 判别式 ALPS+PLP Hybrid baseline | concat v1 已选中并完成全量 Train | concat v1 OOF MAE 49.92；它是强 baseline，不是 Bayesian posterior update |
-| Bayesian Sequential v1 | **第八阶段 Stage-8B 锁待合并** | Stage-8A 已在 4090 完成七方法最终拟合；36 条全新 Prompt、语义重叠审计与 checkpoint 哈希已冻结，合并 ready lock 前不得采集 final holdout |
+| Bayesian Sequential v1 | **一次性 final benchmark 已完成** | 12 个新 family、324 条 trace 全部通过；Bayesian scalar 未取得总体优势，概率不确定性保留 serving 风险控制价值 |
 | Hybrid v3 serving replay | 已实现，待最终 Test 后运行 | 固定 bucket/batch/KV 规则的离线 replay；不等于生产测量 |
 
 当前 ALPS v1 的采集、最终 Ridge、Train/Test 分组分析、固定五折、输入长度 baseline 和
@@ -60,6 +60,10 @@ scalar/hidden-delta 的 paired family NLL 选择保留 scalar；完整证据边�
 [`docs/results/bayesian_sequential/stage7_error_feedback_20260812.md`](docs/results/bayesian_sequential/stage7_error_feedback_20260812.md)。
 第八阶段最终模型冻结与一次性盲测顺序见
 [`docs/deployment/bayesian_sequential_stage8_final_benchmark.md`](docs/deployment/bayesian_sequential_stage8_final_benchmark.md)。
+一次性 final holdout 的七方法结果、paired-family 置信区间、收敛与 serving trade-off 见
+[`docs/results/bayesian_sequential/stage8_final_benchmark_20260816.md`](docs/results/bayesian_sequential/stage8_final_benchmark_20260816.md)。
+预注册 Bayesian scalar 没有在总体 NLL/MAE/RMSE 上优于 ALPS；该负结果不触发 final-holdout
+重选或调参。
 
 ALPS+PLP 已拆成两个独立方法版本：`alps_plp_concat_v1` 和
 `alps_plp_residual_v2`。原理、数据防泄漏与运行入口见

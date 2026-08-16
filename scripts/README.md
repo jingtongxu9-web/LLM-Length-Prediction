@@ -33,6 +33,19 @@ only then may
 `collect_bayesian_final_holdout.py` and `run_bayesian_final_benchmark.py` run. See
 [`docs/deployment/bayesian_sequential_stage8_final_benchmark.md`](../docs/deployment/bayesian_sequential_stage8_final_benchmark.md).
 
+The one-time run completed on 2026-08-16. After downloading the immutable result archive, verify
+both the outer digest and every internal file, then generate only the small committable evidence:
+
+```bash
+python scripts/archive_bayesian_stage8_final.py \
+  --archive /path/to/bayesian_stage8b_final_results.tar.gz \
+  --expected-archive-sha256 \
+  7da438422268c7471e572215f6ac6008cc2a12625f50075be8d40a0bc537853d
+```
+
+The archiver fails closed on any archive, nested benchmark-manifest, trace-count, preflight, or
+no-selection boundary mismatch. It commits no raw trace or per-update prediction data.
+
 ## Bayesian Sequential stage-seven OOF error feedback
 
 Stage seven audits the frozen selected Stage-5 OOF predictions; it does not need a GPU or refit:
