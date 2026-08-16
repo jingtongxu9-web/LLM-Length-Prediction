@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="440" viewBox="0 0 800 440" role="img" aria-labelledby="title desc">
+  <title id="title">Final probabilistic NLL</title>
+  <desc id="desc">Bars compare NLL for ALPS, the pre-registered Bayesian scalar, and hidden-delta; lower values are better.</desc>
+  <style>
+    :root { color-scheme: light dark; }
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #1f2937; }
+    .muted { fill: #6b7280; }
+    .grid { stroke: #d1d5db; stroke-width: 1; }
+    .frame { fill: none; stroke: #9ca3af; stroke-width: 1; }
+    @media (prefers-color-scheme: dark) {
+      text { fill: #f3f4f6; } .muted { fill: #cbd5e1; }
+      .grid { stroke: #475569; } .frame { stroke: #64748b; }
+    }
+  </style>
+  <text x="400.0" y="28" text-anchor="middle" font-size="20" font-weight="600">Final probabilistic NLL</text>
+  <rect class="frame" x="85" y="65" width="680" height="260"/>
+  <line class="grid" x1="85" y1="325.0" x2="765" y2="325.0"/>
+  <text class="muted" x="73" y="329.0" text-anchor="end" font-size="12">0</text>
+  <line class="grid" x1="85" y1="287.9" x2="765" y2="287.9"/>
+  <text class="muted" x="73" y="291.9" text-anchor="end" font-size="12">1</text>
+  <line class="grid" x1="85" y1="250.7" x2="765" y2="250.7"/>
+  <text class="muted" x="73" y="254.7" text-anchor="end" font-size="12">2</text>
+  <line class="grid" x1="85" y1="213.6" x2="765" y2="213.6"/>
+  <text class="muted" x="73" y="217.6" text-anchor="end" font-size="12">3</text>
+  <line class="grid" x1="85" y1="176.4" x2="765" y2="176.4"/>
+  <text class="muted" x="73" y="180.4" text-anchor="end" font-size="12">4</text>
+  <line class="grid" x1="85" y1="139.3" x2="765" y2="139.3"/>
+  <text class="muted" x="73" y="143.3" text-anchor="end" font-size="12">5</text>
+  <line class="grid" x1="85" y1="102.1" x2="765" y2="102.1"/>
+  <text class="muted" x="73" y="106.1" text-anchor="end" font-size="12">6</text>
+  <line class="grid" x1="85" y1="65.0" x2="765" y2="65.0"/>
+  <text class="muted" x="73" y="69.0" text-anchor="end" font-size="12">7</text>
+  <rect x="139.4" y="108.6" width="117.9" height="216.4" fill="#64748b" rx="3"/>
+  <text x="198.3" y="100.6" text-anchor="middle" font-size="13">5.827</text>
+  <text x="198.3" y="351" text-anchor="middle" font-size="12">ALPS countdown</text>
+  <rect x="366.1" y="89.9" width="117.9" height="235.1" fill="#2563eb" rx="3"/>
+  <text x="425.0" y="81.9" text-anchor="middle" font-size="13">6.330</text>
+  <text x="425.0" y="351" text-anchor="middle" font-size="12">Bayesian scalar</text>
+  <rect x="592.7" y="107.3" width="117.9" height="217.7" fill="#14b8a6" rx="3"/>
+  <text x="651.7" y="99.3" text-anchor="middle" font-size="13">5.862</text>
+  <text x="651.7" y="351" text-anchor="middle" font-size="12">Bayesian hidden-delta</text>
+  <text transform="translate(20 195) rotate(-90)" text-anchor="middle" font-size="13">NLL (lower is better)</text>
+  <text class="muted" x="400.0" y="394" text-anchor="middle" font-size="12">Scalar−ALPS 95% CI [-0.015, 2.330] (includes 0)</text>
+  <text class="muted" x="400.0" y="415" text-anchor="middle" font-size="12">Scalar−hidden 95% CI [0.064, 2.004] (above 0)</text>
+</svg>

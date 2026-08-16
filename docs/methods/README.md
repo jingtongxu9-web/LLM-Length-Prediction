@@ -29,6 +29,10 @@
 现有 PLP softmax 或 Hybrid concat 输出不是由 `prior × likelihood` 递归更新得到的 posterior。
 因此旧结果继续有效，但不得把它们改名为 Bayesian sequential inference。
 
+Bayesian Sequential v1 已完成真实 Qwen 实现、Train-family OOF 和一次性 final holdout；最终
+证据支持“实现与不确定性风险控制有效”，但不支持预注册 scalar 的总体 superiority。见
+[`../results/bayesian_sequential/stage8_final_benchmark_20260816.md`](../results/bayesian_sequential/stage8_final_benchmark_20260816.md)。
+
 ## 结果与实施合同
 
 - 完成后的实验数字：[`../results/README.md`](../results/README.md)

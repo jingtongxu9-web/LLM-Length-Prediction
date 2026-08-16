@@ -16,13 +16,17 @@ configs/experiments/bayesian_sequential_v1.json
 ```
 
 它冻结 ALPS prior、剩余长度 latent state、非重叠 evidence、Bayesian posterior update、
-censoring、temperature robustness、OOF 选择和 final holdout 边界。当前状态为
-`phase1_approved_for_implementation`。第二阶段 CPU 核心、第三阶段真实 Qwen pilot 和第四阶段
+censoring、temperature robustness、OOF 选择和 final holdout 边界。合同文件中的
+`phase1_approved_for_implementation` 保留为实施前历史状态；实际执行现已完成。第二阶段 CPU
+核心、第三阶段真实 Qwen pilot 和第四阶段
 1,620 条 full-Train 采集与本地逐文件复验均已完成；第五阶段五折 family-grouped OOF 已按冻结
 合同完成，预注册规则选择 `bayesian_entropy_scalar_v1`；第六阶段分析与第七阶段 OOF error
-feedback、Stage-8A 最终拟合和 Stage-8B 锁定准备也已完成；ready lock 在合并前仍不能采集。
+feedback、Stage-8A 最终拟合和 Stage-8B 锁定、采集、评价也已完成。
 结果见
 [`../docs/results/bayesian_sequential/stage5_oof_20260812.md`](../docs/results/bayesian_sequential/stage5_oof_20260812.md)。
+Stage-8B 已在锁合并后完成 324 条一次性 final-holdout 采集与七方法 benchmark；最终报告见
+[`../docs/results/bayesian_sequential/stage8_final_benchmark_20260816.md`](../docs/results/bayesian_sequential/stage8_final_benchmark_20260816.md)。
+Final holdout 不再可用于任何配置或方法选择。
 现有旧 PLP/Hybrid 只作为 baseline 或消融，不能替代 proposed method。
 
 对于已经完成的 ALPS v1 命令行流程，权威合同仍是：

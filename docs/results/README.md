@@ -12,7 +12,7 @@ results/
 ├── alps/           # ALPS 各版本的完整结果
 ├── plp/            # Dynamic v1、Hidden-State v2、Terminal-Zero v3
 ├── hybrid/         # concat v1、residual v2、gated residual v2.1
-├── bayesian_sequential/ # Proposed method；Stage 7 OOF error feedback 已完成
+├── bayesian_sequential/ # Proposed method；Stage 8 一次性 final benchmark 已完成
 └── comparisons/    # 跨方法综合比较与论文主表
 ```
 
@@ -58,12 +58,15 @@ results/
 入口：[`bayesian_sequential/README.md`](bayesian_sequential/README.md)
 
 数学与实验合同、CPU 核心、真实 Qwen Stage 3 工程 pilot、Stage 4 full-Train 采集和 Stage 5
-family-grouped OOF、Stage 6 uncertainty/serving 和 Stage 7 OOF error feedback 均已完成。预注册规则选择 Bayesian scalar；结果见
+family-grouped OOF、Stage 6 uncertainty/serving、Stage 7 OOF error feedback 和 Stage 8
+一次性 final benchmark 均已完成。预注册规则在 Train-family OOF 选择 Bayesian scalar；结果见
 [`bayesian_sequential/stage5_oof_20260812.md`](bayesian_sequential/stage5_oof_20260812.md)。该结果
 及 [`bayesian_sequential/stage6_analysis_20260812.md`](bayesian_sequential/stage6_analysis_20260812.md)
 及 [`bayesian_sequential/stage7_error_feedback_20260812.md`](bayesian_sequential/stage7_error_feedback_20260812.md)
-仍是 Train-family OOF 诊断，不是 final-Test。旧 PLP/Hybrid 结果不能复制到该目录或改名
-为 Bayesian posterior。
+仍是 Train-family OOF 诊断；独立 final-holdout 结果见
+[`bayesian_sequential/stage8_final_benchmark_20260816.md`](bayesian_sequential/stage8_final_benchmark_20260816.md)。
+最终盲测没有支持 primary scalar 的总体优势，但完成了 Bayesian sequential implementation 和
+uncertainty/serving 验证。旧 PLP/Hybrid 结果不能复制到该目录或改名为 Bayesian posterior。
 
 ## 7. 跨方法对比
 
@@ -74,6 +77,7 @@ family-grouped OOF、Stage 6 uncertainty/serving 和 Stage 7 OOF error feedback 
 | [`comparisons/stage1_alps_baselines_dynamic.md`](comparisons/stage1_alps_baselines_dynamic.md) | 第一阶段 ALPS、静态 baseline 与旧 Dynamic-Signal MLP 的完整总结 |
 | [`comparisons/baseline_alps_plp_v3_comparison.md`](comparisons/baseline_alps_plp_v3_comparison.md) | Baseline、ALPS、PLP v3 的跨阶段对比 |
 | [`comparisons/four_method_main_comparison.md`](comparisons/four_method_main_comparison.md) | PDF 主线回归前的历史四方法比较；concat v1 是 discriminative baseline |
+| [`bayesian_sequential/stage8_final_benchmark_20260816.md`](bayesian_sequential/stage8_final_benchmark_20260816.md) | 全新 12-family holdout 上的最终七方法同口径比较；不重新选模 |
 
 四方法报告不属于 `hybrid/`：它横跨四个方法家族。当前 ALPS、PLP v3 和 concat v1 已有相同
 Hybrid Train trace 上的 OOF 数字；Prompt-token countdown 的同口径数字仍需在 AutoDL 现有
@@ -89,7 +93,7 @@ trace 上补算。
 3. PLP 验证生成中动态 hidden state；
 4. Hybrid 比较不同判别式融合结构；
 5. Bayesian Sequential 验证 prior + incremental evidence + posterior update；
-6. 最终主表加入 selected Bayesian method；
+6. 最终主表保留预注册 Bayesian scalar，同时如实报告其负结果；
 7. PLP 与 Hybrid 的其他版本作为 baseline/消融。
 
 ## 9. Test 边界
@@ -97,3 +101,6 @@ trace 上补算。
 PLP-only v3 已使用原协议的 12-family Test，因此该 Test 不能再次称为未见的 Hybrid Test。
 Hybrid concat v1 的最终确认需要新建从未参与方法选择的 holdout。OOF 负责开发与选型，全量
 Train 模型负责未来 holdout，两者不能混称为最终 Test。
+
+Bayesian Sequential v1 的独立 12-family final holdout 已于 2026-08-16 一次性使用完毕。它只
+能支持冻结方法的最终报告，不能再作为任何后续 Bayesian v1/v2 调参与选型数据。

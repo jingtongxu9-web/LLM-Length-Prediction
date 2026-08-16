@@ -203,8 +203,8 @@ holdout 后再修补。
 
 ## 10. 阶段八：一次性 final benchmark
 
-状态：**Stage-8A 最终模型训练与复验已完成；Stage-8B ready lock、36 条新 Prompt 和重叠审计
-已准备，等待锁定分支合并。合并前仍禁止采集。**
+状态：**已完成（2026-08-16）。Stage-8A 七模型冻结、Stage-8B ready lock、324 条新 family
+trace、唯一一次 final benchmark 及本地双重 SHA-256 归档均通过。**
 
 在以下内容全部冻结后才创建并打开新 family holdout：
 
@@ -225,6 +225,11 @@ SHA-256 和报告 schema。Stage-8B ready lock 已固定最终模型哈希、远
 manifest、外层 preflight 和人工语义重叠复核；只有锁定分支合并且服务器处于干净的当前
 `origin/main` 时才解锁。执行手册见
 [`../deployment/bayesian_sequential_stage8_final_benchmark.md`](../deployment/bayesian_sequential_stage8_final_benchmark.md)。
+
+最终报告见
+[`../results/bayesian_sequential/stage8_final_benchmark_20260816.md`](../results/bayesian_sequential/stage8_final_benchmark_20260816.md)。
+预注册 scalar primary 的总体 superiority 未获支持；这属于应报告的最终负结果，不授权在已打开
+holdout 上返工。
 
 ## 11. 明确禁止事项
 

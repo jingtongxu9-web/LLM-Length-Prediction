@@ -2,6 +2,11 @@
 
 ## 当前允许执行的边界
 
+> **完成状态（2026-08-16）：**下述一次性流程已经完成。324 条 final-holdout trace、七方法
+> benchmark 和本地双重 SHA-256 均通过；不要再次运行 collection/benchmark，也不得根据最终
+> 结果修改方法或阈值。最终报告见
+> [`../results/bayesian_sequential/stage8_final_benchmark_20260816.md`](../results/bayesian_sequential/stage8_final_benchmark_20260816.md)。
+
 第八阶段分为两个不可交换的子阶段：
 
 1. **Stage-8A**：只使用已经打开的 60 个 Train family、`temperature=0.7` 的 540 条
@@ -124,3 +129,17 @@ python scripts/run_bayesian_final_benchmark.py \
 final benchmark 同时生成七方法预测、概率与点指标、分组结果、uncertainty cone、严格稳定
 5% 收敛、描述性 paired-family bootstrap 和冻结 serving replay。它不选择模型、不调整阈值、
 不根据 final holdout 重新训练。
+
+## 本地归档
+
+服务器输出下载后，归档器以只读流式方式复验外层 archive digest、内部 353 个文件、嵌套
+benchmark manifest、324 条 trace/index 和 no-selection 科学边界，再生成可提交的小型证据：
+
+```bash
+python scripts/archive_bayesian_stage8_final.py \
+  --archive /path/to/bayesian_stage8b_final_results.tar.gz \
+  --expected-archive-sha256 \
+  7da438422268c7471e572215f6ac6008cc2a12625f50075be8d40a0bc537853d
+```
+
+243 MiB 左右的原始 trace/prediction archive 留在本地实验结果目录，不提交普通 Git。

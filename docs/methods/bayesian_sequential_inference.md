@@ -387,3 +387,7 @@ Error analysis 只能产生预注册的新消融或下一 method ID，不能根�
 6. 主指标、收敛指标和选择规则固定；
 7. 自动测试能够检查上述关键不变量；
 8. 尚未采集或打开任何新的 Bayesian final holdout。
+
+以上是进入第二阶段前的历史门槛，并已在实现开始时满足。Stage-8B 于 2026-08-16 按冻结合同
+一次性打开 final holdout；完成后的结果与永久 no-reselection 边界见
+[`../results/bayesian_sequential/stage8_final_benchmark_20260816.md`](../results/bayesian_sequential/stage8_final_benchmark_20260816.md)。
