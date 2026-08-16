@@ -4,8 +4,8 @@
 采集、第五阶段 Train-family OOF、第六阶段不确定性/收敛/serving 分析，以及第七阶段
 OOF error feedback 均已完成。五折全部通过，预注册 paired family NLL 规则选择
 `bayesian_entropy_scalar_v1`。这是 Train-family OOF
-诊断证据，不是 final Test 结果；
-新的 final holdout 尚未创建或访问。
+诊断证据，不是 final Test 结果。新的 final-holdout manifest 已在 Stage-8B 锁定分支冻结，
+但尚未采集、评价或用于任何选择。
 
 第三阶段可提交证据：
 
@@ -27,6 +27,11 @@ OOF error feedback 均已完成。五折全部通过，预注册 paired family N
 - 人工可读报告：[`stage7_error_feedback_20260812.md`](stage7_error_feedback_20260812.md)；
 - 脱敏机器摘要：[`stage7_error_feedback_20260812_summary.json`](stage7_error_feedback_20260812_summary.json)。
 
+第八阶段 Stage-8A 可提交证据：
+
+- 人工可读报告：[`stage8a_final_models_20260816.md`](stage8a_final_models_20260816.md)；
+- 脱敏机器摘要：[`stage8a_final_models_20260816_summary.json`](stage8a_final_models_20260816_summary.json)。
+
 在此之前：
 
 - 数学合同见 [`../../methods/bayesian_sequential_inference.md`](../../methods/bayesian_sequential_inference.md)；
@@ -39,10 +44,14 @@ OOF error feedback 均已完成。五折全部通过，预注册 paired family N
 holdout 泛化结论。
 
 阶段门：第七阶段已在相同的 60 family、1,620 sequence、137,957 个逐步 OOF 点完成错误审计；
-没有 model/method reselection 或 threshold tuning，final holdout 未创建或访问。任何修正必须使用
+没有 model/method reselection 或 threshold tuning；当前 final holdout 仍未采集或用于评价。
+任何修正必须使用
 新 method ID 并重跑完整 OOF，否则下一步只能冻结现有方法后进入一次性 final benchmark。
 
-Stage-8A 最终冻结代码现已准备完成，但尚未产生最终模型或 final-holdout 结果。其顺序固定为：
-先在 540 条主温度 Train trace 上拟合并复验七方法 checkpoint，再冻结 registry/提交/新 manifest，
-最后才允许一次性采集与评价。当前 Stage-8B gate 默认阻塞；执行边界见
+Stage-8A 已在 540 条主温度 Train trace 上完成七方法最终拟合，服务器 CPU 恢复和本地下载
+哈希均通过。Stage-8B candidate 包含 12 个全新 family、36 条 Prompt；相对两个历史 manifest
+的 396 条记录、72 个 family 完成 exact 与去模板相似度审计，未发现重叠。ready lock 已固定
+Stage-8A 配置、合并提交、registry、七个模型、manifest 和审计报告哈希，但在该锁合并到
+`main` 前仍禁止采集。审计证据见
+[`stage8b_final_holdout_overlap_review.json`](stage8b_final_holdout_overlap_review.json)，执行边界见
 [`../../deployment/bayesian_sequential_stage8_final_benchmark.md`](../../deployment/bayesian_sequential_stage8_final_benchmark.md)。

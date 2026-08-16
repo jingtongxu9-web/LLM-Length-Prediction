@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "review_id": "bayesian-sequential-v1-stage8b-semantic-overlap-review",
+  "status": "manual_topic_review_complete",
+  "candidate_manifest": "data/prompts/bayesian_sequential_v1_final_holdout.jsonl",
+  "review_scope": "all_jsonl_manifests_in_data_prompts_except_candidate",
+  "review_method": "manual_topic_review_plus_template_stripped_character_similarity",
+  "thresholds": {
+    "maximum_sequence_ratio": 0.7,
+    "maximum_trigram_jaccard": 0.4
+  },
+  "reviewer_role": "pre_holdout_curator_isolated_from_model_fitting_and_selection",
+  "family_reviews": [
+    {"prompt_family_id":"final_qa_001_gravitational_lensing","topic":"gravitational lensing and multiple images","nearest_opened_family":"qa_015_quantum_entanglement","decision":"pass","rationale":"Both are physics topics, but the candidate concerns general-relativistic light deflection and astronomical imaging rather than quantum nonlocal correlations."},
+    {"prompt_family_id":"final_qa_002_circadian_clock","topic":"molecular circadian oscillation and entrainment","nearest_opened_family":"qa_017_immune_memory","decision":"pass","rationale":"Both are biological mechanisms, but the candidate concerns autonomous timing feedback loops and light entrainment rather than adaptive immunity."},
+    {"prompt_family_id":"final_qa_003_error_correcting_codes","topic":"redundancy, code distance, and correction of bit errors","nearest_opened_family":"qa_011_public_key_crypto","decision":"pass","rationale":"Both concern digital communication, but error correction handles noisy channels and is not encryption, authentication, or key exchange."},
+    {"prompt_family_id":"final_qa_004_equal_temperament","topic":"musical tuning by equal division of the octave","nearest_opened_family":"qa_020_plate_tectonics","decision":"pass","rationale":"No opened family addresses acoustics or tuning; the named neighbor is only a distant expository QA task."},
+    {"prompt_family_id":"final_summarization_001_city_night_noise","topic":"privacy-preserving sensor-assisted urban noise enforcement","nearest_opened_family":"summarization_001_urban_transit","decision":"pass","rationale":"Both involve city administration, but the candidate is about noise evidence, enforcement thresholds, and acoustic privacy rather than transport operations."},
+    {"prompt_family_id":"final_summarization_002_court_interpretation","topic":"certified court interpretation and procedural language access","nearest_opened_family":"summarization_012_primary_care","decision":"pass","rationale":"Both coordinate professional services, but the candidate concerns legal language access and procedural fairness rather than medical referrals and chronic care."},
+    {"prompt_family_id":"final_summarization_003_animal_foster_network","topic":"temporary home fostering for shelter animals","nearest_opened_family":"summarization_004_community_eldercare","decision":"pass","rationale":"Both use community support networks, but the candidate concerns animal welfare, shelter capacity, and adoption rather than human eldercare."},
+    {"prompt_family_id":"final_summarization_004_tool_library","topic":"community lending and maintenance of infrequently used tools","nearest_opened_family":"summarization_008_open_source_governance","decision":"pass","rationale":"Both share community participation, but the candidate concerns physical asset lending, safety, loss, and access rather than software governance."},
+    {"prompt_family_id":"final_code_001_packet_reassembler","topic":"out-of-order binary fragment reassembly","nearest_opened_family":"code_003_log_parser","decision":"pass","rationale":"Both parse incoming data, but the candidate requires fragment identity, ordering, conflict detection, checksums, and bounded reassembly state rather than log aggregation."},
+    {"prompt_family_id":"final_code_002_sparse_matrix","topic":"sparse matrix representation and algebra","nearest_opened_family":"code_020_expression_evaluator","decision":"pass","rationale":"Both implement computation, but the candidate concerns sparse linear algebra and storage invariants rather than parsing arithmetic expressions."},
+    {"prompt_family_id":"final_code_003_geohash_index","topic":"geohash coding and spatial candidate search","nearest_opened_family":"code_014_pagination_iterator","decision":"pass","rationale":"No opened code family addresses geospatial encoding or spherical-distance filtering; the named neighbor is only a distant data-access utility."},
+    {"prompt_family_id":"final_code_004_rollback_union_find","topic":"rollback-capable disjoint-set data structure","nearest_opened_family":"code_006_dependency_resolver","decision":"pass","rationale":"Both can involve graph connectivity, but the candidate maintains reversible components and snapshots rather than producing a topological build order."}
+  ],
+  "prompt_semantic_overlap_review_complete": true,
+  "final_holdout_opened": false,
+  "final_holdout_accessed": false
+}

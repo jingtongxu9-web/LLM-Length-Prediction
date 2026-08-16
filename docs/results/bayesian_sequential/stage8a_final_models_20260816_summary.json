@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "stage8a_id": "bayesian-sequential-v1-stage8a-final-freeze",
+  "status": "pass",
+  "completed_date": "2026-08-16",
+  "config_sha256": "3bd35b8c823b43f38c2fb7ee02ac42f003313ee75f9954dc9fdc965254f090d4",
+  "dataset": {
+    "dataset_digest": "636b48c6fc3a94fcf0aac60696ad938b328beed568cf281ffd1834d1fdb3d328",
+    "training_trace_count": 540,
+    "training_family_count": 60,
+    "training_temperature": 0.7,
+    "prior_crossfit_fold_counts": {"0":108,"1":108,"2":108,"3":108,"4":108}
+  },
+  "environment": {
+    "python_version": "3.12.3",
+    "torch_version": "2.8.0+cu128",
+    "numpy_version": "2.2.2",
+    "scikit_learn_version": "1.6.1",
+    "cuda_runtime": "12.8",
+    "gpu_name": "NVIDIA GeForce RTX 4090 D",
+    "bf16_supported": true
+  },
+  "training_diagnostics_not_final_metrics": {
+    "prior_residual_variance": 0.09855696651251897,
+    "dynamic_signal_mlp_final_sequence_balanced_mse_log1p": 1.3414928913116455,
+    "plp_terminal_zero_v3_final_training_loss": 105.97217454741728,
+    "alps_plp_concat_v1_final_training_loss": 92.69440111140653,
+    "bayesian_entropy_scalar_v1": {
+      "final_loss": 5.500494086300885,
+      "posterior_nll": 5.4858120953595195,
+      "terminal_bce": 0.14653661670508208
+    },
+    "bayesian_entropy_hidden_delta_v1": {
+      "final_loss": 5.517577181922065,
+      "posterior_nll": 5.502538575066461,
+      "terminal_bce": 0.1501754461615174
+    }
+  },
+  "registry": {
+    "status": "pass",
+    "primary_method": "bayesian_entropy_scalar_v1",
+    "checkpoint_registry_sha256": "c58a1d3d00b024da4c7db1a53ea6c3a19827992a2f0547c40a26cadb6ed0dd4a",
+    "checkpoint_sha256": {
+      "alps_prior.json": "7a2d703fa4779590b150ff38e54ad4afea3aa0a10e73411aee1664a8e931c998",
+      "prompt_token_ridge_countdown.json": "f8f24a4567187ff084761bdbe897db6429bb66f1f69eeef46ecaa3c27a803220",
+      "dynamic_signal_mlp_v1.json": "6d3e42643ff43505296d3d947c69ad58734061476479cd7c78c04b8846484734",
+      "plp_terminal_zero_v3.pt": "6b2e25de12e11da5eefa95a85ffc1756525bc9c5c7e73e00a1870e995215a9e9",
+      "alps_plp_concat_v1.pt": "74bae636fa9388d2aff129f6ebaf3003fa8c40f2a262ff802da1038233ce5e23",
+      "bayesian_entropy_scalar_v1.pt": "97f192584bd5525ffaad54de19aa4b358a7e8e690454436676ff12f4d3ee784d",
+      "bayesian_entropy_hidden_delta_v1.pt": "2b3f266c2577899405f7bd1f26f3b2f8f33a993b1c68d36e3cbed2e898bdffdf"
+    },
+    "all_models_loaded_on_cpu": true,
+    "all_downloaded_files_sha256_verified": true
+  },
+  "archive": {
+    "filename": "bayesian_stage8a_final_models.tar.gz",
+    "sha256": "1c5448d55b95ab63d5ea17e91efc8d0c031908e5fd32122018d217a941133c3e",
+    "outer_sha256_verified": true,
+    "internal_sha256_verified": true
+  },
+  "scientific_controls": {
+    "selected_primary_method": "bayesian_entropy_scalar_v1",
+    "hyperparameter_selection_performed": false,
+    "final_holdout_opened": false,
+    "final_holdout_accessed": false,
+    "training_diagnostics_are_not_final_holdout_claims": true
+  }
+}

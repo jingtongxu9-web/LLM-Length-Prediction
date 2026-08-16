@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "review_id": "bayesian-sequential-v1-stage8b-semantic-overlap-review",
+  "status": "pass",
+  "candidate_manifest": "data/prompts/bayesian_sequential_v1_final_holdout.jsonl",
+  "candidate_manifest_sha256": "748e9c2225586a02165c2b65b127fd223bfc23170e0f45d5f6f40a356a249278",
+  "stage8a_config_sha256": "3bd35b8c823b43f38c2fb7ee02ac42f003313ee75f9954dc9fdc965254f090d4",
+  "manual_review": "configs/reviews/bayesian_sequential_stage8b_semantic_review_v1.json",
+  "manual_review_sha256": "4a5004590ba4755509159038c04b26e74f028245f99003a55cfafee00ec4d2df",
+  "opened_manifests": [
+    {
+      "path": "data/prompts/alps_plp_hybrid_v3_prompts.jsonl",
+      "sha256": "1b4c42acfbefe274d14777d1e42426488965d199a8f1289a836caa65a73c2038"
+    },
+    {
+      "path": "data/prompts/alps_v1_prompts.jsonl",
+      "sha256": "0441d564a3f911cfd16e408bc355e9efc682b045ef91825b2246357b373393f9"
+    }
+  ],
+  "opened_record_count": 396,
+  "opened_unique_family_count": 72,
+  "candidate_grid": {
+    "prompt_count": 36,
+    "family_count": 12,
+    "task_counts": {
+      "code": 12,
+      "qa": 12,
+      "summarization": 12
+    },
+    "task_length_cells": {
+      "code:long": 4,
+      "code:medium": 4,
+      "code:short": 4,
+      "qa:long": 4,
+      "qa:medium": 4,
+      "qa:short": 4,
+      "summarization:long": 4,
+      "summarization:medium": 4,
+      "summarization:short": 4
+    }
+  },
+  "exact_overlap": {
+    "prompt_id_overlap": [],
+    "prompt_family_id_overlap": [],
+    "normalized_prompt_overlap_count": 0
+  },
+  "similarity_thresholds": {
+    "maximum_sequence_ratio": 0.7,
+    "maximum_trigram_jaccard": 0.4
+  },
+  "family_results": [
+    {
+      "prompt_family_id": "final_code_001_packet_reassembler",
+      "status": "pass",
+      "maximum_sequence_ratio": 0.23376623376623376,
+      "nearest_sequence_record": "alps_plp_hybrid_v3_prompts.jsonl:code_007_ttl_cache_short",
+      "nearest_sequence_family": "code_007_ttl_cache",
+      "maximum_trigram_jaccard": 0.046153846153846156,
+      "nearest_trigram_record": "alps_plp_hybrid_v3_prompts.jsonl:code_016_inventory_allocator_short",
+      "nearest_trigram_family": "code_016_inventory_allocator"
+    },
+    {
+      "prompt_family_id": "final_code_002_sparse_matrix",
+      "status": "pass",
+      "maximum_sequence_ratio": 0.3076923076923077,
+      "nearest_sequence_record": "alps_plp_hybrid_v3_prompts.jsonl:hybrid_v3_code_001_interval_set_short",
+      "nearest_sequence_family": "hybrid_v3_code_001_interval_set",
+      "maximum_trigram_jaccard": 0.0392156862745098,
+      "nearest_trigram_record": "alps_plp_hybrid_v3_prompts.jsonl:code_004_rate_limiter_short",
+      "nearest_trigram_family": "code_004_rate_limiter"
+    },
+    {
+      "prompt_family_id": "final_code_003_geohash_index",
+      "status": "pass",
+      "maximum_sequence_ratio": 0.3103448275862069,
+      "nearest_sequence_record": "alps_plp_hybrid_v3_prompts.jsonl:code_012_circuit_breaker_short",
+      "nearest_sequence_family": "code_012_circuit_breaker",
+      "maximum_trigram_jaccard": 0.075,
+      "nearest_trigram_record": "alps_plp_hybrid_v3_prompts.jsonl:code_016_inventory_allocator_short",
+      "nearest_trigram_family": "code_016_inventory_allocator"
+    },
+    {
+      "prompt_family_id": "final_code_004_rollback_union_find",
+      "status": "pass",
+      "maximum_sequence_ratio": 0.34285714285714286,
+      "nearest_sequence_record": "alps_plp_hybrid_v3_prompts.jsonl:code_001_lru_cache_short",
+      "nearest_sequence_family": "code_001_lru_cache",
+      "maximum_trigram_jaccard": 0.06779661016949153,
+      "nearest_trigram_record": "alps_plp_hybrid_v3_prompts.jsonl:code_017_permission_checker_short",
+      "nearest_trigram_family": "code_017_permission_checker"
+    },
+    {
+      "prompt_family_id": "final_qa_001_gravitational_lensing",
+      "status": "pass",
+      "maximum_sequence_ratio": 0.2926829268292683,
+      "nearest_sequence_record": "alps_plp_hybrid_v3_prompts.jsonl:qa_012_cache_consistency_short",
+      "nearest_sequence_family": "qa_012_cache_consistency",
+      "maximum_trigram_jaccard": 0.05714285714285714,
+      "nearest_trigram_record": "alps_plp_hybrid_v3_prompts.jsonl:qa_012_cache_consistency_short",
+      "nearest_trigram_family": "qa_012_cache_consistency"
+    },
+    {
+      "prompt_family_id": "final_qa_002_circadian_clock",
+      "status": "pass",
+      "maximum_sequence_ratio": 0.2692307692307692,
+      "nearest_sequence_record": "alps_plp_hybrid_v3_prompts.jsonl:qa_011_public_key_crypto_short",
+      "nearest_sequence_family": "qa_011_public_key_crypto",
+      "maximum_trigram_jaccard": 0.06666666666666667,
+      "nearest_trigram_record": "alps_plp_hybrid_v3_prompts.jsonl:qa_011_public_key_crypto_short",
+      "nearest_trigram_family": "qa_011_public_key_crypto"
+    },
+    {
+      "prompt_family_id": "final_qa_003_error_correcting_codes",
+      "status": "pass",
+      "maximum_sequence_ratio": 0.16666666666666666,
+      "nearest_sequence_record": "alps_plp_hybrid_v3_prompts.jsonl:qa_012_cache_consistency_short",
+      "nearest_sequence_family": "qa_012_cache_consistency",
+      "maximum_trigram_jaccard": 0.044444444444444446,
+      "nearest_trigram_record": "alps_plp_hybrid_v3_prompts.jsonl:qa_007_database_index_short",
+      "nearest_trigram_family": "qa_007_database_index"
+    },
+    {
+      "prompt_family_id": "final_qa_004_equal_temperament",
+      "status": "pass",
+      "maximum_sequence_ratio": 0.24489795918367346,
+      "nearest_sequence_record": "alps_plp_hybrid_v3_prompts.jsonl:qa_007_database_index_short",
+      "nearest_sequence_family": "qa_007_database_index",
+      "maximum_trigram_jaccard": 0.024390243902439025,
+      "nearest_trigram_record": "alps_plp_hybrid_v3_prompts.jsonl:qa_003_tcp_handshake_short",
+      "nearest_trigram_family": "qa_003_tcp_handshake"
+    },
+    {
+      "prompt_family_id": "final_summarization_001_city_night_noise",
+      "status": "pass",
+      "maximum_sequence_ratio": 0.1375,
+      "nearest_sequence_record": "alps_plp_hybrid_v3_prompts.jsonl:summarization_001_urban_transit_short",
+      "nearest_sequence_family": "summarization_001_urban_transit",
+      "maximum_trigram_jaccard": 0.01937046004842615,
+      "nearest_trigram_record": "alps_plp_hybrid_v3_prompts.jsonl:summarization_017_waste_sorting_short",
+      "nearest_trigram_family": "summarization_017_waste_sorting"
+    },
+    {
+      "prompt_family_id": "final_summarization_002_court_interpretation",
+      "status": "pass",
+      "maximum_sequence_ratio": 0.11581291759465479,
+      "nearest_sequence_record": "alps_plp_hybrid_v3_prompts.jsonl:summarization_009_data_center_energy_short",
+      "nearest_sequence_family": "summarization_009_data_center_energy",
+      "maximum_trigram_jaccard": 0.016241299303944315,
+      "nearest_trigram_record": "alps_plp_hybrid_v3_prompts.jsonl:summarization_009_data_center_energy_short",
+      "nearest_trigram_family": "summarization_009_data_center_energy"
+    },
+    {
+      "prompt_family_id": "final_summarization_003_animal_foster_network",
+      "status": "pass",
+      "maximum_sequence_ratio": 0.11842105263157894,
+      "nearest_sequence_record": "alps_plp_hybrid_v3_prompts.jsonl:summarization_004_community_eldercare_short",
+      "nearest_sequence_family": "summarization_004_community_eldercare",
+      "maximum_trigram_jaccard": 0.01699029126213592,
+      "nearest_trigram_record": "alps_plp_hybrid_v3_prompts.jsonl:summarization_011_vocational_training_short",
+      "nearest_trigram_family": "summarization_011_vocational_training"
+    },
+    {
+      "prompt_family_id": "final_summarization_004_tool_library",
+      "status": "pass",
+      "maximum_sequence_ratio": 0.12064965197215777,
+      "nearest_sequence_record": "alps_plp_hybrid_v3_prompts.jsonl:summarization_011_vocational_training_short",
+      "nearest_sequence_family": "summarization_011_vocational_training",
+      "maximum_trigram_jaccard": 0.015228426395939087,
+      "nearest_trigram_record": "alps_plp_hybrid_v3_prompts.jsonl:summarization_017_waste_sorting_short",
+      "nearest_trigram_family": "summarization_017_waste_sorting"
+    }
+  ],
+  "failed_families": [],
+  "manual_topic_review_complete": true,
+  "prompt_semantic_overlap_review_complete": true,
+  "final_holdout_opened": false,
+  "final_holdout_accessed": false
+}

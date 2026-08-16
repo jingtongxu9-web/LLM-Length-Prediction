@@ -20,7 +20,8 @@ censoring、temperature robustness、OOF 选择和 final holdout 边界。当前
 `phase1_approved_for_implementation`。第二阶段 CPU 核心、第三阶段真实 Qwen pilot 和第四阶段
 1,620 条 full-Train 采集与本地逐文件复验均已完成；第五阶段五折 family-grouped OOF 已按冻结
 合同完成，预注册规则选择 `bayesian_entropy_scalar_v1`；第六阶段分析与第七阶段 OOF error
-feedback 也已完成。结果见
+feedback、Stage-8A 最终拟合和 Stage-8B 锁定准备也已完成；ready lock 在合并前仍不能采集。
+结果见
 [`../docs/results/bayesian_sequential/stage5_oof_20260812.md`](../docs/results/bayesian_sequential/stage5_oof_20260812.md)。
 现有旧 PLP/Hybrid 只作为 baseline 或消融，不能替代 proposed method。
 
@@ -73,6 +74,8 @@ ID. Do not edit the v1 manifest after viewing final-test results.
 | `experiments/bayesian_sequential_stage7_error_feedback_v1.json` | 第七阶段 `>100 token`、最差 5% 与冻结 trace 标签；语义标签进入人工复核 | Yes，只读 Train-family OOF，不 refit |
 | `experiments/bayesian_sequential_stage8a_freeze_v1.json` | 第八阶段最终 Train 拟合、七方法 registry、final benchmark 指标和失败关闭门禁 | Yes；Stage-8A 不读取 holdout |
 | `experiments/bayesian_sequential_stage8b_lock_v1.template.json` | 故意不可执行的盲测锁模板；需在模型、提交和新 manifest 全部冻结后另建 ready lock | No；模板不能解锁 |
+| `experiments/bayesian_sequential_stage8b_lock_v1.json` | 已填充的一次性盲测锁；固定合并提交、七个模型、registry、新 manifest 和审计报告哈希 | Yes；仅在该文件合并到 `main` 后解锁 |
+| `reviews/bayesian_sequential_stage8b_semantic_review_v1.json` | 12 个新 family 相对 72 个已打开 family 的逐主题人工复核记录与相似度阈值 | Yes；由 candidate audit 读取 |
 | `reports/bayesian_sequential_pilot_report_schema.json` | 第三阶段 pilot acceptance 的冻结 JSON Schema | Yes |
 | `reports/bayesian_sequential_full_train_report_schema.json` | 第四阶段 full-Train 进度与最终验收 JSON Schema | Yes |
 | `reports/bayesian_sequential_stage6_report_schema.json` | 第六阶段派生报告的冻结边界与 final-holdout 禁止项 | Yes |

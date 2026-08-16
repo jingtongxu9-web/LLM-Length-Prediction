@@ -203,7 +203,8 @@ holdout 后再修补。
 
 ## 10. 阶段八：一次性 final benchmark
 
-状态：**Stage-8A 代码已实现，等待冻结分支合并及 RTX 4090 最终模型训练；Stage-8B 仍阻塞。**
+状态：**Stage-8A 最终模型训练与复验已完成；Stage-8B ready lock、36 条新 Prompt 和重叠审计
+已准备，等待锁定分支合并。合并前仍禁止采集。**
 
 在以下内容全部冻结后才创建并打开新 family holdout：
 
@@ -220,8 +221,9 @@ holdout 后再修补。
 robustness 和 serving replay。Final holdout 不选择任何模型或阈值。
 
 Stage-8A 已冻结 540 条主温度 Train trace 的最终拟合、七方法 checkpoint registry、实现文件
-SHA-256、报告 schema，以及默认失败关闭的 Stage-8B lock。Stage-8B 只会在最终模型哈希、远端
-main 提交、新 family manifest 和人工语义重叠复核全部固定后解锁。执行手册见
+SHA-256 和报告 schema。Stage-8B ready lock 已固定最终模型哈希、远端 main 提交、新 family
+manifest、外层 preflight 和人工语义重叠复核；只有锁定分支合并且服务器处于干净的当前
+`origin/main` 时才解锁。执行手册见
 [`../deployment/bayesian_sequential_stage8_final_benchmark.md`](../deployment/bayesian_sequential_stage8_final_benchmark.md)。
 
 ## 11. 明确禁止事项

@@ -9,8 +9,8 @@
 2. **Stage-8B**：Stage-8A 分支合并、最终模型哈希冻结、12 个新 family 经过独立语义重叠
    复核后，才创建 ready lock，随后一次性采集 324 条 final-holdout trace 并评测。
 
-在 Stage-8B lock 变为 `ready_for_one_time_final_holdout` 之前，不创建、不读取、不采集新的
-final holdout。模板文件故意保持不可运行状态。
+Stage-8B candidate、审计证据和 ready lock 现已在锁定分支生成；模板文件仍故意保持不可运行。
+锁定分支合并到 `main` 且服务器外层 preflight 通过之前，不读取或采集新的 final holdout。
 
 ## Stage-8A：服务器最终训练
 
@@ -67,16 +67,19 @@ sha256sum \
 输出目录包含 ALPS prior、Prompt Ridge、Dynamic MLP、PLP v3、concat v1、Bayesian scalar、
 Bayesian hidden-delta 以及训练报告。不得只保留 scalar；七方法最终对比需要完整 registry。
 
-## Stage-8B：仍然默认阻塞
+## Stage-8B：ready lock 的合并边界
 
-此时执行下面命令应当失败，这是正确行为：
+Stage-8A 结果带回本地后，先在隔离于模型拟合和选择的流程中执行：
 
 ```bash
-python scripts/preflight_bayesian_final_holdout_gate.py \
-  --verify-model-loading
+python scripts/audit_bayesian_stage8b_candidate.py
+python scripts/finalize_bayesian_stage8b_lock.py
 ```
 
-在以下内容全部完成前，不修改失败状态：
+审计同时覆盖所有历史 JSONL manifest 的 exact ID、family、规范化全文，以及去掉长度模板后的
+字符序列与 trigram 相似度；逐 family 人工主题判断另存于
+`configs/reviews/bayesian_sequential_stage8b_semantic_review_v1.json`。生成器只有在以下内容全部
+通过时才写 `bayesian_sequential_stage8b_lock_v1.json`：
 
 - Stage-8A 代码已合并到远端 `main`；
 - checkpoint registry 及每个模型 SHA-256 已带回并复验；
@@ -86,6 +89,18 @@ python scripts/preflight_bayesian_final_holdout_gate.py \
   manifest 哈希；
 - `prompt_semantic_overlap_review_complete=true`，同时仍保持
   `final_holdout_opened=false` 和 `final_holdout_selects_nothing=true`。
+
+ready lock 在功能分支上出现不代表可以采集。`load_final_holdout_contract` 还要求工作区干净且
+`HEAD == origin/main`，因此必须先审查并合并锁定分支。合并后，4090 服务器重新拉取 `main`、
+恢复 Stage-8A final-model 目录，并运行：
+
+```bash
+python scripts/preflight_bayesian_stage8b_ready.py \
+  --verify-model-loading
+```
+
+只有报告同时显示 `ready=true`、七模型成功恢复、`final_holdout_opened=false` 和
+`final_holdout_accessed=false`，才进入下面的一次性采集入口。
 
 ## 解锁后的唯一采集与评测入口
 
